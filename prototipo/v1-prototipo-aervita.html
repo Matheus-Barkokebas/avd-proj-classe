@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vigidesastres · Painel Situacional</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --gov-dark:#071d41;
+    --gov-blue:#1351b4;
+    --gov-blue-hover:#0d3f8f;
+    --bg:#f4f6f8;
+    --surface:#ffffff;
+    --border:#d5d9de;
+    --border-strong:#b6bcc4;
+    --text-strong:#1a1e24;
+    --text:#333c44;
+    --text-muted:#5f6b76;
+    --text-faint:#8994a0;
+
+    --risk-baixo-fg:#0f6e1c;
+    --risk-baixo-bg:#e3f3e4;
+    --risk-moderado-fg:#8a6100;
+    --risk-moderado-bg:#fdf1d6;
+    --risk-alto-fg:#b04e00;
+    --risk-alto-bg:#fce6d6;
+    --risk-critico-fg:#a3160e;
+    --risk-critico-bg:#fbdedc;
+
+    --font-sans:'Public Sans', -apple-system, sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{-webkit-font-smoothing:antialiased;}
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-sans);
+    font-size:14px;
+    line-height:1.5;
+  }
+
+  a{color:var(--gov-blue);}
+
+  /* ================= HEADER ================= */
+  .gov-strip{
+    background:var(--gov-dark); color:#c9d4e3;
+    font-size:11.5px; letter-spacing:0.03em; font-weight:500;
+    padding:6px 32px;
+  }
+  .gov-strip .inner{max-width:1280px; margin:0 auto; display:flex; justify-content:space-between;}
+
+  header.appbar{
+    background:var(--gov-dark);
+    padding:16px 32px 18px;
+    border-bottom:3px solid var(--gov-blue);
+  }
+  header.appbar .inner{
+    max-width:1280px; margin:0 auto;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .brand{display:flex; align-items:center; gap:14px;}
+  .brand .mark{
+    width:42px; height:42px; background:var(--gov-blue); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; letter-spacing:-0.02em; border-radius:4px;
+    flex-shrink:0;
+  }
+  .brand .titles h1{
+    color:#ffffff; font-size:17px; font-weight:700; letter-spacing:0.01em;
+  }
+  .brand .titles p{color:#a9b8cc; font-size:12px; margin-top:2px; font-weight:400;}
+
+  .appbar-right{display:flex; align-items:center; gap:20px;}
+  .appbar-clock{text-align:right; font-family:var(--font-mono); font-size:11.5px; color:#a9b8cc; line-height:1.5;}
+  .appbar-clock b{color:#fff; font-weight:500; font-size:13px; display:block;}
+
+  /* ================= PAGE ================= */
+  .page{max-width:1280px; margin:0 auto; padding:24px 32px 60px;}
+
+  .page-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    margin-bottom:20px; flex-wrap:wrap; gap:10px;
+  }
+  .breadcrumb{font-size:12px; color:var(--text-faint); margin-bottom:4px;}
+  .breadcrumb b{color:var(--text-muted); font-weight:600;}
+  .page-title{font-size:21px; font-weight:700; color:var(--text-strong);}
+
+  .status-chip{
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:12px; font-weight:600; padding:6px 12px;
+    border-radius:4px; border:1px solid;
+  }
+  .status-chip.moderado{color:var(--risk-moderado-fg); background:var(--risk-moderado-bg); border-color:#f0d998;}
+  .status-chip .dot{width:6px; height:6px; border-radius:50%; background:currentColor;}
+
+  /* ================= KPI ROW ================= */
+  .kpi-row{
+    display:grid; grid-template-columns:repeat(4, 1fr); gap:1px;
+    background:var(--border); border:1px solid var(--border);
+    margin-bottom:22px; border-radius:6px; overflow:hidden;
+  }
+  .kpi{background:var(--surface); padding:16px 18px;}
+  .kpi .kpi-label{font-size:11px; color:var(--text-muted); font-weight:600; text-transform:uppercase; letter-spacing:0.04em;}
+  .kpi .kpi-value{font-family:var(--font-mono); font-size:26px; font-weight:600; color:var(--text-strong); margin-top:8px;}
+  .kpi .kpi-value small{font-size:13px; color:var(--text-muted); font-weight:400; margin-left:2px;}
+  .kpi .kpi-delta{font-size:11.5px; margin-top:7px; font-weight:500;}
+  .kpi .kpi-delta.up{color:var(--risk-alto-fg);}
+  .kpi .kpi-delta.down{color:var(--risk-baixo-fg);}
+
+  /* ================= PANELS ================= */
+  .grid{display:grid; grid-template-columns:1.55fr 1fr; gap:18px; margin-bottom:18px; align-items:start;}
+
+  .panel{
+    background:var(--surface); border:1px solid var(--border); border-radius:6px;
+  }
+  .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:13px 18px; border-bottom:1px solid var(--border);
+  }
+  .panel-head h2{font-size:13px; font-weight:700; color:var(--text-strong);}
+  .panel-head .meta{font-size:10.5px; color:var(--text-faint); font-weight:600; text-transform:uppercase; letter-spacing:0.03em; border:1px solid var(--border); padding:3px 8px; border-radius:3px;}
+  .panel-body{padding:16px 18px;}
+
+  /* ---- district table ---- */
+  table.districts{width:100%; border-collapse:collapse; font-size:12.5px;}
+  table.districts thead th{
+    text-align:left; font-size:10.5px; font-weight:700; color:var(--text-muted);
+    text-transform:uppercase; letter-spacing:0.03em; padding:0 10px 8px;
+    border-bottom:1px solid var(--border);
+  }
+  table.districts tbody td{padding:10px; border-bottom:1px solid #edeff2; vertical-align:middle;}
+  table.districts tbody tr{cursor:pointer; transition:background .12s ease;}
+  table.districts tbody tr:hover{background:#f7f9fb;}
+  table.districts tbody tr.active{background:#eaf1fc;}
+  table.districts tbody tr:last-child td{border-bottom:none;}
+  .ds-code{font-family:var(--font-mono); color:var(--text-muted); font-size:11.5px;}
+  .ds-name{font-weight:600; color:var(--text-strong);}
+  .risk-chip{
+    display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:3px;
+    letter-spacing:0.02em;
+  }
+  .risk-chip.baixo{color:var(--risk-baixo-fg); background:var(--risk-baixo-bg);}
+  .risk-chip.moderado{color:var(--risk-moderado-fg); background:var(--risk-moderado-bg);}
+  .risk-chip.alto{color:var(--risk-alto-fg); background:var(--risk-alto-bg);}
+  .risk-chip.critico{color:var(--risk-critico-fg); background:var(--risk-critico-bg);}
+  .num-cell{font-family:var(--font-mono); color:var(--text);}
+  .occ-cell{color:var(--text-muted); font-size:12px;}
+
+  .district-note{
+    margin-top:14px; padding:12px 14px; background:#f7f9fb; border:1px solid var(--border);
+    border-radius:4px; font-size:12px; color:var(--text-muted); display:flex; gap:10px; align-items:flex-start;
+  }
+  .district-note b{color:var(--text-strong);}
+  .district-note .icon{color:var(--gov-blue); font-weight:700; font-family:var(--font-mono); flex-shrink:0;}
+
+  /* ---- alerts ---- */
+  .alerts-list{list-style:none; display:flex; flex-direction:column;}
+  .alert-item{padding:12px 18px; border-bottom:1px solid #edeff2; border-left:3px solid;}
+  .alert-item:last-child{border-bottom:none;}
+  .alert-item.critico{border-left-color:var(--risk-critico-fg);}
+  .alert-item.alto{border-left-color:var(--risk-alto-fg);}
+  .alert-item.moderado{border-left-color:var(--risk-moderado-fg);}
+  .alert-item .a-top{display:flex; justify-content:space-between; gap:8px; margin-bottom:3px;}
+  .alert-item .a-title{font-weight:600; color:var(--text-strong); font-size:12.5px;}
+  .alert-item .a-time{font-family:var(--font-mono); font-size:10.5px; color:var(--text-faint); white-space:nowrap;}
+  .alert-item .a-desc{color:var(--text-muted); font-size:12px; line-height:1.5;}
+
+  /* ---- charts ---- */
+  .chart-block{margin-bottom:20px;}
+  .chart-block:last-child{margin-bottom:0;}
+  .chart-label{display:flex; justify-content:space-between; font-size:11.5px; color:var(--text-muted); font-weight:600; margin-bottom:8px;}
+  .chart-label span.unit{font-family:var(--font-mono); color:var(--text-faint); font-weight:400;}
+  .bars{display:flex; align-items:flex-end; gap:6px; height:52px; border-bottom:1px solid var(--border); padding-bottom:1px;}
+  .bars .bar{flex:1; background:var(--gov-blue); opacity:0.85;}
+  .bars .bar.hot{background:var(--risk-alto-fg); opacity:0.8;}
+  .bars-x{display:flex; gap:6px; margin-top:5px;}
+  .bars-x span{flex:1; text-align:center; font-size:9.5px; color:var(--text-faint); font-family:var(--font-mono);}
+
+  /* ---- bulletin ---- */
+  .bulletin-panel{grid-column:span 2;}
+  .btn-gov{
+    font-family:var(--font-sans); font-size:12.5px; font-weight:600; color:#fff;
+    background:var(--gov-blue); border:none; padding:9px 16px; border-radius:4px; cursor:pointer;
+    transition:background .12s ease;
+  }
+  .btn-gov:hover{background:var(--gov-blue-hover);}
+  .btn-gov:disabled{background:#9aa7b8; cursor:default;}
+  .bulletin-output{
+    background:#fbfcfd; border:1px solid var(--border); border-radius:4px;
+    padding:16px 18px; font-family:var(--font-mono); font-size:12px; line-height:1.75; color:var(--text);
+    min-height:80px; white-space:pre-wrap;
+  }
+  .bulletin-output .bl-title{color:var(--text-strong); font-weight:600;}
+  .bulletin-placeholder{color:var(--text-faint); font-family:var(--font-sans); font-size:12.5px;}
+  .caret{display:inline-block; width:6px; height:11px; background:var(--gov-blue); vertical-align:middle; animation:blink 0.9s steps(1) infinite;}
+  @keyframes blink{50%{opacity:0;}}
+
+  /* ================= FOOTER ================= */
+  footer{
+    background:var(--gov-dark); padding:18px 32px; margin-top:8px;
+  }
+  footer .inner{max-width:1280px; margin:0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;}
+  footer p{font-size:11px; color:#8fa0ba; line-height:1.6; max-width:760px;}
+  footer .tag{font-size:10.5px; color:#c9d4e3; font-weight:600; letter-spacing:0.03em; border:1px solid #2b4266; padding:4px 9px; border-radius:3px;}
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr;}
+    .bulletin-panel{grid-column:auto;}
+    .kpi-row{grid-template-columns:repeat(2,1fr);}
+    table.districts thead{display:none;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="gov-strip"><div class="inner"><span>PREFEITURA DO RECIFE</span><span>Secretaria de Saúde · Vigilância em Saúde</span></div></div>
+
+  <header class="appbar">
+    <div class="inner">
+      <div class="brand">
+        <div class="mark">VD</div>
+        <div class="titles">
+          <h1>Vigidesastres — Painel Situacional</h1>
+          <p>Preparação e Resposta a Emergências Climáticas</p>
+        </div>
+      </div>
+      <div class="appbar-right">
+        <div class="appbar-clock">ATUALIZADO EM<b id="clock">--:--:--</b></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="page">
+
+    <div class="page-head">
+      <div>
+        <div class="breadcrumb"><b>Vigidesastres</b> › Painel Situacional › Recife</div>
+        <div class="page-title">Cenário Situacional — Emergências Climáticas</div>
+      </div>
+      <div class="status-chip moderado"><span class="dot"></span>NÍVEL DE RISCO: MODERADO</div>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="kpi-label">Chuva acumulada · 24h</div>
+        <div class="kpi-value">86<small>mm</small></div>
+        <div class="kpi-delta up">▲ 34% acima da média histórica</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Distritos em atenção</div>
+        <div class="kpi-value">3<small>de 8</small></div>
+        <div class="kpi-delta up">DS I · DS IV · DS VI</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Alertas ativos</div>
+        <div class="kpi-value">4</div>
+        <div class="kpi-delta up">▲ 1 novo nas últimas 3h</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">População em áreas de risco</div>
+        <div class="kpi-value">12,4<small>mil hab.</small></div>
+        <div class="kpi-delta down">▼ estável em relação a ontem</div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Situação por Distrito Sanitário</h2>
+          <span class="meta">dados simulados</span>
+        </div>
+        <div class="panel-body">
+          <table class="districts">
+            <thead>
+              <tr>
+                <th>Distrito</th><th>Risco</th><th>Chuva 24h</th><th>Pop. exposta</th><th>Ocorrência</th>
+              </tr>
+            </thead>
+            <tbody id="districtsBody"></tbody>
+          </table>
+          <div class="district-note" id="districtNote"></div>
+        </div>
+      </section>
+
+      <aside class="panel">
+        <div class="panel-head"><h2>Alertas Ativos</h2></div>
+        <ul class="alerts-list" id="alertsList"></ul>
+      </aside>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Indicadores em Tempo Real</h2>
+          <span class="meta">7 dias</span>
+        </div>
+        <div class="panel-body">
+          <div class="chart-block">
+            <div class="chart-label"><span>Volume de chuva diário</span><span class="unit">mm/dia</span></div>
+            <div class="bars" id="chartRain"></div>
+            <div class="bars-x"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
+          </div>
+          <div class="chart-block">
+            <div class="chart-label"><span>Notificações de arboviroses</span><span class="unit">casos/dia</span></div>
+            <div class="bars" id="chartCases"></div>
+            <div class="bars-x"><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span><span>D</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel bulletin-panel">
+        <div class="panel-head">
+          <h2>Boletim Situacional Automático</h2>
+          <button class="btn-gov" id="genBtn">Gerar boletim agora</button>
+        </div>
+        <div class="panel-body">
+          <div class="bulletin-output" id="bulletinOutput"><span class="bulletin-placeholder">Clique em "Gerar boletim agora" para consolidar automaticamente os dados meteorológicos, epidemiológicos e territoriais do momento em um boletim pronto para distribuição.</span></div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+
+  <footer>
+    <div class="inner">
+      <p>Protótipo visual — Projeto 5, CESAR School. Todos os dados exibidos são simulados para fins de demonstração. A integração com fontes reais (INMET, CEMADEN, SIVEP, sistemas municipais) é a próxima etapa do desenvolvimento.</p>
+      <span class="tag">AMBIENTE DE DEMONSTRAÇÃO</span>
+    </div>
+  </footer>
+
+<script>
+  function tick(){
+    document.getElementById('clock').textContent = new Date().toLocaleTimeString('pt-BR');
+  }
+  tick(); setInterval(tick, 1000);
+
+  const districts = [
+    { code:'DS I',   name:'Centro',            risk:'moderado', chuva:62,  pop:'1.850', ocorrencias:'2 alagamentos pontuais' },
+    { code:'DS II',  name:'Norte',              risk:'baixo',    chuva:28,  pop:'420',   ocorrencias:'Sem ocorrências' },
+    { code:'DS III', name:'Noroeste',           risk:'baixo',    chuva:31,  pop:'510',   ocorrencias:'Sem ocorrências' },
+    { code:'DS IV',  name:'Oeste',              risk:'alto',     chuva:94,  pop:'3.100', ocorrencias:'Deslizamento em encosta — monitorado' },
+    { code:'DS V',   name:'Sudoeste',           risk:'moderado', chuva:58,  pop:'1.200', ocorrencias:'Ruas com acúmulo de água' },
+    { code:'DS VI',  name:'Sul (Boa Viagem)',   risk:'critico',  chuva:112, pop:'4.780', ocorrencias:'Inundação ativa — remoção em curso' },
+    { code:'DS VII', name:'Ibura',              risk:'moderado', chuva:71,  pop:'980',   ocorrencias:'Vias de acesso comprometidas' },
+    { code:'DS VIII',name:'Casa Amarela',       risk:'baixo',    chuva:19,  pop:'350',   ocorrencias:'Sem ocorrências' },
+  ];
+
+  const body = document.getElementById('districtsBody');
+  const note = document.getElementById('districtNote');
+
+  function showNote(d){
+    note.innerHTML = `<span class="icon">i</span><span><b>${d.code} — ${d.name}.</b> ${d.ocorrencias}. População exposta estimada em ${d.pop} habitantes, com ${d.chuva}mm de chuva acumulada nas últimas 24 horas.</span>`;
+  }
+
+  districts.forEach((d, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="ds-code">${d.code}</span> &nbsp;<span class="ds-name">${d.name}</span></td>
+      <td><span class="risk-chip ${d.risk}">${d.risk.toUpperCase()}</span></td>
+      <td class="num-cell">${d.chuva} mm</td>
+      <td class="num-cell">${d.pop}</td>
+      <td class="occ-cell">${d.ocorrencias}</td>
+    `;
+    tr.addEventListener('click', () => {
+      document.querySelectorAll('table.districts tbody tr').forEach(x => x.classList.remove('active'));
+      tr.classList.add('active');
+      showNote(d);
+    });
+    body.appendChild(tr);
+    if (i === 5) { tr.classList.add('active'); }
+  });
+  showNote(districts[5]);
+
+  const alerts = [
+    { level:'critico',  title:'Inundação — DS VI (Boa Viagem)', time:'há 24 min', desc:'Nível do canal acima da cota de alerta. Equipes de campo acionadas.' },
+    { level:'alto',     title:'Risco de deslizamento — DS IV',  time:'há 1h 10min', desc:'Solo saturado após 94mm de chuva acumulada em 24h.' },
+    { level:'moderado', title:'Aumento de notificações de dengue — DS VII', time:'há 3h', desc:'Alta de 18% nas notificações da semana epidemiológica.' },
+    { level:'moderado', title:'Previsão de nova frente de chuva', time:'há 5h', desc:'INMET indica volume adicional de 40–60mm nas próximas 12h.' },
+  ];
+  const alertsList = document.getElementById('alertsList');
+  alerts.forEach(a => {
+    const li = document.createElement('li');
+    li.className = `alert-item ${a.level}`;
+    li.innerHTML = `<div class="a-top"><span class="a-title">${a.title}</span><span class="a-time">${a.time}</span></div><div class="a-desc">${a.desc}</div>`;
+    alertsList.appendChild(li);
+  });
+
+  function buildBars(containerId, values, max, hotClass){
+    const c = document.getElementById(containerId);
+    values.forEach(v => {
+      const bar = document.createElement('div');
+      bar.className = 'bar' + (hotClass ? ' hot' : '');
+      bar.style.height = '0px';
+      c.appendChild(bar);
+      requestAnimationFrame(() => { setTimeout(() => { bar.style.height = (v / max * 52) + 'px'; }, 60); });
+    });
+  }
+  buildBars('chartRain', [12, 8, 22, 15, 40, 86, 51], 90, false);
+  buildBars('chartCases', [4, 6, 5, 9, 12, 15, 14], 18, true);
+
+  const genBtn = document.getElementById('genBtn');
+  const output = document.getElementById('bulletinOutput');
+
+  genBtn.addEventListener('click', () => {
+    genBtn.disabled = true;
+    output.innerHTML = '<span class="bulletin-placeholder">Consolidando dados meteorológicos, epidemiológicos e territoriais<span class="caret"></span></span>';
+
+    setTimeout(() => {
+      const now = new Date();
+      const data = now.toLocaleDateString('pt-BR');
+      const hora = now.toLocaleTimeString('pt-BR');
+      output.innerHTML =
+`<span class="bl-title">BOLETIM SITUACIONAL — VIGIDESASTRES</span>
+Recife/PE · ${data}, ${hora}  (gerado automaticamente)
+
+RESUMO: risco geral MODERADO, com 1 distrito em nível CRÍTICO (DS VI — Boa Viagem)
+e 1 em nível ALTO (DS IV — Oeste). Chuva acumulada 24h: 86mm (34% acima da média).
+
+DESTAQUES:
+· Inundação ativa em DS VI — equipes de campo em atuação
+· Risco de deslizamento monitorado em DS IV
+· Notificações de arboviroses em alta em DS VII (+18% na semana)
+· Nova frente de chuva prevista para as próximas 12h
+
+RECOMENDAÇÃO: manter equipes de resposta mobilizadas em DS VI e DS IV;
+reforçar monitoramento epidemiológico em DS VII.
+
+— Documento de demonstração. Em produção, este boletim seria gerado a partir
+   da integração automática das fontes de dados reais do Vigidesastres.`;
+      genBtn.disabled = false;
+    }, 1100);
+  });
+</script>
+</body>
+</html>
