@@ -117,6 +117,7 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 | [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) | Arquitetura-alvo: fontes, ingestão, camadas medallion, indicadores e entrega |
 | [`docs/HISTORIAS.md`](docs/HISTORIAS.md) | 21 histórias de usuário detalhadas — escopo, critérios de aceitação e notas para IA |
 | [`docs/PLANO-DE-ACAO.md`](docs/PLANO-DE-ACAO.md) | Porta de entrada: ordem das issues, caminho crítico e significado das siglas dos épicos |
+| [`docs/PADROES.md`](docs/PADROES.md) | Convenções do repositório — nomes, datas, particionamento de dados, testes e fluxo Git |
 
 **Gestão do trabalho:** [Issues #5–#31](https://github.com/Matheus-Barkokebas/avd-proj-classe/issues) ·
 [Project **AerVita**](https://github.com/users/Matheus-Barkokebas/projects/1)
@@ -137,14 +138,17 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 ## 🗂️ Estrutura do repositório
 
 ```text
-docs/                       planejamento, arquitetura e histórias
+docs/                       planejamento, arquitetura, histórias e padrões
 prototipo/                  protótipo visual do painel situacional
+src/                        código do pipeline (ingestao, processamento, indicadores, predicao, serving)
+conf/                       configuração declarativa por fonte (sources, contracts, territorio)
+data/                       camadas RAW/Bronze/Silver/Gold  ·  ignorada pelo Git
+notebooks/                  exploração de dados (Data Understanding)
+tests/                      testes automatizados            ·  espelha src/
 extract_dados_recife.py     script inicial de extração (Dados Abertos Recife)
-src/                        código do pipeline            ·  a criar — issue FND-01 (#5)
-conf/                       configuração por fonte         ·  a criar — issue FND-01 (#5)
-data/                       camadas RAW/Bronze/Silver/Gold ·  ignorada pelo Git
-tests/                      testes automatizados           ·  a criar — issue FND-01 (#5)
 ```
+
+> Convenções de código, dados e Git em [`docs/PADROES.md`](docs/PADROES.md).
 
 ---
 
