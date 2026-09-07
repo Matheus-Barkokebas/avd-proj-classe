@@ -218,6 +218,20 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
-# Dados extraidos da API do Dados Recife (regenerar via extract_dados_recife.py)
-data/*
-!data/.gitkeep
+# ---------------------------------------------------------------------------
+# Camadas de dados (RAW / Bronze / Silver / Gold)
+# Sao regeneraveis pelos pipelines - nunca versionar o conteudo.
+# Versiona apenas a estrutura de pastas (.gitkeep) e a documentacao (README.md).
+# ---------------------------------------------------------------------------
+data/**
+!data/**/
+!data/**/.gitkeep
+!data/**/README.md
+
+# Modelos treinados (regeneraveis - ver PRD-*)
+models/
+
+# Segredos / variaveis de ambiente
+.env
+*.env
+!.env.example
