@@ -1,0 +1,15 @@
+# Frequências da fase 1: ARQUITETURA §2.5 e §9; nomes: PADROES §4.
+# Mapa declarativo para o futuro agendador; não inicia serviços automaticamente.
+fuso_horario: America/Recife
+fontes:
+  epidemiologia:
+    periodicidade: diaria
+  ocorrencias:
+    periodicidade: diaria
+    periodicidade_contingencia: horaria
+  territorio:
+    periodicidade: mensal
+  ana_chuva:
+    periodicidade: horaria
+  ana_nivel:
+    periodicidade: horaria
