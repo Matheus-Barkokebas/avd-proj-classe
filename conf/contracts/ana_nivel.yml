@@ -1,0 +1,32 @@
+# Contrato de dados: Nível e cota de rios - API ANA / HidroWeb
+# FND-02 / ING-04 / ARQUITETURA §2.3, §10
+tabela: ana_nivel
+chave_negocio:
+  - codigo_estacao
+  - data_hora_medicao
+campo_data_referencia: data_hora_medicao
+campos:
+  - nome: codigo_estacao
+    tipo: string
+    obrigatorio: true
+    descricao: Código identificador da estação fluviométrica na ANA
+  - nome: data_hora_medicao
+    tipo: datetime
+    obrigatorio: true
+    descricao: Data e hora do registro da medição (fuso America/Recife)
+  - nome: nivel_cm
+    tipo: float
+    obrigatorio: true
+    descricao: Cota / nível do rio medido em centímetros
+  - nome: vazao_m3s
+    tipo: float
+    obrigatorio: false
+    descricao: Vazão estimada do rio em metros cúbicos por segundo (m3/s)
+  - nome: status_leitura
+    tipo: string
+    obrigatorio: false
+    descricao: Consistência do dado medido
+    valores_permitidos:
+      - bruto
+      - consistido
+      - estimado

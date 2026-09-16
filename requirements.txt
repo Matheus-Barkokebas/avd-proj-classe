@@ -1,0 +1,2 @@
+# Dependências de execução (runtime) do projeto
+PyYAML>=6,<7
