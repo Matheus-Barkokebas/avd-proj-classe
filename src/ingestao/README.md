@@ -65,3 +65,52 @@ As frequências estão em [`conf/schedule.yml`](../../conf/schedule.yml).
 A escolha e integração do agendador de produção ficam para uma próxima etapa;
 o runner executa uma fonte por chamada. Bronze e conectores reais permanecem nas
 issues `ING-*`, conforme o campo “Para IA” da FND-03.
+
+## Contratos de Dados (FND-02)
+
+O módulo `contratos.py` fornece validação declarativa de lotes de dados (`list[dict]`)
+contra os schemas definidos em [`conf/contracts/`](../../conf/contracts/).
+Permite falhar cedo na ingestão quando a fonte alterar esquema ou enviar tipos/valores incompatíveis.
+
+### Dependências em runtime
+
+Requer `PyYAML>=6,<7` em ambiente de execução (especificado em `requirements.txt`).
+
+### Como usar
+
+```python
+from src.ingestao.contratos import carregar_contrato, validar
+
+# Carrega o contrato pelo nome da fonte (conf/contracts/<fonte>.yml) ou caminho
+contrato = carregar_contrato("epidemiologia")
+
+# Lote recebido da coleta (1 dict por linha)
+lote = [
+    {
+        "protocolo": "NOT-2026-001",
+        "data_notificacao": "2026-09-01 10:00:00",
+        "semana_epidemiologica": 202635,
+        "ano": 2026,
+        "bairro": "Boa Vista",
+        "agravo": "dengue",
+        "classificacao_final": "confirmado",
+        "contagem": 1,
+    }
+]
+
+# Valida o lote (retorna lista vazia se válido)
+violacoes = validar(lote, contrato)
+if violacoes:
+    for v in violacoes:
+        print(f"[{v.tipo}] Campo '{v.campo}' (linha {v.linha}): {v.mensagem}")
+```
+
+### Tipos de Violação
+
+- `coluna_faltante`: coluna obrigatória ausente em todas as linhas do lote (`linha` é `None`).
+- `nulo_obrigatorio`: campo com `obrigatorio: true` recebendo `None` ou `NaN` em uma linha específica.
+- `tipo_errado`: valor com tipo incompatível com o declarado (`string`, `int`, `float`, `bool`, `datetime`, `date`).
+- `valor_invalido`: valor fora do domínio categórico estipulado em `valores_permitidos`.
+
+> **Nota de escopo:** `validar()` deve ser chamado após a padronização de nomes de colunas
+> (mapeamento de `conf/sources/*.yml`), garantindo que o lote use os identificadores canônicos do contrato.

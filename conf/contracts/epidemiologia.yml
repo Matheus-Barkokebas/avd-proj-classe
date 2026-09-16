@@ -1,0 +1,43 @@
+# Contrato de dados: Notificações de arboviroses (Dados Abertos Recife)
+# FND-02 / ING-02 / ARQUITETURA §2.1, §10
+tabela: epidemiologia
+chave_negocio:
+  - protocolo
+campo_data_referencia: data_notificacao
+campos:
+  - nome: protocolo
+    tipo: string
+    obrigatorio: true
+    descricao: Número identificador único da notificação no SINAN / Dados Abertos
+  - nome: data_notificacao
+    tipo: datetime
+    obrigatorio: true
+    descricao: Data em que a notificação foi registrada no sistema
+  - nome: semana_epidemiologica
+    tipo: int
+    obrigatorio: true
+    descricao: Semana epidemiológica do caso (ex. 202510)
+  - nome: ano
+    tipo: int
+    obrigatorio: true
+    descricao: Ano de referência da notificação
+  - nome: bairro
+    tipo: string
+    obrigatorio: true
+    descricao: Nome do bairro de residência do paciente (texto de origem)
+  - nome: agravo
+    tipo: string
+    obrigatorio: true
+    descricao: Tipo de arbovirose notificada
+    valores_permitidos:
+      - dengue
+      - zika
+      - chikungunya
+  - nome: classificacao_final
+    tipo: string
+    obrigatorio: false
+    descricao: Classificação final do caso (ex. confirmado, descartado, inconclusivo, sob_investigacao)
+  - nome: contagem
+    tipo: int
+    obrigatorio: true
+    descricao: Quantidade de casos notificados representados pela linha
