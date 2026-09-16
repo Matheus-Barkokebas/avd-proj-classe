@@ -1,0 +1,4 @@
+# Só o dono do repositório pode ser "code owner" — exige a aprovação dele
+# para qualquer PR ser mesclado em branches protegidas (ver branch protection
+# de `develop`). Ajustar aqui se a política de aprovação mudar.
+* @Matheus-Barkokebas
