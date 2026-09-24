@@ -45,9 +45,24 @@ def contar_epidemiologia(conteudo: bytes) -> int:
     return epidemiologia.contar_registros(conteudo)
 
 
+def coletar_ocorrencias(data_coleta: date) -> bytes:
+    """Invoca o coletor de ocorrências/Defesa Civil (SEDEC) da API CKAN do Recife."""
+    from src.ingestao import ocorrencias
+
+    return ocorrencias.coletar_dados(data_coleta)
+
+
+def contar_ocorrencias(conteudo: bytes) -> int:
+    """Contagem de registros do payload de ocorrências."""
+    from src.ingestao import ocorrencias
+
+    return ocorrencias.contar_registros(conteudo)
+
+
 COLETORES = {
     "dummy": Coletor(coletar_dummy, lambda conteudo: len(json.loads(conteudo)), "dummy.json"),
     "epidemiologia": Coletor(coletar_epidemiologia, contar_epidemiologia, "datastore_search.json"),
+    "ocorrencias": Coletor(coletar_ocorrencias, contar_ocorrencias, "datastore_search.json"),
 }
 
 

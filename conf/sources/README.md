@@ -37,3 +37,43 @@ mapeamento_colunas:
 > para o ano vigente no CKAN, os identificadores em `recursos` devem ser atualizados manualmente
 > neste arquivo (não há descoberta dinâmica de recursos).
 
+### `ocorrencias.yml` (ING-03)
+
+Chamados e ocorrências da Defesa Civil do Recife (SEDEC), via o recurso CKAN
+"Sedec Solicitações Tempo Real":
+
+```yaml
+nome: ocorrencias
+descricao: Chamados e ocorrências da Defesa Civil do Recife (SEDEC) - feed em tempo real
+api: recife_ckan
+frequencia: diaria
+
+resource_id: "fa135ecc-101d-40d7-88df-f38aa709a7d1"
+
+mapeamento_colunas:
+  processo_numero: protocolo
+  solicitacao_bairro: bairro
+  processo_solicitacao: tipo_ocorrencia
+  processo_situacao: status
+  solicitacao_descricao: descricao
+
+mapa_status:
+  execucao: em_atendimento
+```
+
+> **Nota operacional — fonte "tempo real":** este recurso reflete sempre o dia da
+> consulta, sem histórico navegável por data. `--data <passado>` só relê a RAW já
+> gravada; se a partição não existir, uma nova coleta traria os dados do dia da
+> consulta, não os dados reais daquela data.
+>
+> **Sem coordenadas:** a fonte não tem campos de latitude/longitude — só
+> localização textual (bairro, endereço, RPA). Todo registro grava
+> `latitude`/`longitude` nulos; é aceitável porque são opcionais no contrato, e
+> o registro **não é descartado** por isso (critério de aceitação da ING-03).
+>
+> **`mapa_status`:** traduz o valor bruto de `processo_situacao` para o domínio
+> fechado do contrato (`aberta`/`em_atendimento`/`concluida`/`cancelada`). Só
+> `execucao` foi observado em amostra real até agora — valor sem entrada no
+> mapa passa intacto e **falha a validação do contrato de propósito** (fail
+> cedo). Estender o mapa quando outros valores aparecerem em produção.
+
