@@ -168,6 +168,14 @@ materialização Bronze separadas, ambas reaproveitando `runner.executar` e
 
 ### Particularidades desta fonte (confirmadas contra a API real)
 
+> ⚠️ **Fonte congelada (BUG-11):** apesar do nome, o recurso "Sedec Solicitações Tempo
+> Real" tem 173 registros, todos de **29/03/2023**, e não há hoje fonte pública atualizada
+> de ocorrências da Defesa Civil no portal. Com `max_defasagem_dias: 7`
+> (`conf/sources/ocorrencias.yml`), a coleta **termina em erro** quando o registro mais
+> recente é mais velho que o limite, em vez de gravar o retrato de 2023 como se fosse de
+> hoje. A escolha de outra fonte (ex.: base histórica "Atendimentos 2024", ~80 mil
+> registros, esquema diferente) está pendente de decisão do time.
+
 - **Fonte "tempo real":** a API sempre reflete o dia da consulta — não há histórico
   navegável por data. `--data <passado>` só relê a RAW já gravada; se a partição
   não existir, a execução termina em erro (não grava o retrato de hoje com data antiga).

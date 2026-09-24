@@ -8,6 +8,16 @@ frequencia: diaria          # ver conf/schedule.yml (periodicidade_contingencia:
 # Recurso "Sedec Solicitações Tempo Real" no catálogo CKAN do Recife.
 resource_id: "fa135ecc-101d-40d7-88df-f38aa709a7d1"
 
+# ⚠️ BUG-11: apesar do nome, este recurso está CONGELADO — 173 registros, todos de
+# 29/03/2023 (verificado em 2026-09; a cópia 2f8f3a95… tem o mesmo conteúdo, e
+# "Atendimentos 2025" do dataset "Registro de Atendimentos da Defesa Civil" tem só
+# 1 registro). Não há hoje fonte pública atualizada de ocorrências da Defesa Civil.
+# Esta trava recusa a coleta se o registro mais recente for mais velho que o limite
+# (em dias, contra a data da coleta) — em vez de gravar o retrato de 2023 como se
+# fosse de hoje. Com a fonte atual, a coleta termina em erro até a fonte voltar a
+# ser atualizada ou o time escolher outra (decisão pendente, ver issue #58).
+max_defasagem_dias: 7
+
 # ATENÇÃO — fonte "tempo real": a API sempre reflete o dia da consulta, sem
 # histórico navegável por data. Reexecutar `runner.py ocorrencias --data <passado>`
 # só relê a RAW já gravada (se existir); se a partição não existir, o runner

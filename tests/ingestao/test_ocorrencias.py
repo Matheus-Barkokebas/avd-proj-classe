@@ -221,3 +221,32 @@ def test_coletar_e_materializar_fluxo_completo(tmp_path, mock_ckan_resposta):
     assert resultado["execucao"]["status"] == "ok"
     assert resultado["bronze"] is not None
     assert Path(resultado["bronze"]).is_file()
+
+
+def _mock_com_data(solicitacao_data):
+    registros = [dict(FIXTURE_RAW[0], solicitacao_data=solicitacao_data)]
+    return lambda resource_id, *a, **k: (registros, {"total": 1})
+
+
+def test_fonte_congelada_e_recusada_sem_gravar(tmp_path):
+    """BUG-11: o feed 'tempo real' está parado em 2023 — não pode virar dado de hoje."""
+    with patch("src.ingestao.recife_ckan.coletar_todos", side_effect=_mock_com_data("2023-03-29T00:00:00")):
+        resultado = ocorrencias.coletar_e_materializar(date(2026, 9, 24), diretorio_dados=tmp_path)
+
+    assert resultado["execucao"]["status"] == "erro"
+    assert "desatualizada" in resultado["execucao"]["mensagem"]
+    assert "2023-03-29" in resultado["execucao"]["mensagem"]
+    assert not (tmp_path / "raw").exists()
+    assert not (tmp_path / "bronze").exists()
+
+
+def test_fonte_dentro_do_limite_de_defasagem_e_coletada(tmp_path):
+    with patch("src.ingestao.recife_ckan.coletar_todos", side_effect=_mock_com_data("2026-09-20T00:00:00")):
+        resultado = ocorrencias.coletar_e_materializar(date(2026, 9, 24), diretorio_dados=tmp_path)
+
+    assert resultado["execucao"]["status"] == "ok"
+    assert resultado["bronze"]
+
+
+def test_limite_de_defasagem_configurado():
+    assert ocorrencias.carregar_configuracao_fonte()["max_defasagem_dias"] == 7

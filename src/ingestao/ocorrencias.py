@@ -23,6 +23,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.ingestao import bronze
+from src.ingestao import comum
 from src.ingestao import recife_ckan
 from src.ingestao import runner
 
@@ -55,12 +56,35 @@ def coletar_dados(data_coleta: date, caminho_config: Path | None = None) -> byte
         raise ValueError("'resource_id' não configurado em ocorrencias.yml")
 
     registros, metadados = recife_ckan.coletar_todos(resource_id)
+    _verificar_defasagem(registros, data_coleta, config.get("max_defasagem_dias"))
     payload = {
         "records": registros,
         "total": metadados.get("total", len(registros)),
         "coletado_em": metadados.get("coletado_em", datetime.now().isoformat()),
     }
     return json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+
+
+def _verificar_defasagem(registros: list[dict[str, Any]], data_coleta: date, max_defasagem_dias: int | None) -> None:
+    """Recusa dado velho demais para uma fonte que se diz "tempo real" (BUG-11).
+
+    O feed "Sedec Solicitações Tempo Real" está congelado em 29/03/2023: sem
+    esta checagem, a coleta diária gravava esse retrato como se fosse de hoje.
+    """
+    if max_defasagem_dias is None or not registros:
+        return
+    datas = [comum.normalizar_timestamp(r.get("solicitacao_data")) for r in registros]
+    datas = [d for d in datas if d and d[4] == "-"]
+    if not datas:
+        return
+    mais_recente = date.fromisoformat(max(datas)[:10])
+    defasagem = (data_coleta - mais_recente).days
+    if defasagem > max_defasagem_dias:
+        raise RuntimeError(
+            f"Fonte de ocorrências desatualizada: registro mais recente é de {mais_recente} "
+            f"({defasagem} dias antes da coleta; limite {max_defasagem_dias}). "
+            f"Nada foi gravado — ver BUG-11 / conf/sources/ocorrencias.yml."
+        )
 
 
 def contar_registros(conteudo: bytes) -> int:
