@@ -22,14 +22,11 @@ placeholders em ana_estacoes.yml.
 
 import argparse
 from datetime import date
-import io
 import json
 from pathlib import Path
 import os
 import time
 from typing import Any
-import pyarrow as pa
-import pyarrow.parquet as pq
 import requests
 import yaml
 import sys
@@ -41,7 +38,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.ingestao import comum
-from src.ingestao import contratos
+from src.ingestao import bronze
 from src.ingestao import runner
 
 
@@ -293,23 +290,9 @@ def materializar_bronze(
             _transformar_serie(bloco["records"], mapeamento, mapa_consistencia, codigo_estacao)
         )
 
-    contrato = contratos.carregar_contrato(fonte)
-    violacoes = contratos.validar(lote_bronze, contrato)
-    if violacoes:
-        resumo = "; ".join(f"[{v.tipo}] {v.campo}: {v.mensagem}" for v in violacoes[:5])
-        raise ValueError(f"Violações do contrato de {fonte} detectadas ({len(violacoes)}): {resumo}")
-
-    tabela_pa = pa.Table.from_pylist(lote_bronze)
-    buffer = io.BytesIO()
-    pq.write_table(tabela_pa, buffer)
-
-    caminho_bronze = (
-        Path(diretorio_dados) / "bronze" / fonte
-        / f"{data_coleta.year:04d}" / f"{data_coleta.month:02d}"
-        / f"{data_coleta.day:02d}" / f"{fonte}.parquet"
-    )
-    runner.gravar_atomico(caminho_bronze, buffer.getvalue())
-    return caminho_bronze
+    # Linhas inválidas vão para a quarentena; violação de lote ou todas as
+    # linhas rejeitadas abortam sem gravar (BUG-06).
+    return bronze.gravar_validado(lote_bronze, fonte, fonte, data_coleta, diretorio_dados)
 
 
 def coletar_e_materializar(
@@ -330,7 +313,11 @@ def coletar_e_materializar(
         caminho_bronze = materializar_bronze(
             tipo, data_particao, diretorio_dados=diretorio_dados, caminho_config=caminho_config
         )
-        return {"execucao": registro, "bronze": str(caminho_bronze)}
+        return {
+            "execucao": registro,
+            "bronze": str(caminho_bronze),
+            "rejeitados": bronze.contar_rejeitados(diretorio_dados, fonte, data_particao),
+        }
     except Exception as erro:
         registro["status"] = "erro"
         registro["mensagem"] = f"Erro ao materializar Bronze ({fonte}): {type(erro).__name__}: {erro}"

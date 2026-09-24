@@ -7,12 +7,9 @@ a camada Bronze em Parquet validando contra o contrato de dados (FND-02).
 
 import argparse
 from datetime import date, datetime
-import io
 import json
 from pathlib import Path
 from typing import Any
-import pyarrow as pa
-import pyarrow.parquet as pq
 import yaml
 import sys
 
@@ -23,7 +20,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.ingestao import comum
-from src.ingestao import contratos
+from src.ingestao import bronze
 from src.ingestao import recife_ckan
 from src.ingestao import runner
 
@@ -159,25 +156,9 @@ def materializar_bronze(
         lote_bronze.extend(_transformar_para_bronze(conteudo_raw, mapeamento, "dengue"))
 
     # Validação do lote contra o contrato FND-02
-    contrato = contratos.carregar_contrato("epidemiologia")
-    violacoes = contratos.validar(lote_bronze, contrato)
-    if violacoes:
-        resumo = "; ".join(f"[{v.tipo}] {v.campo}: {v.mensagem}" for v in violacoes[:5])
-        raise ValueError(f"Violações do contrato de epidemiologia detectadas ({len(violacoes)}): {resumo}")
-
-    # Materialização em Parquet usando PyArrow
-    tabela_pa = pa.Table.from_pylist(lote_bronze)
-    buffer = io.BytesIO()
-    pq.write_table(tabela_pa, buffer)
-    conteudo_parquet = buffer.getvalue()
-
-    caminho_bronze = (
-        Path(diretorio_dados) / "bronze" / "epidemiologia"
-        / f"{data_coleta.year:04d}" / f"{data_coleta.month:02d}"
-        / f"{data_coleta.day:02d}" / "epidemiologia.parquet"
-    )
-    runner.gravar_atomico(caminho_bronze, conteudo_parquet)
-    return caminho_bronze
+    # Linhas inválidas vão para a quarentena; violação de lote ou todas as
+    # linhas rejeitadas abortam sem gravar (BUG-06).
+    return bronze.gravar_validado(lote_bronze, "epidemiologia", "epidemiologia", data_coleta, diretorio_dados)
 
 
 def coletar_e_materializar(
@@ -202,7 +183,11 @@ def coletar_e_materializar(
             diretorio_dados=diretorio_dados,
             caminho_config=caminho_config,
         )
-        return {"execucao": registro, "bronze": str(caminho_bronze)}
+        return {
+            "execucao": registro,
+            "bronze": str(caminho_bronze),
+            "rejeitados": bronze.contar_rejeitados(diretorio_dados, "epidemiologia", data_particao),
+        }
     except Exception as erro:
         registro["status"] = "erro"
         registro["mensagem"] = f"Erro ao materializar Bronze: {type(erro).__name__}: {erro}"

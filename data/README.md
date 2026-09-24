@@ -8,6 +8,7 @@ e está no `.gitignore` — só a estrutura de pastas (`.gitkeep`) e este README
 | **RAW** | `raw/` | resposta original das APIs, intacta | JSON / CSV, como veio |
 | **BRONZE** | `bronze/` | dados tipados, 1 linha por registro | Parquet |
 | **SILVER** | `silver/` | limpo, deduplicado, tempo e território padronizados | Parquet |
+| **BRONZE (quarentena)** | `bronze/<fonte>_rejeitados/` | linhas que violaram o contrato, com o motivo (BUG-06) | JSON |
 | **GOLD** | `gold/` | tabelas integradas e indicadores (grão distrito/bairro × dia) | Parquet |
 
 ## Particionamento

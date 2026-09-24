@@ -294,3 +294,19 @@ python src/ingestao/territorio.py --data 2026-09-24
 python src/ingestao/runner.py territorio
 ```
 
+
+## Quarentena de linhas rejeitadas (BUG-06)
+
+As fontes validadas por contrato (epidemiologia, ocorrências, ANA) gravam a Bronze por
+`src/ingestao/bronze.py::gravar_validado`:
+
+| Situação | Resultado |
+|---|---|
+| Linha com violação (ex.: bairro vazio em campo obrigatório) | vai para a quarentena com o motivo; o resto do dia segue para a Bronze |
+| Violação de lote (coluna obrigatória ausente em todas as linhas) | aborta — a fonte mudou; nada é gravado |
+| Todas as linhas rejeitadas | aborta — provável mudança de formato, não dado ruim pontual |
+
+Quarentena: `data/bronze/<fonte>_rejeitados/AAAA/MM/DD/<fonte>_rejeitados.json`, uma entrada
+por linha rejeitada (`linha`, `motivos`, `registro`). É JSON, não Parquet, porque as linhas
+rejeitadas podem ter tipos mistos na mesma coluna. O total aparece em `rejeitados` no
+resultado da CLI. Reexecução sem rejeições remove a quarentena antiga da partição.
