@@ -10,6 +10,13 @@ from pathlib import Path
 import re
 import tempfile
 from uuid import uuid4
+import sys
+
+# Executado como script (`python src/ingestao/<modulo>.py`), o Python põe
+# src/ingestao/ no sys.path em vez da raiz do projeto — sem isto os imports
+# `src.*` falham com ModuleNotFoundError (BUG-02).
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
 RAIZ_PROJETO = Path(__file__).resolve().parents[2]
@@ -194,6 +201,10 @@ def interpretar_data(valor: str) -> date:
 
 
 def main() -> int:
+    # Saída redirecionada no Windows usa cp1252 e quebra com caracteres fora
+    # dessa tabela (ex.: "↔" nas docstrings) — forçar UTF-8 (BUG-02).
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     argumentos = argparse.ArgumentParser(description=__doc__)
     argumentos.add_argument("fonte", help="Nome do coletor registrado (teste: dummy)")
     argumentos.add_argument("--data", type=interpretar_data, dest="data_coleta")

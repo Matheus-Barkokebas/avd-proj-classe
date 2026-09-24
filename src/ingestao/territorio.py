@@ -31,6 +31,13 @@ import pyarrow as pa
 import pyarrow.parquet as pq
 import requests
 import yaml
+import sys
+
+# Executado como script (`python src/ingestao/<modulo>.py`), o Python põe
+# src/ingestao/ no sys.path em vez da raiz do projeto — sem isto os imports
+# `src.*` falham com ModuleNotFoundError (BUG-02).
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.ingestao import recife_ckan
 from src.ingestao import runner
@@ -226,6 +233,10 @@ def coletar_e_materializar(
 
 
 def main() -> int:
+    # Saída redirecionada no Windows usa cp1252 e quebra com caracteres fora
+    # dessa tabela (ex.: "↔" nas docstrings) — forçar UTF-8 (BUG-02).
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=runner.interpretar_data, dest="data_coleta")
     parser.add_argument(
