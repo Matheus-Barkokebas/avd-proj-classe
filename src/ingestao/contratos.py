@@ -66,10 +66,16 @@ def carregar_contrato(fonte_ou_caminho: str | Path) -> dict[str, Any]:
 
 
 def _e_nulo(valor: Any) -> bool:
-    """Identifica valores nulos (None, NaN numérico)."""
+    """Identifica valores nulos (None, NaN numérico, texto vazio ou só espaços).
+
+    O CKAN costuma devolver campo vazio como "" — sem tratar isso, um bairro
+    vazio passava como preenchido em campo obrigatório (BUG-08).
+    """
     if valor is None:
         return True
     if isinstance(valor, float) and math.isnan(valor):
+        return True
+    if isinstance(valor, str) and not valor.strip():
         return True
     return False
 

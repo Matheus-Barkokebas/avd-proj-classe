@@ -354,3 +354,16 @@ def test_contrato_real_territorio_valido_e_invalido():
     lote_nulo = [{**lote_valido[0], "codigo_bairro": None}]
     violacoes = validar(lote_nulo, contrato)
     assert any(v.tipo == "nulo_obrigatorio" and v.campo == "codigo_bairro" for v in violacoes)
+
+
+@pytest.mark.parametrize("vazio", ["", "   ", "\t"])
+def test_texto_vazio_em_campo_obrigatorio_e_nulo(vazio):
+    """BUG-08: "" (comum no CKAN) não pode passar como valor preenchido."""
+    contrato = {"tabela": "t", "campos": [{"nome": "bairro", "tipo": "string", "obrigatorio": True}]}
+    violacoes = validar([{"bairro": vazio}], contrato)
+    assert [v.tipo for v in violacoes] == ["nulo_obrigatorio"]
+
+
+def test_texto_vazio_em_campo_opcional_e_aceito():
+    contrato = {"tabela": "t", "campos": [{"nome": "descricao", "tipo": "string", "obrigatorio": False}]}
+    assert validar([{"descricao": ""}], contrato) == []
