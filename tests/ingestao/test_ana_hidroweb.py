@@ -257,3 +257,24 @@ def test_coletar_e_materializar_fluxo_completo(tmp_path):
     assert resultado["execucao"]["status"] == "ok"
     assert resultado["bronze"] is not None
     assert Path(resultado["bronze"]).is_file()
+
+
+def test_todas_as_estacoes_falham_e_erro_sem_bronze(tmp_path):
+    """BUG-05: nenhuma estação com sucesso não pode virar status ok com Bronze vazia."""
+    caminho_config = _config_teste(tmp_path)
+
+    def fake_get(url, params=None, headers=None, auth=None, timeout=None):
+        if "OAUth" in url:
+            return _resposta_mock({"items": {"tokenautenticacao": "TOKEN-ABC"}})
+        return _resposta_mock({}, status_ok=False)  # todas as estações falham
+
+    with patch("src.ingestao.ana_hidroweb.requests.get", side_effect=fake_get), \
+         patch("src.ingestao.ana_hidroweb.CAMINHO_CONFIG_PADRAO", caminho_config):
+        resultado = ana_hidroweb.coletar_e_materializar("chuva", date(2026, 9, 24), diretorio_dados=tmp_path)
+
+    assert resultado["execucao"]["status"] == "erro"
+    assert "Nenhuma estação ANA (chuva) coletada com sucesso" in resultado["execucao"]["mensagem"]
+    assert "38010000" in resultado["execucao"]["mensagem"]
+    assert resultado["bronze"] is None
+    assert not (tmp_path / "bronze").exists()
+    assert not (tmp_path / "raw").exists()

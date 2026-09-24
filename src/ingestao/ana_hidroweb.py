@@ -186,6 +186,13 @@ def _coletar_serie(tipo: str, data_coleta: date, caminho_config: Path | None = N
         except Exception as erro:
             payload[codigo] = {"erro": f"{type(erro).__name__}: {erro}"}
 
+    # Falha isolada por estação é aceitável; nenhuma estação com sucesso não
+    # é — antes isso virava status "ok" com Bronze vazia (BUG-05).
+    if not any("records" in bloco for bloco in payload.values()):
+        detalhes = "; ".join(f"{codigo}: {bloco['erro']}" for codigo, bloco in payload.items()) \
+            or "nenhuma estação com código configurado"
+        raise RuntimeError(f"Nenhuma estação ANA ({tipo}) coletada com sucesso — {detalhes}")
+
     return payload
 
 
