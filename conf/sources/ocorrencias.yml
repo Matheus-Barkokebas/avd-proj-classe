@@ -1,0 +1,35 @@
+# Configuração da fonte de dados: Ocorrências e Defesa Civil (SEDEC)
+# ING-03 / ARQUITETURA §2.1, §5.4 / PADROES §5
+nome: ocorrencias
+descricao: Chamados e ocorrências da Defesa Civil do Recife (SEDEC) - feed em tempo real
+api: recife_ckan
+frequencia: diaria          # ver conf/schedule.yml (periodicidade_contingencia: horaria)
+
+# Recurso "Sedec Solicitações Tempo Real" no catálogo CKAN do Recife.
+resource_id: "fa135ecc-101d-40d7-88df-f38aa709a7d1"
+
+# ATENÇÃO — fonte "tempo real": a API sempre reflete o dia da consulta, sem
+# histórico navegável por data. Reexecutar `runner.py ocorrencias --data <passado>`
+# só relê a RAW já gravada (se existir); se a partição não existir, uma nova coleta
+# traria os dados do dia da CONSULTA, não os dados reais daquela data passada.
+# Não há campo de latitude/longitude nesta fonte — só localização textual
+# (bairro, endereço, RPA). Todo registro terá latitude/longitude nulos; isso é
+# aceitável porque os dois campos são opcionais no contrato.
+
+# origem (campo bruto da API) -> nome padronizado do contrato (conf/contracts/ocorrencias.yml)
+mapeamento_colunas:
+  processo_numero: protocolo
+  solicitacao_bairro: bairro
+  processo_solicitacao: tipo_ocorrencia
+  processo_situacao: status
+  solicitacao_descricao: descricao
+  # data_ocorrencia é derivada de solicitacao_data + solicitacao_hora (ver ocorrencias.py)
+
+# Tradução dos valores brutos de `processo_situacao` (SEDEC) para o domínio
+# fechado do contrato (aberta | em_atendimento | concluida | cancelada).
+# Observado até agora em amostra real (2026-09-24): só "execucao".
+# Valor bruto sem entrada aqui passa direto e FALHA a validação do contrato
+# de propósito (fail cedo quando a fonte mudar) — estender este mapa quando
+# surgirem outros valores em produção.
+mapa_status:
+  execucao: em_atendimento

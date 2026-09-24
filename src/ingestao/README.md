@@ -150,3 +150,40 @@ python src/ingestao/runner.py epidemiologia
 python src/ingestao/runner.py epidemiologia --data 2026-09-22
 ```
 
+## Coleta de Ocorrências — Defesa Civil (ING-03)
+
+O módulo `src/ingestao/ocorrencias.py` implementa a coleta de chamados e ocorrências da
+Defesa Civil do Recife (SEDEC), via o recurso CKAN "Sedec Solicitações Tempo Real"
+(`conf/sources/ocorrencias.yml`). Segue a mesma estrutura da ING-02 (coleta RAW ↔
+materialização Bronze separadas, ambas reaproveitando `runner.executar` e
+`runner.gravar_atomico`).
+
+### Particularidades desta fonte (confirmadas contra a API real)
+
+- **Fonte "tempo real":** a API sempre reflete o dia da consulta — não há histórico
+  navegável por data. `--data <passado>` só relê a RAW já gravada; se a partição
+  não existir, a coleta traria os dados do dia da consulta, não os reais daquela data.
+- **Sem latitude/longitude:** a fonte só tem localização textual (bairro, endereço,
+  RPA). Todo registro grava coordenadas nulas — aceitável (campos opcionais no
+  contrato) e o registro **não é descartado** por isso.
+- **Tradução de status:** `processo_situacao` (bruto) é traduzido para o domínio
+  fechado do contrato via `mapa_status` em `conf/sources/ocorrencias.yml`. Só o
+  valor `execucao` foi observado em amostra real; valor sem entrada no mapa passa
+  intacto e falha a validação do contrato de propósito (fail cedo).
+- **Data + hora combinadas:** `data_ocorrencia` é montada a partir de
+  `solicitacao_data` + `solicitacao_hora` (campos separados na fonte).
+
+### Como rodar
+
+**Fluxo completo (RAW + Bronze):**
+```bash
+python src/ingestao/ocorrencias.py
+python src/ingestao/ocorrencias.py --data 2026-09-24
+```
+
+**Apenas coleta RAW (via orquestrador genérico do runner):**
+```bash
+python src/ingestao/runner.py ocorrencias
+python src/ingestao/runner.py ocorrencias --data 2026-09-24
+```
+
