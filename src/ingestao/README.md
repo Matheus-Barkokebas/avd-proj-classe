@@ -114,3 +114,39 @@ if violacoes:
 
 > **Nota de escopo:** `validar()` deve ser chamado após a padronização de nomes de colunas
 > (mapeamento de `conf/sources/*.yml`), garantindo que o lote use os identificadores canônicos do contrato.
+
+## Coleta de Epidemiologia — Arboviroses (ING-02)
+
+O módulo `src/ingestao/epidemiologia.py` implementa a coleta das notificações de arboviroses
+(dengue, zika e chikungunya) do portal Dados Abertos Recife via API CKAN.
+
+### Funcionamento
+
+1. **Coleta RAW (via `runner.py` ou CLI):**
+   - Para cada agravo configurado em `conf/sources/epidemiologia.yml`, consulta a API via `recife_ckan.coletar_todos`.
+   - Gera um payload JSON combinado contendo os blocos `dengue`, `zika` e `chikungunya`.
+   - Grava a resposta intacta de forma atômica em `data/raw/epidemiologia/AAAA/MM/DD/datastore_search.json`.
+   - Registra a execução em `data/_runs/<id>.json`.
+
+2. **Materialização Bronze (`materializar_bronze`):**
+   - Lê o arquivo RAW particionado da data.
+   - Aplica o mapeamento de campos (`NU_NOTIFIC` -> `protocolo`, etc.) e conversão de tipos.
+   - Atribui o `agravo` correspondente a cada bloco e `contagem = 1` por linha.
+   - Valida o lote contra `conf/contracts/epidemiologia.yml` usando `contratos.validar`. Se houver violação, aborta sem gravar Bronze.
+   - Grava a tabela Parquet via PyArrow de forma atômica em `data/bronze/epidemiologia/AAAA/MM/DD/epidemiologia.parquet`.
+   - **Idempotência:** reexecuções para a mesma data substituem a partição sem duplicar registros.
+
+### Como rodar
+
+**Fluxo completo (RAW + Bronze):**
+```bash
+python src/ingestao/epidemiologia.py
+python src/ingestao/epidemiologia.py --data 2026-09-22
+```
+
+**Apenas coleta RAW (via orquestrador genérico do runner):**
+```bash
+python src/ingestao/runner.py epidemiologia
+python src/ingestao/runner.py epidemiologia --data 2026-09-22
+```
+

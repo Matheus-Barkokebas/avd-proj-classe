@@ -1,2 +1,4 @@
 # Dependências de execução (runtime) do projeto
 PyYAML>=6,<7
+requests>=2.28
+pyarrow>=15.0
