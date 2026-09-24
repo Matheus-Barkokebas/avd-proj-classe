@@ -152,3 +152,67 @@ def test_schedule_cobre_fase_1():
         "ana_chuva": {"periodicidade": "horaria"},
         "ana_nivel": {"periodicidade": "horaria"},
     }
+
+
+def _fonte_sem_historico(coletar):
+    return {"teste": runner.Coletor(coletar, lambda bruto: len(json.loads(bruto)), "teste.json",
+                                    suporta_historico=False)}
+
+
+def test_sem_historico_data_passada_sem_raw_e_erro_sem_coletar(tmp_path, monkeypatch):
+    """BUG-09: não pode gravar o retrato de hoje com a data de ontem."""
+    monkeypatch.setattr(runner, "_hoje", lambda: date(2026, 9, 24))
+    coletar = Mock(return_value=b"[]")
+
+    registro = runner.executar("teste", date(2026, 9, 1), diretorio_dados=tmp_path,
+                               coletores=_fonte_sem_historico(coletar))
+
+    assert registro["status"] == "erro"
+    assert "não tem histórico por data" in registro["mensagem"]
+    coletar.assert_not_called()
+    assert not (tmp_path / "raw").exists()
+
+
+def test_sem_historico_data_passada_com_raw_existente_rele(tmp_path, monkeypatch):
+    monkeypatch.setattr(runner, "_hoje", lambda: date(2026, 9, 24))
+    raw = tmp_path / "raw/teste/2026/09/01/teste.json"
+    raw.parent.mkdir(parents=True)
+    raw.write_bytes(b'[{"id": 1}]')
+    coletar = Mock(return_value=b"[]")
+
+    registro = runner.executar("teste", date(2026, 9, 1), diretorio_dados=tmp_path,
+                               coletores=_fonte_sem_historico(coletar))
+
+    assert registro["status"] == "ok"
+    assert registro["mensagem"] == "RAW existente relida"
+    coletar.assert_not_called()
+
+
+def test_sem_historico_data_de_hoje_coleta(tmp_path, monkeypatch):
+    monkeypatch.setattr(runner, "_hoje", lambda: date(2026, 9, 24))
+    coletar = Mock(return_value=b'[{"id": 1}]')
+
+    registro = runner.executar("teste", date(2026, 9, 24), diretorio_dados=tmp_path,
+                               coletores=_fonte_sem_historico(coletar))
+
+    assert registro["status"] == "ok"
+    coletar.assert_called_once()
+
+
+def test_fonte_com_historico_continua_coletando_data_passada(tmp_path, monkeypatch):
+    monkeypatch.setattr(runner, "_hoje", lambda: date(2026, 9, 24))
+    coletar = Mock(return_value=b'[{"id": 1}]')
+    catalogo = {"teste": runner.Coletor(coletar, lambda bruto: len(json.loads(bruto)), "teste.json")}
+
+    registro = runner.executar("teste", date(2026, 9, 1), diretorio_dados=tmp_path, coletores=catalogo)
+
+    assert registro["status"] == "ok"
+    coletar.assert_called_once_with(date(2026, 9, 1))
+
+
+def test_fontes_reais_sem_historico_estao_marcadas():
+    assert not runner.COLETORES["epidemiologia"].suporta_historico
+    assert not runner.COLETORES["ocorrencias"].suporta_historico
+    assert not runner.COLETORES["territorio"].suporta_historico
+    assert runner.COLETORES["ana_chuva"].suporta_historico
+    assert runner.COLETORES["ana_nivel"].suporta_historico

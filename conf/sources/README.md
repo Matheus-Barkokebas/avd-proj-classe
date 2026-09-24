@@ -63,8 +63,8 @@ mapa_status:
 
 > **Nota operacional — fonte "tempo real":** este recurso reflete sempre o dia da
 > consulta, sem histórico navegável por data. `--data <passado>` só relê a RAW já
-> gravada; se a partição não existir, uma nova coleta traria os dados do dia da
-> consulta, não os dados reais daquela data.
+> gravada; se a partição não existir, a execução termina em erro em vez de gravar
+> o retrato de hoje com a data antiga (BUG-09).
 >
 > **Sem coordenadas:** a fonte não tem campos de latitude/longitude — só
 > localização textual (bairro, endereço, RPA). Todo registro grava

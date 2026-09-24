@@ -56,6 +56,12 @@ def _config_teste(tmp_path: Path) -> Path:
 
 
 @pytest.fixture(autouse=True)
+def _hoje_fixo(monkeypatch):
+    """A fonte não tem histórico (BUG-09): a data usada nos testes precisa ser "hoje"."""
+    monkeypatch.setattr(runner, "_hoje", lambda: date(2026, 9, 24))
+
+
+@pytest.fixture(autouse=True)
 def _url_resolvida_pelo_ckan():
     """Bases geométricas resolvem a URL via resource_show (BUG-04) — sem rede aqui."""
     with patch("src.ingestao.recife_ckan.obter_url_download",

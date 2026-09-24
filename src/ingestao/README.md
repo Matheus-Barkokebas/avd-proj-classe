@@ -49,6 +49,12 @@ relê o arquivo RAW daquela partição quando existe; caso contrário, chama o c
 com a data solicitada. A releitura reconta os registros, sem rede nem transformação.
 Cada tentativa mantém seu próprio registro; a RAW não é duplicada.
 
+Fontes que só devolvem o **estado atual** (epidemiologia, ocorrências, território —
+`suporta_historico=False` no `Coletor`) não coletam para outra data: com `--data` de
+um dia que não é hoje e sem RAW gravada, a execução termina em `erro` com mensagem
+clara, em vez de gravar o retrato de hoje com a data errada (BUG-09). A releitura
+de uma RAW existente continua funcionando. A ANA consulta por data e segue coletando.
+
 Para integrar uma fonte futura, registre em `COLETORES` um `Coletor` com
 `coletar(data_coleta) -> bytes`, `contar_registros(conteudo) -> int` e
 `nome_arquivo` JSON/CSV. A contagem interpreta o payload, mas não o modifica.
@@ -164,7 +170,7 @@ materialização Bronze separadas, ambas reaproveitando `runner.executar` e
 
 - **Fonte "tempo real":** a API sempre reflete o dia da consulta — não há histórico
   navegável por data. `--data <passado>` só relê a RAW já gravada; se a partição
-  não existir, a coleta traria os dados do dia da consulta, não os reais daquela data.
+  não existir, a execução termina em erro (não grava o retrato de hoje com data antiga).
 - **Sem latitude/longitude:** a fonte só tem localização textual (bairro, endereço,
   RPA). Todo registro grava coordenadas nulas — aceitável (campos opcionais no
   contrato) e o registro **não é descartado** por isso.

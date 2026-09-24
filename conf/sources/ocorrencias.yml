@@ -10,8 +10,8 @@ resource_id: "fa135ecc-101d-40d7-88df-f38aa709a7d1"
 
 # ATENÇÃO — fonte "tempo real": a API sempre reflete o dia da consulta, sem
 # histórico navegável por data. Reexecutar `runner.py ocorrencias --data <passado>`
-# só relê a RAW já gravada (se existir); se a partição não existir, uma nova coleta
-# traria os dados do dia da CONSULTA, não os dados reais daquela data passada.
+# só relê a RAW já gravada (se existir); se a partição não existir, o runner
+# recusa com erro em vez de gravar o retrato de hoje com a data passada (BUG-09).
 # Não há campo de latitude/longitude nesta fonte — só localização textual
 # (bairro, endereço, RPA). Todo registro terá latitude/longitude nulos; isso é
 # aceitável porque os dois campos são opcionais no contrato.

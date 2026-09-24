@@ -31,6 +31,15 @@ class Coletor:
     coletar: Callable[[date], bytes]
     contar_registros: Callable[[bytes], int]
     nome_arquivo: str
+    # Fonte que só devolve o estado atual (não consulta por data) não pode
+    # coletar para outra data: gravaria o retrato de hoje com a data errada.
+    # Para ela, --data só relê uma RAW já gravada (BUG-09).
+    suporta_historico: bool = True
+
+
+def _hoje() -> date:
+    """Data corrente em America/Recife (isolada para os testes poderem fixá-la)."""
+    return datetime.now(FUSO_RECIFE).date()
 
 
 def coletar_dummy(data_coleta: date) -> bytes:
@@ -101,13 +110,17 @@ def contar_territorio(conteudo: bytes) -> int:
     return territorio.contar_registros(conteudo)
 
 
+# Epidemiologia, ocorrências e território sempre devolvem o estado atual da
+# fonte; só a ANA consulta séries por data (suporta_historico padrão).
 COLETORES = {
     "dummy": Coletor(coletar_dummy, lambda conteudo: len(json.loads(conteudo)), "dummy.json"),
-    "epidemiologia": Coletor(coletar_epidemiologia, contar_epidemiologia, "datastore_search.json"),
-    "ocorrencias": Coletor(coletar_ocorrencias, contar_ocorrencias, "datastore_search.json"),
+    "epidemiologia": Coletor(coletar_epidemiologia, contar_epidemiologia, "datastore_search.json",
+                             suporta_historico=False),
+    "ocorrencias": Coletor(coletar_ocorrencias, contar_ocorrencias, "datastore_search.json",
+                           suporta_historico=False),
     "ana_chuva": Coletor(coletar_ana_chuva, contar_ana_hidroweb, "hidroweb.json"),
     "ana_nivel": Coletor(coletar_ana_nivel, contar_ana_hidroweb, "hidroweb.json"),
-    "territorio": Coletor(coletar_territorio, contar_territorio, "territorio.json"),
+    "territorio": Coletor(coletar_territorio, contar_territorio, "territorio.json", suporta_historico=False),
 }
 
 
@@ -167,6 +180,13 @@ def executar(
             / f"{data_particao.day:02d}" / coletor.nome_arquivo
         )
         reutilizar = data_coleta is not None and caminho.is_file()
+        if (not reutilizar and not coletor.suporta_historico
+                and data_coleta is not None and data_coleta != _hoje()):
+            raise ValueError(
+                f"Fonte '{fonte}' não tem histórico por data: com --data só é possível "
+                f"reler uma RAW já gravada, e {caminho} não existe. Para coletar o estado "
+                f"atual, rode sem --data."
+            )
         conteudo = caminho.read_bytes() if reutilizar else coletor.coletar(data_particao)
         if not isinstance(conteudo, bytes):
             raise TypeError("Coletor deve devolver bytes originais")

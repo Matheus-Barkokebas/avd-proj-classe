@@ -57,6 +57,12 @@ FIXTURE_RAW_CHIKUNGUNYA = [
 ]
 
 
+@pytest.fixture(autouse=True)
+def _hoje_fixo(monkeypatch):
+    """A fonte não tem histórico (BUG-09): a data usada nos testes precisa ser "hoje"."""
+    monkeypatch.setattr(runner, "_hoje", lambda: date(2026, 9, 22))
+
+
 @pytest.fixture
 def mock_ckan_respostas():
     """Mock que retorna registros sintéticos por resource_id."""
