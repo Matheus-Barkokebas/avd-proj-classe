@@ -1,0 +1,32 @@
+[
+  {
+    "_id": 1,
+    "bairro": "Boa Vista",
+    "distrito_sanitario": 1,
+    "descricao_distrito": "DS I"
+  },
+  {
+    "_id": 2,
+    "bairro": "Cabanga",
+    "distrito_sanitario": 1,
+    "descricao_distrito": "DS I"
+  },
+  {
+    "_id": 3,
+    "bairro": "Coelhos",
+    "distrito_sanitario": 1,
+    "descricao_distrito": "DS I"
+  },
+  {
+    "_id": 4,
+    "bairro": "Ilha do Leite",
+    "distrito_sanitario": 1,
+    "descricao_distrito": "DS I"
+  },
+  {
+    "_id": 5,
+    "bairro": "Ilha Joana Bezerra",
+    "distrito_sanitario": 1,
+    "descricao_distrito": "DS I"
+  }
+]

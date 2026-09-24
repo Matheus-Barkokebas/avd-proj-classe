@@ -1,0 +1,27 @@
+[
+  {
+    "_id": 1,
+    "Bairro": "Aflitos",
+    "rpa": 3
+  },
+  {
+    "_id": 2,
+    "Bairro": "Afogados",
+    "rpa": 5
+  },
+  {
+    "_id": 3,
+    "Bairro": "Agua Fria",
+    "rpa": 2
+  },
+  {
+    "_id": 4,
+    "Bairro": "Alto Do Mandu",
+    "rpa": 3
+  },
+  {
+    "_id": 5,
+    "Bairro": "Alto Jose Bonifacio",
+    "rpa": 3
+  }
+]

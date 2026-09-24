@@ -20,7 +20,7 @@ bases_tabulares:
     resource_id: "d8d649d6-5bf7-44af-9686-436162766037"   # "Distritos Sanitários - descrição dos bairros" (CSV)
     mapeamento_colunas:
       bairro: nome_bairro
-      distrito_sanitario: distrito_sanitario   # texto bruto "Distrito Sanitário N" -> número N
+      distrito_sanitario: distrito_sanitario   # vem como número (1..8); texto "Distrito Sanitário N" também é aceito
       descricao_distrito: descricao_distrito
 
 # Bases geométricas — arquivo baixado e preservado no formato de origem

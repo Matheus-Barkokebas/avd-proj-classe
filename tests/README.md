@@ -28,3 +28,13 @@ somente a biblioteca padrão. Não há notebooks envolvidos nesta entrega.
 
 - Cobertura mínima esperada por história: os casos listados em **Critérios de aceitação**
   da issue correspondente em [`docs/HISTORIAS.md`](../docs/HISTORIAS.md).
+
+## Amostras reais, integração e CI (QA-01)
+
+- `tests/ingestao/test_amostras_reais.py` — roda o pipeline sobre **amostras reais
+  reduzidas** das APIs (`tests/fixtures/amostras/`), com os YAMLs reais de `conf/sources/`.
+- `tests/integracao/` — testes contra as **APIs reais** (rede). Ficam fora do `pytest`
+  padrão e do CI; rodar explicitamente com `pytest -m integracao`. Falha pontual pode ser
+  instabilidade da API pública — reexecutar antes de investigar.
+- CI: `.github/workflows/testes.yml` roda `pytest` (sem rede) a cada push/PR em
+  `develop` e `main`.

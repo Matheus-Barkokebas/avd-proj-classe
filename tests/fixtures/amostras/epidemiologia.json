@@ -1,0 +1,134 @@
+{
+  "dengue": [
+    {
+      "NU_NOTIFIC": 900001,
+      "DT_NOTIFIC": "2025-04-03T00:00:00",
+      "SEM_NOT": 202510,
+      "NU_ANO": 2025,
+      "NM_BAIRRO": "PINA",
+      "CLASSI_FIN": 10,
+      "ID_AGRAVO": "A90"
+    },
+    {
+      "NU_NOTIFIC": 900002,
+      "DT_NOTIFIC": "2025-04-03T00:00:00",
+      "SEM_NOT": 202510,
+      "NU_ANO": 2025,
+      "NM_BAIRRO": "JARDIM SAO PAULO",
+      "CLASSI_FIN": 5,
+      "ID_AGRAVO": "A90"
+    },
+    {
+      "NU_NOTIFIC": 900003,
+      "DT_NOTIFIC": "2025-08-03T00:00:00",
+      "SEM_NOT": 202510,
+      "NU_ANO": 2025,
+      "NM_BAIRRO": "IPSEP",
+      "CLASSI_FIN": 10,
+      "ID_AGRAVO": "A90"
+    },
+    {
+      "NU_NOTIFIC": 900004,
+      "DT_NOTIFIC": "2025-03-27T00:00:00",
+      "SEM_NOT": 202513,
+      "NU_ANO": 2025,
+      "NM_BAIRRO": "TORRE",
+      "CLASSI_FIN": 5,
+      "ID_AGRAVO": "A90"
+    },
+    {
+      "NU_NOTIFIC": 900005,
+      "DT_NOTIFIC": "2025-11-20T00:00:00",
+      "SEM_NOT": 202547,
+      "NU_ANO": 2025,
+      "NM_BAIRRO": "",
+      "CLASSI_FIN": 10,
+      "ID_AGRAVO": "A90"
+    }
+  ],
+  "zika": [
+    {
+      "NU_NOTIFIC": "900001",
+      "DT_NOTIFIC": "08/01/2025",
+      "SEM_NOT": "202502",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "VASCO DA GAMA",
+      "CLASSI_FIN": "2",
+      "ID_AGRAVO": "A928"
+    },
+    {
+      "NU_NOTIFIC": "900002",
+      "DT_NOTIFIC": "09/01/2025",
+      "SEM_NOT": "202502",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "BREJO DA GUABIRABA",
+      "CLASSI_FIN": "2",
+      "ID_AGRAVO": "A928"
+    },
+    {
+      "NU_NOTIFIC": "900003",
+      "DT_NOTIFIC": "14/01/2025",
+      "SEM_NOT": "202503",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "ARRUDA",
+      "CLASSI_FIN": "2",
+      "ID_AGRAVO": "A928"
+    },
+    {
+      "NU_NOTIFIC": "900004",
+      "DT_NOTIFIC": "23/01/2025",
+      "SEM_NOT": "202504",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "NOVA DESCOBERTA",
+      "CLASSI_FIN": "2",
+      "ID_AGRAVO": "A928"
+    },
+    {
+      "NU_NOTIFIC": "900005",
+      "DT_NOTIFIC": "25/09/2025",
+      "SEM_NOT": "202539",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": null,
+      "CLASSI_FIN": "2",
+      "ID_AGRAVO": "A928"
+    }
+  ],
+  "chikungunya": [
+    {
+      "NU_NOTIFIC": "900001",
+      "DT_NOTIFIC": "04/04/2025",
+      "SEM_NOT": "202514",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "AGUA FRIA",
+      "CLASSI_FIN": "5",
+      "ID_AGRAVO": "A92.0"
+    },
+    {
+      "NU_NOTIFIC": "900002",
+      "DT_NOTIFIC": "01/01/2025",
+      "SEM_NOT": "202501",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "MACAXEIRA",
+      "CLASSI_FIN": "5",
+      "ID_AGRAVO": "A92.0"
+    },
+    {
+      "NU_NOTIFIC": "900003",
+      "DT_NOTIFIC": "02/01/2025",
+      "SEM_NOT": "202501",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "BARRO",
+      "CLASSI_FIN": "5",
+      "ID_AGRAVO": "A92.0"
+    },
+    {
+      "NU_NOTIFIC": "900004",
+      "DT_NOTIFIC": "02/01/2025",
+      "SEM_NOT": "202501",
+      "NU_ANO": "2025",
+      "NM_BAIRRO": "JIQUIA",
+      "CLASSI_FIN": "5",
+      "ID_AGRAVO": "A92.0"
+    }
+  ]
+}
