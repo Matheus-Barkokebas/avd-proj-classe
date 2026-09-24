@@ -109,3 +109,17 @@ def test_exceeds_max_retries_raises():
     with patch("requests.get", side_effect=always_fail):
         with pytest.raises(RuntimeError):
             recife_ckan.fetch_all("id", max_retries=2)
+
+
+def test_obter_url_download_usa_resource_show():
+    """BUG-04: URL de download vem do CKAN (resource_show), não montada à mão."""
+    resp = type("Resp", (), {
+        "json": lambda *a, **k: {"success": True, "result": {"url": "https://dados.exemplo/download/bairros.geojson"}},
+        "raise_for_status": lambda *a, **k: None,
+    })()
+    with patch("requests.get", return_value=resp) as mock_get:
+        url = recife_ckan.obter_url_download("5c67ce14")
+
+    assert url == "https://dados.exemplo/download/bairros.geojson"
+    assert mock_get.call_args.args[0].endswith("/api/action/resource_show")
+    assert mock_get.call_args.kwargs["params"] == {"id": "5c67ce14"}

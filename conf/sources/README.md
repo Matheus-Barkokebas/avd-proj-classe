@@ -138,10 +138,15 @@ bases_tabulares:
 
 bases_geometricas:
   bairros_geo:
-    url: ".../bairros-do-recife.geojson"
+    resource_id: "5c67ce14-1799-40c4-a37c-9daa04d1761c"    # "Bairros do Recife" (GeoJSON)
   rpa_geo:
-    url: ".../regiao-politica-administrativa-do-recife.geojson"
+    resource_id: "8636edce-be7c-464e-991d-0fb33d7938af"    # "Região Política Administrativa do Recife" (GeoJSON)
 ```
+
+A URL de download das bases geométricas é resolvida pelo CKAN (`resource_show`) a
+partir do `resource_id` — nunca montada à mão (uma URL com id de dataset errado dava
+404, BUG-04). Falha em uma base não impede as demais: o erro aparece em
+`bases_com_erro` e a CLI sai com código 1.
 
 Todos os `resource_id`/URLs foram **verificados ao vivo** (2026-09) contra o catálogo
 real do CKAN do Recife.

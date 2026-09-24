@@ -25,14 +25,20 @@ bases_tabulares:
 
 # Bases geométricas — arquivo baixado e preservado no formato de origem
 # (GeoJSON), sem conversão para Parquet (critério de aceitação: "geometrias
-# preservadas e legíveis"). Também verificadas ao vivo.
+# preservadas e legíveis"). A URL de download é resolvida pelo próprio CKAN
+# (resource_show) a partir do resource_id — nunca montada à mão (BUG-04:
+# uma URL com id de dataset errado dava 404). `url:` explícita só para
+# fontes fora do CKAN.
 bases_geometricas:
   bairros_geo:
-    url: "https://dados.recife.pe.gov.br/dataset/de315c60-3778-4547-9a72-36fdb0129ce3/resource/5c67ce14-1799-40c4-a37c-9daa04d1761c/download/bairros-do-recife.geojson"
+    resource_id: "5c67ce14-1799-40c4-a37c-9daa04d1761c"   # "Bairros do Recife" (GeoJSON)
     formato: geojson
   rpa_geo:
-    url: "https://dados.recife.pe.gov.br/dataset/1702c764-ec7a-4ef0-9861-8acd0e40c819/resource/8636edce-be7c-464e-991d-0fb33d7938af/download/regiao-politica-administrativa-do-recife.geojson"
+    resource_id: "8636edce-be7c-464e-991d-0fb33d7938af"   # "Região Política Administrativa do Recife" (GeoJSON)
     formato: geojson
+
+# Falha em uma base não impede as demais: o erro fica registrado na RAW e em
+# `bases_com_erro` no resultado (a CLI sai com código 1 para o agendador ver).
 
 # PENDÊNCIAS — não encontradas no catálogo público durante esta issue; não
 # inventamos dado nem URL (ai-rules 5.3). Documentado aqui como próximo passo,

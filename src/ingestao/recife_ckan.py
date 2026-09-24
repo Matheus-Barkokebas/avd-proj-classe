@@ -75,5 +75,35 @@ def coletar_todos(
     }
     return todos_registros, metadados
 
+def obter_url_download(
+    resource_id: str,
+    max_retries: int = DEFAULT_MAX_RETRIES,
+    backoff: int = DEFAULT_BACKOFF,
+) -> str:
+    """Resolve a URL de download de um recurso pelo `resource_show` do CKAN.
+
+    Evita URLs montadas à mão: o caminho de download inclui o id do dataset,
+    e um id errado dá 404 (causa do BUG-04).
+    """
+    if not resource_id:
+        raise ValueError("resource_id é obrigatório")
+    url_resource_show = API_URL.rsplit("/", 1)[0] + "/resource_show"
+    tentativa = 0
+    while True:
+        try:
+            resposta = requests.get(url_resource_show, params={"id": resource_id}, timeout=30)
+            resposta.raise_for_status()
+            url = resposta.json().get("result", {}).get("url")
+            if not url:
+                raise RuntimeError(f"Recurso {resource_id} sem URL de download no CKAN")
+            return url
+        except requests.exceptions.RequestException as exc:
+            tentativa += 1
+            if tentativa > max_retries:
+                raise RuntimeError(f"Falha ao consultar resource_show de {resource_id} após {max_retries} tentativas: {exc}")
+            if backoff:
+                time.sleep(backoff)
+
+
 # Compatibilidade legacy
 fetch_all = coletar_todos

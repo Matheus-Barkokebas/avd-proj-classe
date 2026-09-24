@@ -78,35 +78,54 @@ def _baixar_arquivo(url: str, max_retries: int = DEFAULT_MAX_RETRIES, backoff: i
                 time.sleep(backoff)
 
 
+def _coletar_tabular(cfg_base: dict[str, Any]) -> dict[str, Any]:
+    registros, metadados = recife_ckan.coletar_todos(cfg_base["resource_id"])
+    return {"tipo": "tabular", "records": registros, "total": metadados.get("total", len(registros))}
+
+
+def _coletar_geometrica(cfg_base: dict[str, Any]) -> dict[str, Any]:
+    # URL resolvida pelo CKAN a partir do resource_id; `url` explícita só
+    # como alternativa para fontes fora do CKAN.
+    url = cfg_base.get("url") or recife_ckan.obter_url_download(cfg_base["resource_id"])
+    conteudo = _baixar_arquivo(url)
+    return {
+        "tipo": "arquivo",
+        "formato": cfg_base.get("formato", "geojson"),
+        "conteudo_base64": base64.b64encode(conteudo).decode("ascii"),
+    }
+
+
 def coletar_dados(data_coleta: date, caminho_config: Path | None = None) -> bytes:
     """Compatível com runner.Coletor.coletar — coleta as bases tabulares e
-    geométricas configuradas e devolve o payload combinado, sem gravar nada."""
+    geométricas configuradas e devolve o payload combinado, sem gravar nada.
+
+    Falha em uma base NÃO interrompe as demais: o erro fica registrado no
+    bloco daquela base (BUG-04). Só levanta erro se TODAS falharem.
+    """
     config = carregar_configuracao_fonte(caminho_config)
+    bases = [(nome, cfg, _coletar_tabular) for nome, cfg in config.get("bases_tabulares", {}).items()]
+    bases += [(nome, cfg, _coletar_geometrica) for nome, cfg in config.get("bases_geometricas", {}).items()]
+    if not bases:
+        raise ValueError("Nenhuma base configurada em territorio.yml")
+
     payload: dict[str, Any] = {}
+    for nome_base, cfg_base, coletar_base in bases:
+        try:
+            payload[nome_base] = coletar_base(cfg_base)
+        except Exception as erro:
+            payload[nome_base] = {"erro": f"{type(erro).__name__}: {erro}"}
 
-    for nome_base, cfg_base in config.get("bases_tabulares", {}).items():
-        resource_id = cfg_base.get("resource_id")
-        if not resource_id:
-            continue
-        registros, metadados = recife_ckan.coletar_todos(resource_id)
-        payload[nome_base] = {
-            "tipo": "tabular",
-            "records": registros,
-            "total": metadados.get("total", len(registros)),
-        }
-
-    for nome_base, cfg_base in config.get("bases_geometricas", {}).items():
-        url = cfg_base.get("url")
-        if not url:
-            continue
-        conteudo = _baixar_arquivo(url)
-        payload[nome_base] = {
-            "tipo": "arquivo",
-            "formato": cfg_base.get("formato", "geojson"),
-            "conteudo_base64": base64.b64encode(conteudo).decode("ascii"),
-        }
+    if all("erro" in bloco for bloco in payload.values()):
+        erros = "; ".join(f"{nome}: {bloco['erro']}" for nome, bloco in payload.items())
+        raise RuntimeError(f"Todas as bases territoriais falharam — {erros}")
 
     return json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+
+def bases_com_erro(conteudo_raw: dict[str, Any]) -> dict[str, str]:
+    """Bases que falharam na coleta registrada na RAW: {nome_base: erro}."""
+    return {nome: bloco["erro"] for nome, bloco in conteudo_raw.items()
+            if isinstance(bloco, dict) and "erro" in bloco}
 
 
 def contar_registros(conteudo: bytes) -> int:
@@ -225,7 +244,16 @@ def coletar_e_materializar(
     data_particao = date.fromisoformat(registro["data_coleta"])
     try:
         caminhos = materializar_bronze(data_particao, diretorio_dados=diretorio_dados, caminho_config=caminho_config)
-        return {"execucao": registro, "bronze": {k: str(v) for k, v in caminhos.items()}}
+        caminho_raw = (
+            Path(diretorio_dados) / "raw" / "territorio" / f"{data_particao.year:04d}"
+            / f"{data_particao.month:02d}" / f"{data_particao.day:02d}" / "territorio.json"
+        )
+        falhas = bases_com_erro(json.loads(caminho_raw.read_text(encoding="utf-8")))
+        return {
+            "execucao": registro,
+            "bronze": {k: str(v) for k, v in caminhos.items()},
+            "bases_com_erro": falhas,
+        }
     except Exception as erro:
         registro["status"] = "erro"
         registro["mensagem"] = f"Erro ao materializar Bronze: {type(erro).__name__}: {erro}"
@@ -247,7 +275,9 @@ def main() -> int:
 
     resultado = coletar_e_materializar(data_coleta=opcoes.data_coleta, diretorio_dados=opcoes.diretorio_dados)
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
-    return 0 if resultado["execucao"].get("status") == "ok" and resultado.get("bronze") else 1
+    # Falha parcial (alguma base) também sai com código != 0 para o agendador perceber.
+    sucesso = resultado["execucao"].get("status") == "ok" and resultado.get("bronze")
+    return 0 if sucesso and not resultado.get("bases_com_erro") else 1
 
 
 if __name__ == "__main__":

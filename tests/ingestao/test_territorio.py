@@ -47,12 +47,20 @@ def _config_teste(tmp_path: Path) -> Path:
             },
         },
         "bases_geometricas": {
-            "bairros_geo": {"url": "https://exemplo.invalido/bairros.geojson", "formato": "geojson"},
+            "bairros_geo": {"resource_id": "5c67ce14-teste", "formato": "geojson"},
         },
     }
     caminho = tmp_path / "territorio.yml"
     caminho.write_text(yaml.dump(config, allow_unicode=True), encoding="utf-8")
     return caminho
+
+
+@pytest.fixture(autouse=True)
+def _url_resolvida_pelo_ckan():
+    """Bases geométricas resolvem a URL via resource_show (BUG-04) — sem rede aqui."""
+    with patch("src.ingestao.recife_ckan.obter_url_download",
+               side_effect=lambda rid, **kw: f"https://exemplo.invalido/{rid}.geojson") as mock_url:
+        yield mock_url
 
 
 @pytest.fixture
@@ -196,3 +204,39 @@ def test_coletar_e_materializar_fluxo_completo(tmp_path, mock_ckan, mock_downloa
     assert set(resultado["bronze"].keys()) == {"bairros_rpa", "distritos_sanitarios", "bairros_geo"}
     for caminho_str in resultado["bronze"].values():
         assert Path(caminho_str).is_file()
+
+
+def test_geometrica_usa_url_resolvida_pelo_ckan(tmp_path, mock_ckan, mock_download, _url_resolvida_pelo_ckan):
+    """BUG-04: a URL de download vem do resource_show, não de uma string montada à mão."""
+    caminho_config = _config_teste(tmp_path)
+    with patch("src.ingestao.recife_ckan.coletar_todos", side_effect=mock_ckan),          patch("src.ingestao.territorio.requests.get", mock_download):
+        territorio.coletar_dados(date(2026, 9, 24), caminho_config=caminho_config)
+
+    _url_resolvida_pelo_ckan.assert_called_once_with("5c67ce14-teste")
+    assert mock_download.call_args.args[0] == "https://exemplo.invalido/5c67ce14-teste.geojson"
+
+
+def test_falha_em_uma_base_nao_impede_as_demais(tmp_path, mock_ckan):
+    """BUG-04: GeoJSON com 404 não derruba as bases tabulares."""
+    import requests as req
+    caminho_config = _config_teste(tmp_path)
+    download_404 = Mock(return_value=Mock(raise_for_status=Mock(side_effect=req.exceptions.HTTPError("404 Not Found"))))
+
+    with patch("src.ingestao.recife_ckan.coletar_todos", side_effect=mock_ckan),          patch("src.ingestao.territorio.requests.get", download_404),          patch("src.ingestao.territorio.CAMINHO_CONFIG_PADRAO", caminho_config):
+        resultado = territorio.coletar_e_materializar(date(2026, 9, 24), diretorio_dados=tmp_path)
+
+    assert resultado["execucao"]["status"] == "ok"
+    assert set(resultado["bronze"]) == {"bairros_rpa", "distritos_sanitarios"}
+    assert set(resultado["bases_com_erro"]) == {"bairros_geo"}
+    assert "404" in resultado["bases_com_erro"]["bairros_geo"]
+    assert not (tmp_path / "bronze" / "territorio_bairros_geo").exists()
+
+
+def test_todas_as_bases_falham_e_erro(tmp_path):
+    caminho_config = _config_teste(tmp_path)
+    with patch("src.ingestao.recife_ckan.coletar_todos", side_effect=RuntimeError("CKAN fora")),          patch("src.ingestao.recife_ckan.obter_url_download", side_effect=RuntimeError("CKAN fora")),          patch("src.ingestao.territorio.CAMINHO_CONFIG_PADRAO", caminho_config):
+        resultado = territorio.coletar_e_materializar(date(2026, 9, 24), diretorio_dados=tmp_path)
+
+    assert resultado["execucao"]["status"] == "erro"
+    assert "Todas as bases territoriais falharam" in resultado["execucao"]["mensagem"]
+    assert not (tmp_path / "bronze").exists()
