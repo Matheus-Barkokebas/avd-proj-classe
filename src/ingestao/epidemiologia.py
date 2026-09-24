@@ -22,6 +22,7 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from src.ingestao import comum
 from src.ingestao import contratos
 from src.ingestao import recife_ckan
 from src.ingestao import runner
@@ -83,20 +84,6 @@ def contar_registros(conteudo: bytes) -> int:
     return 0
 
 
-def _normalizar_timestamp(valor: Any) -> str:
-    """Converte valor de data/hora para o formato padrão 'YYYY-MM-DD HH:MM:SS'."""
-    if isinstance(valor, datetime):
-        return valor.strftime("%Y-%m-%d %H:%M:%S")
-    if isinstance(valor, str):
-        v = valor.strip().replace("T", " ")
-        if len(v) == 10:  # YYYY-MM-DD
-            return f"{v} 00:00:00"
-        if len(v) >= 19:
-            return v[:19]
-        return v
-    return str(valor)
-
-
 def _transformar_para_bronze(
     registros_raw: list[dict[str, Any]],
     mapeamento: dict[str, str],
@@ -115,44 +102,19 @@ def _transformar_para_bronze(
 
     registros_bronze: list[dict[str, Any]] = []
     for reg in registros_raw:
-        # Conversão de protocolo para string
-        val_protocolo = reg.get(col_protocolo)
-        if val_protocolo is not None:
-            if isinstance(val_protocolo, (int, float)):
-                protocolo = str(int(val_protocolo))
-            else:
-                protocolo = str(val_protocolo)
-        else:
-            protocolo = None
-
-        # Data de notificação formatada
-        val_data = reg.get(col_data)
-        data_notificacao = _normalizar_timestamp(val_data) if val_data is not None else None
-
-        # Semana e ano inteiros
-        val_semana = reg.get(col_semana)
-        semana_epi = int(val_semana) if val_semana is not None else None
-
-        val_ano = reg.get(col_ano)
-        ano = int(val_ano) if val_ano is not None else None
-
-        # Bairro como string original (sem normalização nesta etapa)
-        val_bairro = reg.get(col_bairro)
-        bairro = str(val_bairro).strip() if val_bairro is not None else None
-
-        # Classificação final como string (opcional)
-        val_classi = reg.get(col_classi)
-        classificacao = str(val_classi).strip() if val_classi is not None else None
-
+        # Os recursos de cada agravo não usam os mesmos tipos/formatos
+        # (ex.: dengue manda data ISO e NU_NOTIFIC numérico; zika e
+        # chikungunya mandam DD/MM/AAAA e texto) — a tipagem é centralizada
+        # em comum.py. Bairro segue sem normalização (INT-02).
         registros_bronze.append(
             {
-                "protocolo": protocolo,
-                "data_notificacao": data_notificacao,
-                "semana_epidemiologica": semana_epi,
-                "ano": ano,
-                "bairro": bairro,
+                "protocolo": comum.para_texto(reg.get(col_protocolo)),
+                "data_notificacao": comum.normalizar_timestamp(reg.get(col_data)),
+                "semana_epidemiologica": comum.para_int(reg.get(col_semana)),
+                "ano": comum.para_int(reg.get(col_ano)),
+                "bairro": comum.para_texto(reg.get(col_bairro)),
                 "agravo": agravo.lower(),
-                "classificacao_final": classificacao,
+                "classificacao_final": comum.para_texto(reg.get(col_classi)),
                 "contagem": 1,
             }
         )

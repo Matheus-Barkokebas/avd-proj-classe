@@ -21,7 +21,7 @@ placeholders em ana_estacoes.yml.
 """
 
 import argparse
-from datetime import date, datetime
+from datetime import date
 import io
 import json
 from pathlib import Path
@@ -40,6 +40,7 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from src.ingestao import comum
 from src.ingestao import contratos
 from src.ingestao import runner
 
@@ -211,18 +212,6 @@ def contar_registros(conteudo: bytes) -> int:
     return total
 
 
-def _normalizar_timestamp(valor: Any) -> str | None:
-    """Converte valor de data/hora para o formato padrão 'YYYY-MM-DD HH:MM:SS'."""
-    if valor is None:
-        return None
-    if isinstance(valor, datetime):
-        return valor.strftime("%Y-%m-%d %H:%M:%S")
-    v = str(valor).strip().replace("T", " ")
-    if len(v) == 10:
-        return f"{v} 00:00:00"
-    return v[:19]
-
-
 def _transformar_serie(
     registros_raw: list[dict[str, Any]],
     mapeamento: dict[str, str],
@@ -238,7 +227,7 @@ def _transformar_serie(
 
     linhas: list[dict[str, Any]] = []
     for reg in registros_raw:
-        data_hora = _normalizar_timestamp(reg.get(col_data))
+        data_hora = comum.normalizar_timestamp(reg.get(col_data))
 
         status_bruto_val = reg.get(col_status)
         status_bruto = str(status_bruto_val).strip() if status_bruto_val is not None else None
