@@ -80,12 +80,27 @@ def contar_ana_hidroweb(conteudo: bytes) -> int:
     return ana_hidroweb.contar_registros(conteudo)
 
 
+def coletar_territorio(data_coleta: date) -> bytes:
+    """Invoca o coletor das bases cadastrais territoriais do Recife."""
+    from src.ingestao import territorio
+
+    return territorio.coletar_dados(data_coleta)
+
+
+def contar_territorio(conteudo: bytes) -> int:
+    """Contagem combinada das bases territoriais (linhas tabulares + 1 por arquivo geométrico)."""
+    from src.ingestao import territorio
+
+    return territorio.contar_registros(conteudo)
+
+
 COLETORES = {
     "dummy": Coletor(coletar_dummy, lambda conteudo: len(json.loads(conteudo)), "dummy.json"),
     "epidemiologia": Coletor(coletar_epidemiologia, contar_epidemiologia, "datastore_search.json"),
     "ocorrencias": Coletor(coletar_ocorrencias, contar_ocorrencias, "datastore_search.json"),
     "ana_chuva": Coletor(coletar_ana_chuva, contar_ana_hidroweb, "hidroweb.json"),
     "ana_nivel": Coletor(coletar_ana_nivel, contar_ana_hidroweb, "hidroweb.json"),
+    "territorio": Coletor(coletar_territorio, contar_territorio, "territorio.json"),
 }
 
 

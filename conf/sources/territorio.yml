@@ -1,0 +1,47 @@
+# Configuração da fonte de dados: Território (bases cadastrais do Recife)
+# ING-05 / ARQUITETURA §2.1, §5.2 / PADROES §5
+nome: territorio
+descricao: Bases cadastrais territoriais do Recife (bairros, RPA, distritos sanitários, geometrias)
+api: recife_ckan
+frequencia: mensal          # dado cadastral (ver conf/schedule.yml)
+
+# Cada base é coletada e materializada SEPARADAMENTE na Bronze (uma tabela por
+# base — critério de aceitação da ING-05). Nenhuma é cruzada com outra aqui:
+# montar a correspondência bairro ↔ RPA ↔ Distrito Sanitário é escopo da INT-02.
+#
+# Bases tabulares (datastore_search — verificadas ao vivo em 2026-09):
+bases_tabulares:
+  bairros_rpa:
+    resource_id: "a378d50a-5e55-4956-a28c-13305acfc2b3"   # "Bairros e RPAs do Recife" (CSV)
+    mapeamento_colunas:
+      Bairro: nome_bairro
+      rpa: rpa
+  distritos_sanitarios:
+    resource_id: "d8d649d6-5bf7-44af-9686-436162766037"   # "Distritos Sanitários - descrição dos bairros" (CSV)
+    mapeamento_colunas:
+      bairro: nome_bairro
+      distrito_sanitario: distrito_sanitario   # texto bruto "Distrito Sanitário N" -> número N
+      descricao_distrito: descricao_distrito
+
+# Bases geométricas — arquivo baixado e preservado no formato de origem
+# (GeoJSON), sem conversão para Parquet (critério de aceitação: "geometrias
+# preservadas e legíveis"). Também verificadas ao vivo.
+bases_geometricas:
+  bairros_geo:
+    url: "https://dados.recife.pe.gov.br/dataset/de315c60-3778-4547-9a72-36fdb0129ce3/resource/5c67ce14-1799-40c4-a37c-9daa04d1761c/download/bairros-do-recife.geojson"
+    formato: geojson
+  rpa_geo:
+    url: "https://dados.recife.pe.gov.br/dataset/1702c764-ec7a-4ef0-9861-8acd0e40c819/resource/8636edce-be7c-464e-991d-0fb33d7938af/download/regiao-politica-administrativa-do-recife.geojson"
+    formato: geojson
+
+# PENDÊNCIAS — não encontradas no catálogo público durante esta issue; não
+# inventamos dado nem URL (ai-rules 5.3). Documentado aqui como próximo passo,
+# não como "concluído":
+#   - Áreas de risco (polígonos cadastrais): não localizamos um dataset
+#     territorial de áreas de risco no CKAN do Recife — só dados operacionais
+#     de atendimento da Defesa Civil (já cobertos pela ING-03). Se existir uma
+#     base cadastral (ex. Defesa Civil / COP Recife) fora do CKAN público,
+#     precisa ser adicionada aqui pelo time.
+#   - População por bairro: não localizada nas bases exploradas (Recife nem
+#     IBGE). Campo `populacao` já é opcional no contrato de território; sem
+#     impacto bloqueante, mas fica como pendência de fonte.

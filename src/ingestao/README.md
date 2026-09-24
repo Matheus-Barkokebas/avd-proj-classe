@@ -240,3 +240,57 @@ python src/ingestao/runner.py ana_chuva
 python src/ingestao/runner.py ana_nivel --data 2026-09-24
 ```
 
+## Coleta de Território — Bases Cadastrais (ING-05)
+
+O módulo `src/ingestao/territorio.py` coleta as bases cadastrais territoriais do Recife
+configuradas em `conf/sources/territorio.yml`: duas tabulares (bairros+RPA, distritos
+sanitários, via `recife_ckan`) e duas geométricas (bairros e RPA em GeoJSON, via
+download direto — **sem** passar pelo `datastore_search`, que só serve dado tabular).
+
+### Funcionamento
+
+1. **Coleta RAW:** para cada base tabular, usa `recife_ckan.coletar_todos`; para cada
+   base geométrica, baixa o arquivo e embute em base64 dentro do payload combinado.
+   Tudo isso é a fonte única `territorio` (uma RAW por execução, particionada por data
+   de coleta — `data/raw/territorio/AAAA/MM/DD/territorio.json`), igual definido em
+   `conf/schedule.yml`.
+2. **Materialização Bronze (`materializar_bronze`):** gera **uma saída por base** —
+   nenhuma é cruzada com outra:
+   - bases tabulares → Parquet (`data/bronze/territorio_<base>/AAAA/MM/DD/`);
+   - bases geométricas → arquivo preservado no formato de origem, ex. GeoJSON
+     (mesmo caminho, sem conversão — "geometrias preservadas e legíveis").
+   - **Idempotência:** substituição atômica de cada partição.
+
+### Diferença importante em relação à ING-02/03/04
+
+Este módulo **não chama `contratos.validar()`**. O contrato
+`conf/contracts/territorio.yml` descreve a tabela já *resolvida* (bairro + RPA +
+Distrito Sanitário numa linha só) — isso só existe depois do cruzamento que a **INT-02**
+faz a partir destas tabelas Bronze. Validar aqui contra esse contrato falharia sempre
+(nenhuma base publica RPA e Distrito Sanitário juntos) e contradiria o "Fora de escopo"
+da própria ING-05 ("montar a tabela de correspondência bairro↔RPA↔DS é INT-02").
+
+### Bases coletadas (verificadas ao vivo, 2026-09)
+
+| Base | Tipo | Fonte |
+|---|---|---|
+| `bairros_rpa` | tabular | "Bairros e RPAs do Recife" (CSV, CKAN) |
+| `distritos_sanitarios` | tabular | "Distritos Sanitários - descrição dos bairros" (CSV, CKAN) |
+| `bairros_geo` | geométrica | "Bairros do Recife" (GeoJSON) |
+| `rpa_geo` | geométrica | "Região Política Administrativa do Recife" (GeoJSON) |
+
+**Pendências não inventadas:** não encontramos um dataset cadastral de **áreas de
+risco** (só dados operacionais de atendimento, já cobertos pela ING-03) nem
+**população por bairro** — documentado em `conf/sources/territorio.yml` como próximo
+passo, sem bloquear esta entrega (população é campo opcional no contrato).
+
+### Como rodar
+
+```bash
+python src/ingestao/territorio.py
+python src/ingestao/territorio.py --data 2026-09-24
+
+# Apenas coleta RAW (via orquestrador genérico do runner):
+python src/ingestao/runner.py territorio
+```
+

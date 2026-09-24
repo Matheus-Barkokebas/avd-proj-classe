@@ -123,3 +123,41 @@ mapa_consistencia: {"1": bruto, "2": consistido}
 > real assim que o time tiver credenciais — ajustar só este YAML, sem tocar
 > em `src/ingestao/ana_hidroweb.py`.
 
+### `territorio.yml` (ING-05)
+
+Bases cadastrais territoriais do Recife — **uma tabela Bronze por base**, sem cruzar
+nenhuma delas (isso é escopo da INT-02). Duas bases tabulares (via `datastore_search`
+do CKAN) e duas geométricas (arquivo baixado e preservado no formato de origem):
+
+```yaml
+bases_tabulares:
+  bairros_rpa:
+    resource_id: "a378d50a-5e55-4956-a28c-13305acfc2b3"    # "Bairros e RPAs do Recife" (CSV)
+  distritos_sanitarios:
+    resource_id: "d8d649d6-5bf7-44af-9686-436162766037"    # "Distritos Sanitários - descrição dos bairros" (CSV)
+
+bases_geometricas:
+  bairros_geo:
+    url: ".../bairros-do-recife.geojson"
+  rpa_geo:
+    url: ".../regiao-politica-administrativa-do-recife.geojson"
+```
+
+Todos os `resource_id`/URLs foram **verificados ao vivo** (2026-09) contra o catálogo
+real do CKAN do Recife.
+
+> **Sem validação contra `conf/contracts/territorio.yml`:** esse contrato descreve a
+> tabela já *resolvida* (bairro + RPA + Distrito Sanitário numa linha só, com
+> `distrito_sanitario` obrigatório) — algo que só existe depois do cruzamento feito
+> pela INT-02. Validar as bases brutas desta issue contra esse contrato falharia
+> sempre (nenhuma base publica RPA *e* Distrito Sanitário juntos), e contradiria o
+> "Fora de escopo" da própria ING-05. Cada base é materializada tal como a fonte
+> publica; a INT-02 é quem monta `territorio_ref` a partir destas tabelas.
+>
+> **Pendências (não inventadas):**
+> - **Áreas de risco** (polígonos cadastrais): não localizamos um dataset territorial
+>   dedicado no CKAN do Recife — só dados operacionais de atendimento da Defesa Civil
+>   (já cobertos pela `ocorrencias.yml`, ING-03). Precisa de fonte adicional do time.
+> - **População por bairro:** não localizada nas bases exploradas (Recife/IBGE). Campo
+>   opcional no contrato — não bloqueia, mas fica pendente.
+
