@@ -49,6 +49,41 @@ def test_pagination_collects_all_records():
         assert mock_get.call_count == 3
 
 
+def _servidor_ckan(total_registros, teto_por_pagina, informa_total=True):
+    """Simula o CKAN: fatia os dados pelo offset e ignora `limit` acima do teto."""
+    dados = [{"id": i} for i in range(total_registros)]
+
+    def fake_get(url, params=None, timeout=None):
+        offset = params["offset"]
+        tamanho = min(params["limit"], teto_por_pagina)
+        resultado = {"records": dados[offset:offset + tamanho]}
+        if informa_total:
+            resultado["total"] = total_registros
+        return type("Resp", (), {"json": lambda *a, **k: {"result": resultado},
+                                 "raise_for_status": lambda *a, **k: None})()
+
+    return fake_get
+
+
+def test_paginacao_respeita_teto_do_servidor_menor_que_limit():
+    """BUG-01: CKAN do Recife devolve no máximo 500 por página mesmo pedindo 1000."""
+    with patch("requests.get", side_effect=_servidor_ckan(9187, teto_por_pagina=500)) as mock_get:
+        registros, meta = recife_ckan.coletar_todos("dengue", limite_por_pagina=1000)
+
+    assert len(registros) == 9187
+    assert [r["id"] for r in registros] == list(range(9187))  # sem buraco nem repetição
+    assert meta["total"] == 9187
+    assert mock_get.call_count == 19  # ceil(9187 / 500)
+
+
+def test_paginacao_sem_total_para_na_pagina_vazia():
+    with patch("requests.get", side_effect=_servidor_ckan(1200, teto_por_pagina=500, informa_total=False)):
+        registros, meta = recife_ckan.coletar_todos("x", limite_por_pagina=1000)
+
+    assert len(registros) == 1200
+    assert meta["total"] == 1200
+
+
 def test_retry_on_transient_error():
     page = [{"id": 1}]
     good_resp = type("Resp", (), {"json": lambda *args, **kwargs: make_response(page, 1), "raise_for_status": lambda *args, **kwargs: None})()

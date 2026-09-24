@@ -62,8 +62,11 @@ def coletar_todos(
         if total is None:
             total = resultado.get("total", float('inf'))
         todos_registros.extend(registros)
-        offset += limite_por_pagina
-        if len(registros) < limite_por_pagina or len(todos_registros) >= total:
+        # O servidor pode devolver menos que o `limit` pedido (o CKAN do Recife
+        # limita a 500 por página): avançar pelo que de fato veio e só parar com
+        # página vazia ou total atingido — nunca por "página menor que o pedido".
+        offset += len(registros)
+        if not registros or offset >= total:
             break
     metadados = {
         "resource_id": resource_id,
