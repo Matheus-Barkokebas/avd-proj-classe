@@ -187,3 +187,56 @@ python src/ingestao/runner.py ocorrencias
 python src/ingestao/runner.py ocorrencias --data 2026-09-24
 ```
 
+## Coleta ANA HidroWebService — Chuva e Nível/Vazão (ING-04)
+
+O módulo `src/ingestao/ana_hidroweb.py` implementa a coleta de chuva e nível/vazão das
+estações da ANA configuradas em `conf/sources/ana_estacoes.yml`. Duas fontes separadas
+(`ana_chuva`, `ana_nivel`), cada uma com sua própria RAW, contrato e Bronze — mas
+compartilhando o mesmo cliente/autenticação.
+
+### Funcionamento
+
+1. **Autenticação:** `autenticar()` faz login OAuth (Identificador/Senha por variável de
+   ambiente) e devolve um token Bearer. Sem as variáveis definidas, falha com erro claro
+   — nunca segue sem autenticar.
+2. **Coleta RAW (via `runner.py` ou CLI):** para cada estação em `ana_estacoes.yml`,
+   consulta a série (chuva ou cotas) daquela estação. **Falha em uma estação não impede
+   as demais** — o erro fica registrado no bloco daquela estação dentro do próprio
+   payload (`{"<codigo>": {"erro": "..."}}`), e a coleta segue para as outras.
+   Grava o payload combinado (todas as estações) atomicamente em
+   `data/raw/ana_chuva/AAAA/MM/DD/hidroweb.json` (ou `ana_nivel/...`).
+3. **Materialização Bronze (`materializar_bronze`):** lê a RAW, ignora blocos de estação
+   com erro, mapeia colunas e tipa valores, valida contra o contrato
+   (`conf/contracts/ana_chuva.yml` / `ana_nivel.yml`) e grava Parquet atomicamente em
+   `data/bronze/ana_chuva/AAAA/MM/DD/ana_chuva.parquet` (ou `ana_nivel/...`).
+
+### ⚠️ Limitação conhecida desta entrega
+
+A API `hidrowebservice` da ANA **não ficou acessível para verificação ao vivo** durante
+o desenvolvimento desta issue (respostas 503/504) — diferente do CKAN do Recife
+(ING-02/03), que pôde ser consultado e verificado de ponta a ponta. A implementação
+segue a documentação pública do serviço (endpoints, envelope de token, nomes de campo),
+mas **isso ainda precisa ser confirmado contra uma resposta real** assim que o time
+tiver credenciais. Os nomes de campo ficam em `mapeamento_colunas_chuva` /
+`mapeamento_colunas_nivel` em `conf/sources/ana_estacoes.yml` — ajustar lá, sem tocar
+no código, se algo não bater.
+
+Os códigos de estação e as cotas de atenção/alerta em `ana_estacoes.yml` são
+**placeholder** — não foram inventados (ai-rules 5.3); o time preenche com o inventário
+real da ANA e as cotas oficiais da Defesa Civil.
+
+### Como rodar
+
+```bash
+export ANA_HIDROWEB_IDENTIFICADOR=...   # cadastro em ana.gov.br/hidrowebservice
+export ANA_HIDROWEB_SENHA=...
+
+python src/ingestao/ana_hidroweb.py                       # chuva + nível, RAW + Bronze
+python src/ingestao/ana_hidroweb.py --serie chuva
+python src/ingestao/ana_hidroweb.py --serie nivel --data 2026-09-24
+
+# Apenas coleta RAW (via orquestrador genérico do runner):
+python src/ingestao/runner.py ana_chuva
+python src/ingestao/runner.py ana_nivel --data 2026-09-24
+```
+
