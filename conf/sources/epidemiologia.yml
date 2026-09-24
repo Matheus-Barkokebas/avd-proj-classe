@@ -1,0 +1,23 @@
+# Configuração da fonte de dados: Epidemiologia (Arboviroses)
+# ING-02 / ARQUITETURA §2.1, §2.2, §2.5 / PADROES §5
+nome: epidemiologia
+descricao: Casos e notificações de arboviroses (Dengue, Zika, Chikungunya) - Dados Abertos Recife
+api: recife_ckan
+frequencia: diaria
+
+# Um resource_id por agravo, referente ao conjunto ativo mais recente publicado.
+# Atualizar manualmente quando a Prefeitura disponibilizar novos recursos
+# (não há descoberta dinâmica de resource_id nesta issue).
+recursos:
+  dengue: "45a675e2-d387-4019-bb6e-4b915b74b1bf"
+  zika: "cf7dc2c4-a050-454f-9404-465458baa988"
+  chikungunya: "b300a634-1ab7-49fc-8592-4b45227822a8"
+
+# Mapeamento do campo bruto da API -> coluna padronizada do contrato (conf/contracts/epidemiologia.yml)
+mapeamento_colunas:
+  NU_NOTIFIC: protocolo
+  DT_NOTIFIC: data_notificacao
+  SEM_NOT: semana_epidemiologica
+  NU_ANO: ano
+  NM_BAIRRO: bairro
+  CLASSI_FIN: classificacao_final

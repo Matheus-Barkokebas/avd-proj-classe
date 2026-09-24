@@ -31,8 +31,23 @@ def coletar_dummy(data_coleta: date) -> bytes:
     return json.dumps([{"data": data_coleta.isoformat(), "simulado": True}]).encode()
 
 
+def coletar_epidemiologia(data_coleta: date) -> bytes:
+    """Invoca o coletor de arboviroses da API CKAN do Recife."""
+    from src.ingestao import epidemiologia
+
+    return epidemiologia.coletar_dados(data_coleta)
+
+
+def contar_epidemiologia(conteudo: bytes) -> int:
+    """Contagem de registros do payload combinado de arboviroses."""
+    from src.ingestao import epidemiologia
+
+    return epidemiologia.contar_registros(conteudo)
+
+
 COLETORES = {
-    "dummy": Coletor(coletar_dummy, lambda conteudo: len(json.loads(conteudo)), "dummy.json")
+    "dummy": Coletor(coletar_dummy, lambda conteudo: len(json.loads(conteudo)), "dummy.json"),
+    "epidemiologia": Coletor(coletar_epidemiologia, contar_epidemiologia, "datastore_search.json"),
 }
 
 
