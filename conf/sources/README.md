@@ -77,3 +77,49 @@ mapa_status:
 > mapa passa intacto e **falha a validação do contrato de propósito** (fail
 > cedo). Estender o mapa quando outros valores aparecerem em produção.
 
+### `ana_estacoes.yml` (ING-04)
+
+Estações telemétricas da ANA (HidroWebService) — séries de chuva e nível/vazão:
+
+```yaml
+nome: ana_hidroweb
+api: ana_hidroweb
+frequencia: horaria
+base_url: "https://www.ana.gov.br/hidrowebservice"
+
+autenticacao:
+  identificador_env: ANA_HIDROWEB_IDENTIFICADOR
+  senha_env: ANA_HIDROWEB_SENHA
+
+estacoes:
+  - codigo: "SUBSTITUIR-COM-CODIGO-REAL"
+    nome: "SUBSTITUIR — ex. Recife / Rio Capibaribe"
+    tipo: fluviometrica
+    rio: "SUBSTITUIR"
+    bacia: "SUBSTITUIR"
+    cota_atencao_cm: null
+    cota_alerta_cm: null
+
+mapeamento_colunas_chuva: {...}
+mapeamento_colunas_nivel: {...}
+mapa_consistencia: {"1": bruto, "2": consistido}
+```
+
+> ⚠️ **Pendente de dados reais do time (ai-rules 5.3 — não inventamos):**
+> - `estacoes` está com **placeholder**. Preencher com os códigos reais do
+>   inventário da ANA (https://www.snirh.gov.br/hidroweb/) e as **cotas de
+>   atenção/alerta oficiais** usadas pela Defesa Civil antes de rodar em
+>   produção.
+> - `identificador_env`/`senha_env` apontam para variáveis de ambiente —
+>   cadastro em https://www.ana.gov.br/hidrowebservice/. Sem essas variáveis
+>   definidas, a coleta falha com erro claro (não tenta seguir sem autenticar).
+>
+> ⚠️ **API não verificada ao vivo nesta issue:** as tentativas de consulta ao
+> `hidrowebservice` retornaram `503`/`504` durante o desenvolvimento (ao
+> contrário do CKAN do Recife, usado nas ING-02/03, que respondeu normalmente).
+> Os caminhos de endpoint, o envelope do token OAuth e os nomes de campo em
+> `mapeamento_colunas_chuva`/`mapeamento_colunas_nivel` seguem a documentação
+> pública do serviço, **mas precisam ser confirmados** contra uma resposta
+> real assim que o time tiver credenciais — ajustar só este YAML, sem tocar
+> em `src/ingestao/ana_hidroweb.py`.
+

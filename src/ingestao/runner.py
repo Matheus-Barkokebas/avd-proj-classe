@@ -59,10 +59,33 @@ def contar_ocorrencias(conteudo: bytes) -> int:
     return ocorrencias.contar_registros(conteudo)
 
 
+def coletar_ana_chuva(data_coleta: date) -> bytes:
+    """Invoca o coletor de chuva das estações ANA (HidroWebService)."""
+    from src.ingestao import ana_hidroweb
+
+    return ana_hidroweb.coletar_dados_chuva(data_coleta)
+
+
+def coletar_ana_nivel(data_coleta: date) -> bytes:
+    """Invoca o coletor de nível/vazão das estações ANA (HidroWebService)."""
+    from src.ingestao import ana_hidroweb
+
+    return ana_hidroweb.coletar_dados_nivel(data_coleta)
+
+
+def contar_ana_hidroweb(conteudo: bytes) -> int:
+    """Contagem de registros do payload combinado de estações ANA (chuva ou nível)."""
+    from src.ingestao import ana_hidroweb
+
+    return ana_hidroweb.contar_registros(conteudo)
+
+
 COLETORES = {
     "dummy": Coletor(coletar_dummy, lambda conteudo: len(json.loads(conteudo)), "dummy.json"),
     "epidemiologia": Coletor(coletar_epidemiologia, contar_epidemiologia, "datastore_search.json"),
     "ocorrencias": Coletor(coletar_ocorrencias, contar_ocorrencias, "datastore_search.json"),
+    "ana_chuva": Coletor(coletar_ana_chuva, contar_ana_hidroweb, "hidroweb.json"),
+    "ana_nivel": Coletor(coletar_ana_nivel, contar_ana_hidroweb, "hidroweb.json"),
 }
 
 

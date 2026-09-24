@@ -1,0 +1,57 @@
+# Configuração da fonte de dados: ANA HidroWebService (chuva e nível/vazão)
+# ING-04 / ARQUITETURA §2.3, §6.2 / PADROES §5
+nome: ana_hidroweb
+descricao: Estações telemétricas da ANA relevantes para o Recife - chuva e nível/vazão
+api: ana_hidroweb
+frequencia: horaria          # ver conf/schedule.yml (fontes ana_chuva / ana_nivel)
+
+base_url: "https://www.ana.gov.br/hidrowebservice"
+
+# Credenciais: SOMENTE os nomes das variáveis de ambiente — nunca o valor em
+# si (PADROES §5, ai-rules 5.2). Cadastro de Identificador/Senha em
+# https://www.ana.gov.br/hidrowebservice/. Sem as variáveis definidas, a
+# coleta falha com um erro claro (não tenta seguir sem autenticação).
+autenticacao:
+  identificador_env: ANA_HIDROWEB_IDENTIFICADOR
+  senha_env: ANA_HIDROWEB_SENHA
+
+# ATENÇÃO — PLACEHOLDER: os códigos de estação e as cotas de atenção/alerta
+# abaixo NÃO são dados reais. Não inventamos código de estação nem cota de
+# alerta (ai-rules/REGRAS.md 5.3) — o time preenche com o inventário real da
+# ANA (https://www.snirh.gov.br/hidroweb/) e com as cotas oficiais usadas
+# pela Defesa Civil antes de rodar em produção. Sem estações configuradas
+# aqui, a coleta não tem o que buscar (lista vazia é um estado válido,
+# mas inútil).
+estacoes:
+  - codigo: "SUBSTITUIR-COM-CODIGO-REAL"       # ex.: 8 dígitos, inventário ANA
+    nome: "SUBSTITUIR — ex. Recife / Rio Capibaribe"
+    tipo: fluviometrica                         # fluviometrica | pluviometrica
+    rio: "SUBSTITUIR"
+    bacia: "SUBSTITUIR"
+    cota_atencao_cm: null                       # preencher com valor oficial (cm)
+    cota_alerta_cm: null                        # preencher com valor oficial (cm)
+
+# Mapeamento do campo bruto da resposta da ANA -> coluna padronizada dos
+# contratos (conf/contracts/ana_chuva.yml, conf/contracts/ana_nivel.yml).
+# Os nomes de campo abaixo seguem a documentação pública do HidroWebService;
+# NÃO foram verificados contra uma resposta real autenticada (a API não
+# ficou acessível para teste ao vivo nesta issue — ver nota no README).
+# Ajustar aqui — sem tocar no código — assim que o time rodar com
+# credenciais reais e confirmar os nomes de campo exatos.
+mapeamento_colunas_chuva:
+  Data_Hora_Medicao: data_hora_medicao
+  Chuva_Adotada: chuva_mm
+  NivelConsistencia: status_leitura
+
+mapeamento_colunas_nivel:
+  Data_Hora_Medicao: data_hora_medicao
+  Cota_Adotada: nivel_cm
+  Vazao_Adotada: vazao_m3s
+  NivelConsistencia: status_leitura
+
+# Tradução de NivelConsistencia (convenção geral da ANA — 1=bruto, 2=consistido)
+# para o domínio do contrato. Valor sem entrada passa intacto e falha a
+# validação de propósito (fail cedo) em vez de assumir um valor plausível.
+mapa_consistencia:
+  "1": bruto
+  "2": consistido
