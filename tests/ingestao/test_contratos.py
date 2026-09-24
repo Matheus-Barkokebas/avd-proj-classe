@@ -367,3 +367,11 @@ def test_texto_vazio_em_campo_obrigatorio_e_nulo(vazio):
 def test_texto_vazio_em_campo_opcional_e_aceito():
     contrato = {"tabela": "t", "campos": [{"nome": "descricao", "tipo": "string", "obrigatorio": False}]}
     assert validar([{"descricao": ""}], contrato) == []
+
+
+def test_chave_negocio_epidemiologia_inclui_agravo_e_data():
+    """BUG-07: protocolo sozinho se repete entre agravos e dentro do mesmo agravo."""
+    contrato = carregar_contrato("epidemiologia")
+    assert contrato["chave_negocio"] == ["agravo", "protocolo", "data_notificacao"]
+    nomes_campos = {c["nome"] for c in contrato["campos"]}
+    assert set(contrato["chave_negocio"]) <= nomes_campos  # chave só com campos do contrato

@@ -7,7 +7,7 @@ validar cada lote na entrada e **falhar cedo** se a fonte mudar (issue FND-02).
 
 | Arquivo | Tabela lógica | Chave de negócio | Campo data ref. | Domínio / Fonte |
 |---|---|---|---|---|
-| `epidemiologia.yml` | `epidemiologia` | `[protocolo]` | `data_notificacao` | Arboviroses (dengue, zika, chikungunya) - Dados Abertos Recife |
+| `epidemiologia.yml` | `epidemiologia` | `[agravo, protocolo, data_notificacao]` | `data_notificacao` | Arboviroses (dengue, zika, chikungunya) - Dados Abertos Recife |
 | `ocorrencias.yml` | `ocorrencias` | `[protocolo]` | `data_ocorrencia` | Chamados e ocorrências da Defesa Civil - SEDEC / Recife |
 | `ana_nivel.yml` | `ana_nivel` | `[codigo_estacao, data_hora_medicao]` | `data_hora_medicao` | Cota e nível de rios / canais - API ANA / HidroWeb |
 | `ana_chuva.yml` | `ana_chuva` | `[codigo_estacao, data_hora_medicao]` | `data_hora_medicao` | Pluviometria e chuva acumulada - API ANA / HidroWeb |

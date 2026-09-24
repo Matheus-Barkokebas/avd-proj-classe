@@ -132,7 +132,9 @@ O módulo `src/ingestao/epidemiologia.py` implementa a coleta das notificações
    - Lê o arquivo RAW particionado da data.
    - Aplica o mapeamento de campos (`NU_NOTIFIC` -> `protocolo`, etc.) e conversão de tipos.
    - Atribui o `agravo` correspondente a cada bloco e `contagem = 1` por linha.
-   - Valida o lote contra `conf/contracts/epidemiologia.yml` usando `contratos.validar`. Se houver violação, aborta sem gravar Bronze.
+   - Valida o lote contra `conf/contracts/epidemiologia.yml`; linhas inválidas vão para a quarentena (ver "Quarentena de linhas rejeitadas" abaixo) e o restante segue para a Bronze.
+   - Chave de negócio: `[agravo, protocolo, data_notificacao]` — o número de notificação sozinho se repete (BUG-07).
+   - ⚠️ ~600 das 11.950 notificações de 2025 têm município de notificação (`ID_MUNICIP`) fora do Recife; o bairro delas pode não ser do Recife. A filtragem por município é pendência da INT-02/INT-03.
    - Grava a tabela Parquet via PyArrow de forma atômica em `data/bronze/epidemiologia/AAAA/MM/DD/epidemiologia.parquet`.
    - **Idempotência:** reexecuções para a mesma data substituem a partição sem duplicar registros.
 

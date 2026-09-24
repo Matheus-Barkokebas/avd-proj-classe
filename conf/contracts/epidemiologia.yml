@@ -1,8 +1,16 @@
 # Contrato de dados: Notificações de arboviroses (Dados Abertos Recife)
 # FND-02 / ING-02 / ARQUITETURA §2.1, §10
 tabela: epidemiologia
+# O número de notificação (NU_NOTIFIC) sozinho NÃO é único (BUG-07): em dado
+# real há 94 números repetidos entre agravos e 2 dentro da própria dengue —
+# notificações diferentes (outra data, outro bairro) com o mesmo número. A
+# chave do SINAN é número + agravo + data de notificação (+ município de
+# notificação, hoje não levado à Bronze). Com [agravo, protocolo,
+# data_notificacao] há 0 colisões nos 11.950 registros reais de 2025.
 chave_negocio:
+  - agravo
   - protocolo
+  - data_notificacao
 campo_data_referencia: data_notificacao
 campos:
   - nome: protocolo
