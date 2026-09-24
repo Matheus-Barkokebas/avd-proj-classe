@@ -9,7 +9,6 @@ Cobrem o que só aparece com a fonte de verdade: teto de página do CKAN
 gravando Bronze (BUG-03/06).
 """
 
-from datetime import date
 import json
 
 import pytest

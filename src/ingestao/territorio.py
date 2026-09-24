@@ -47,7 +47,9 @@ RAIZ_PROJETO = Path(__file__).resolve().parents[2]
 CAMINHO_CONFIG_PADRAO = RAIZ_PROJETO / "conf" / "sources" / "territorio.yml"
 
 DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF = 0
+DEFAULT_BACKOFF = 2  # segundos, dobrando a cada nova tentativa (2, 4, 8…); 0 desliga.
+#                      Sem espera, as tentativas saíam em sequência e uma instabilidade
+#                      de poucos segundos da API derrubava a coleta (BUG-10).
 
 
 def carregar_configuracao_fonte(caminho_config: Path | None = None) -> dict[str, Any]:
@@ -75,7 +77,7 @@ def _baixar_arquivo(url: str, max_retries: int = DEFAULT_MAX_RETRIES, backoff: i
             if tentativa > max_retries:
                 raise RuntimeError(f"Falha ao baixar arquivo ({url}) após {max_retries} tentativas: {exc}")
             if backoff:
-                time.sleep(backoff)
+                time.sleep(backoff * 2 ** (tentativa - 1))
 
 
 def _coletar_tabular(cfg_base: dict[str, Any]) -> dict[str, Any]:

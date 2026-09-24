@@ -50,7 +50,9 @@ CAMINHO_SERIE_CHUVA = "/EstacoesTelemetricas/HidroSerieChuva/v1"
 CAMINHO_SERIE_COTAS = "/EstacoesTelemetricas/HidroSerieCotas/v1"
 
 DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF = 0  # segundos; 0 por padrão para não atrasar testes/execuções em lote
+DEFAULT_BACKOFF = 2  # segundos, dobrando a cada nova tentativa (2, 4, 8…); 0 desliga.
+#                      Sem espera, as tentativas saíam em sequência e uma instabilidade
+#                      de poucos segundos da API derrubava a coleta (BUG-10).
 
 
 def carregar_configuracao_fonte(caminho_config: Path | None = None) -> dict[str, Any]:
@@ -103,7 +105,11 @@ def _extrair_token(resposta_json: Any) -> str:
     )
 
 
-def autenticar(config: dict[str, Any], max_retries: int = DEFAULT_MAX_RETRIES) -> str:
+def autenticar(
+    config: dict[str, Any],
+    max_retries: int = DEFAULT_MAX_RETRIES,
+    backoff: int = DEFAULT_BACKOFF,
+) -> str:
     """Autentica no HidroWebService e devolve o token Bearer."""
     identificador, senha = _obter_credenciais(config)
     url = config.get("base_url", "").rstrip("/") + CAMINHO_OAUTH
@@ -117,6 +123,8 @@ def autenticar(config: dict[str, Any], max_retries: int = DEFAULT_MAX_RETRIES) -
             tentativa += 1
             if tentativa > max_retries:
                 raise RuntimeError(f"Falha ao autenticar na ANA após {max_retries} tentativas: {exc}")
+            if backoff:
+                time.sleep(backoff * 2 ** (tentativa - 1))
 
 
 def _requisitar_serie(
@@ -153,7 +161,7 @@ def _requisitar_serie(
             if tentativa > max_retries:
                 raise RuntimeError(f"Falha ao consultar estação {codigo_estacao} após {max_retries} tentativas: {exc}")
             if backoff:
-                time.sleep(backoff)
+                time.sleep(backoff * 2 ** (tentativa - 1))
 
 
 def _coletar_serie(tipo: str, data_coleta: date, caminho_config: Path | None = None) -> dict[str, Any]:

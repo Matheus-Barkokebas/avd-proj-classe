@@ -22,5 +22,5 @@ Detalhes e demais convenções em [`docs/PADROES.md`](../docs/PADROES.md).
 
 ## Como (re)gerar
 
-Cada história `ING-*` / `INT-*` produz uma camada. Ponto de partida legado:
-`python extract_dados_recife.py` (será substituído pelo `runner` da issue FND-03).
+Cada história `ING-*` / `INT-*` produz uma camada. A ingestão (RAW + Bronze) é feita
+pelos coletores de `src/ingestao/` — ex.: `python src/ingestao/epidemiologia.py`.

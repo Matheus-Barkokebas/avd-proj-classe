@@ -123,3 +123,19 @@ def test_obter_url_download_usa_resource_show():
     assert url == "https://dados.exemplo/download/bairros.geojson"
     assert mock_get.call_args.args[0].endswith("/api/action/resource_show")
     assert mock_get.call_args.kwargs["params"] == {"id": "5c67ce14"}
+
+
+def test_backoff_exponencial_entre_tentativas(monkeypatch):
+    """BUG-10: produção espera entre tentativas (2, 4, ...) em vez de repetir na hora."""
+    esperas = []
+    monkeypatch.setattr(recife_ckan.time, "sleep", esperas.append)
+
+    def falha(*args, **kwargs):
+        raise requests.exceptions.ConnectionError("instável")
+
+    with patch("requests.get", side_effect=falha):
+        with pytest.raises(RuntimeError):
+            recife_ckan.coletar_todos("id")  # usa DEFAULT_BACKOFF e DEFAULT_MAX_RETRIES
+
+    assert recife_ckan.DEFAULT_BACKOFF > 0
+    assert esperas == [2, 4, 8]

@@ -4,10 +4,9 @@ Sem chamadas à rede; todas as respostas CKAN são mockadas.
 """
 
 from datetime import date
-import io
 import json
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import pyarrow.parquet as pq
 import pytest
 

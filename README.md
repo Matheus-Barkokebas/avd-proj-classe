@@ -145,7 +145,6 @@ conf/                       configuração declarativa por fonte (sources, contr
 data/                       camadas RAW/Bronze/Silver/Gold  ·  ignorada pelo Git
 notebooks/                  exploração de dados (Data Understanding)
 tests/                      testes automatizados            ·  espelha src/
-extract_dados_recife.py     script inicial de extração (Dados Abertos Recife)
 ```
 
 > Convenções de código, dados e Git em [`docs/PADROES.md`](docs/PADROES.md).
@@ -160,8 +159,10 @@ extract_dados_recife.py     script inicial de extração (Dados Abertos Recife)
 python -m venv .venv
 # Windows:  .venv\Scripts\activate
 # Linux/macOS:  source .venv/bin/activate
-pip install requests
-python extract_dados_recife.py
+pip install -r requirements.txt -r requirements-dev.txt
+
+python src/ingestao/epidemiologia.py   # coleta + Bronze de uma fonte (ver src/ingestao/README.md)
+pytest                                  # testes sem rede; `pytest -m integracao` usa as APIs reais
 ```
 
 **Fluxo de contribuição:** 1 issue → 1 branch `feature/<id>-AAAA.MM.DD` → 1 PR contra `develop`.

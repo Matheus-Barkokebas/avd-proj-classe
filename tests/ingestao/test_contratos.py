@@ -3,11 +3,10 @@
 Sem chamadas à rede; utiliza apenas dados mockados e arquivos de contrato do repositório.
 """
 
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 import pytest
 
-from src.ingestao import contratos
 from src.ingestao.contratos import Violacao, carregar_contrato, validar
 
 

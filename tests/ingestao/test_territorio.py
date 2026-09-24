@@ -189,7 +189,9 @@ def test_idempotencia_materializacao_bronze(tmp_path, mock_ckan, mock_download):
 
 def test_falha_de_rede_nao_gera_bronze(tmp_path):
     caminho_config = _config_teste(tmp_path)
+    # Rede inteira fora: CKAN (tabulares) e download (geométricas) — sem acessar a rede de verdade.
     with patch("src.ingestao.recife_ckan.coletar_todos", side_effect=RuntimeError("Falha de conexão")), \
+         patch("src.ingestao.territorio.requests.get", side_effect=RuntimeError("Falha de conexão")), \
          patch("src.ingestao.territorio.CAMINHO_CONFIG_PADRAO", caminho_config):
         resultado = territorio.coletar_e_materializar(date(2026, 9, 24), diretorio_dados=tmp_path)
 

@@ -4,7 +4,6 @@ não só via `python -m`. Sem acesso à rede.
 """
 
 import json
-from pathlib import Path
 import subprocess
 import sys
 

@@ -8,7 +8,9 @@ import requests
 API_URL = "https://dados.recife.pe.gov.br/pt_BR/api/action/datastore_search"
 DEFAULT_LIMIT = 1000
 DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF = 0  # seconds, default no delay for tests
+DEFAULT_BACKOFF = 2  # segundos, dobrando a cada nova tentativa (2, 4, 8…); 0 desliga.
+#                      Sem espera, as tentativas saíam em sequência e uma instabilidade
+#                      de poucos segundos da API derrubava a coleta (BUG-10).
 
 
 def _request_with_retry(params: Dict[str, Any], max_retries: int, backoff: int) -> Dict[str, Any]:
@@ -24,7 +26,7 @@ def _request_with_retry(params: Dict[str, Any], max_retries: int, backoff: int) 
             if tentativa > max_retries:
                 raise RuntimeError(f"Falha ao acessar CKAN após {max_retries} tentativas: {exc}")
             if backoff:
-                time.sleep(backoff)
+                time.sleep(backoff * 2 ** (tentativa - 1))
 
 
 def coletar_todos(
@@ -102,7 +104,7 @@ def obter_url_download(
             if tentativa > max_retries:
                 raise RuntimeError(f"Falha ao consultar resource_show de {resource_id} após {max_retries} tentativas: {exc}")
             if backoff:
-                time.sleep(backoff)
+                time.sleep(backoff * 2 ** (tentativa - 1))
 
 
 # Compatibilidade legacy
