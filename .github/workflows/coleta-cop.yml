@@ -1,0 +1,55 @@
+# Coleta do COP Recife (RAW no Atlas + padronizada no Neon) agendada no GitHub Actions.
+# As frequências de cada camada vêm de pipeline/conf/sources/cop_recife.yml:
+#   horaria → indicadores (chuva, maré, estágio) e rios
+#   diaria  → previsão de chuva e chuva mensal
+#   mensal  → pluviômetros, áreas alagáveis e pontos de alagamento (só pelo botão manual)
+#
+# Segredos (Settings → Secrets and variables → Actions): MONGODB_URI e NEON_DATABASE_URL (usuário dono,
+# porque a coleta escreve no banco). O agendamento e o botão "Run workflow" só funcionam com este arquivo
+# na branch padrão (main). Horários do cron em UTC (Recife = UTC-3).
+name: coleta-cop
+
+on:
+  schedule:
+    - cron: "10 * * * *"   # toda hora, aos 10 min (o COP publica perto da hora cheia)
+    - cron: "20 9 * * *"   # 06:20 no Recife
+  workflow_dispatch:
+    inputs:
+      frequencia:
+        description: "Quais camadas coletar"
+        type: choice
+        options: [horaria, diaria, mensal, todas]
+        default: horaria
+
+# Uma coleta por vez: se a anterior atrasar, a próxima espera em vez de gravar junto.
+concurrency:
+  group: coleta-cop
+  cancel-in-progress: false
+
+jobs:
+  coleta:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: pipeline
+    env:
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+      FREQUENCIA: ${{ github.event_name == 'workflow_dispatch' && inputs.frequencia || (github.event.schedule == '20 9 * * *' && 'diaria' || 'horaria') }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+      - name: Instalar dependências
+        run: python -m pip install -r requirements.txt
+      - name: Coletar (${{ env.FREQUENCIA }})
+        run: |
+          if [ "$FREQUENCIA" = "todas" ]; then
+            python src/ingestao/cop_recife.py --armazenamento mongo --padronizada neon
+          else
+            python src/ingestao/cop_recife.py --armazenamento mongo --padronizada neon --frequencia "$FREQUENCIA"
+          fi
