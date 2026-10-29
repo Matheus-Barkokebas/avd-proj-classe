@@ -272,6 +272,16 @@ GOLD ─┬─► Painel Situacional ──► equipes acompanham o cenário
         Priorização e alocação de equipes
 ```
 
+### 7.1 Release 2: API e front-end
+
+A entrega passa por uma **API em FastAPI** (`api/`) que lê a camada padronizada no Neon com um usuário só de
+leitura e serve JSON ao **front-end em React + TypeScript** (`frontend/`). O navegador nunca acessa o banco.
+Ver [decisão 0002](decisoes/0002-api-fastapi-e-front-react.md) e as rotas em [`api/README.md`](../api/README.md).
+
+```text
+Neon (padronizada) ──► API FastAPI /v1 (só leitura, cache, CORS) ──► Front React + TypeScript
+```
+
 ---
 
 ## 8. Fluxo Fim a Fim
