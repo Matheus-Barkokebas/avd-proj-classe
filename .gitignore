@@ -235,3 +235,8 @@ models/
 .env
 *.env
 !.env.example
+
+# Front-end (Vite / npm) — dependências e configuração local
+node_modules/
+.env.local
+.env.*.local

@@ -96,6 +96,14 @@ def test_territorio(cliente, repo):
     assert ponto["properties"]["inicio_intervencao"] == "2015-12-01" and "longitude" not in ponto["properties"]
 
 
+def test_bairros_geo_em_geojson_com_distrito(cliente):
+    corpo = cliente.get("/v1/territorio/bairros-geo").json()
+    feicao = corpo["features"][0]
+    assert feicao["geometry"]["type"] == "MultiPolygon"
+    assert feicao["properties"] == {"chave_bairro": "PINA", "nome_bairro": "Pina", "rpa": 6, "distrito_sanitario": 6,
+                                    "descricao_distrito": "DS VI", "area_km2": 2.0}
+
+
 def test_atualizacao(cliente):
     corpo = cliente.get("/v1/atualizacao").json()
     assert corpo["tabelas"][0] == {"tabela": "cop_indicadores", "carregado_em": "2026-10-28T21:05:00Z", "linhas": 27}
@@ -133,3 +141,18 @@ def test_openapi_documenta_as_rotas(cliente):
 def test_raiz_leva_para_a_documentacao(cliente):
     r = cliente.get("/", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"] == "/docs"
+
+
+def test_openapi_versionado_esta_em_dia():
+    """api/openapi.json é o contrato com o front: regenerar com `python -m app.openapi`."""
+    from app import openapi
+
+    assert openapi.ARQUIVO.read_text(encoding="utf-8") == openapi.gerar(), \
+        "openapi.json desatualizado — rode `python -m app.openapi` dentro de api/"
+
+
+def test_rota_inexistente_tambem_usa_o_formato_padrao(cliente):
+    r = cliente.get("/v1/nao-existe")
+    assert r.status_code == 404
+    assert r.json() == {"erro": "nao_encontrado", "detalhe": "Not Found"}
+    assert cliente.post("/v1/rios").json()["erro"] == "metodo_nao_permitido"

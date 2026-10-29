@@ -15,6 +15,12 @@ def bairros(repo: RepositorioNeon = Depends(obter_repositorio)):
     return repo.bairros()
 
 
+@roteador.get("/bairros-geo", response_model=FeatureCollection,
+              summary="Malha dos 94 bairros em GeoJSON (WGS84), com distrito e RPA")
+def bairros_geo(repo: RepositorioNeon = Depends(obter_repositorio)):
+    return regras.feature_collection(repo.bairros_geo(), campo_geometria="geometria_geojson")
+
+
 @roteador.get("/distritos", response_model=list[Distrito], summary="Distritos sanitários")
 def distritos(repo: RepositorioNeon = Depends(obter_repositorio)):
     return repo.distritos()

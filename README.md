@@ -149,7 +149,7 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 ```text
 pipeline/                   coleta e padronização (Python): src/, conf/, tests/, data/, requirements
 api/                        API (FastAPI) que lê o Neon e entrega JSON ao front  ·  rotas de chuva, rios, arboviroses e território
-frontend/                   painel (React + TypeScript)  ·  em construção; protótipo v3 em frontend/prototipo/
+frontend/                   painel (React + TypeScript)  ·  visão geral, mapa, chuva e rios, arboviroses; protótipo v3 em frontend/prototipo/
 docs/                       planejamento, arquitetura, histórias, padrões e decisões (comum aos três)
 ai-rules/                   regras para assistentes de IA
 .github/                    CI (um job por módulo) e CODEOWNERS

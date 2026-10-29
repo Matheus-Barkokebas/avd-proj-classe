@@ -84,6 +84,11 @@ class RepositorioFalso:
         return [{"chave_bairro": "PINA", "nome_bairro": "Pina", "rpa": 6, "distrito_sanitario": 6, "descricao_distrito": "DS VI"},
                 {"chave_bairro": "TORRE", "nome_bairro": "Torre", "rpa": 4, "distrito_sanitario": 4, "descricao_distrito": "DS IV"}]
 
+    def bairros_geo(self):
+        return [{"chave_bairro": "PINA", "nome_bairro": "Pina", "rpa": 6, "distrito_sanitario": 6,
+                 "descricao_distrito": "DS VI", "area_km2": 2.0,
+                 "geometria_geojson": '{"type":"MultiPolygon","coordinates":[[[[-34.9,-8.05],[-34.89,-8.05],[-34.89,-8.04],[-34.9,-8.05]]]]}'}]
+
     def distritos(self):
         return [{"distrito_sanitario": 6, "descricao_distrito": "DS VI", "bairros": 5}]
 

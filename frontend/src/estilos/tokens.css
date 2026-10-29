@@ -1,0 +1,45 @@
+/* Tokens de cor, tipografia e sombra — os mesmos do protótipo v3 (frontend/prototipo/). */
+:root{
+  --font:'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --bg:#f4f5f7; --surface:#ffffff; --surface-2:#f8f9fb; --surface-3:#f1f3f6;
+  --border:#e4e7ec; --border-2:#d0d5dd;
+  --text:#101828; --text-2:#344054; --muted:#667085; --faint:#98a2b3;
+  --ink:#101828; --ink-text:#ffffff; --ink-hover:#1d2939;
+  --brand:#0f8a7e; --brand-2:#0b6b62; --brand-soft:#e2f5f2; --brand-text:#0b6b62;
+  --focus:0 0 0 3px rgba(15,138,126,.22);
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow:0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+  --shadow-lg:0 20px 40px -12px rgba(16,24,40,.22), 0 4px 10px -4px rgba(16,24,40,.08);
+
+  --sb-bg:#0c111c; --sb-border:#1a2130; --sb-text:#c4cad6; --sb-muted:#677184; --sb-hover:#151c2a; --sb-active:#1b2435; --sb-active-text:#ffffff;
+
+  --sev-baixo:#16a34a; --sev-moderado:#d4a20b; --sev-alto:#ea6a0c; --sev-critico:#dc2626;
+  --sev-baixo-bg:#e8f7ed; --sev-baixo-fg:#15803d;
+  --sev-moderado-bg:#fdf5dc; --sev-moderado-fg:#9a6b00;
+  --sev-alto-bg:#feeedf; --sev-alto-fg:#c2410c;
+  --sev-critico-bg:#fdecec; --sev-critico-fg:#b91c1c;
+
+  --map-baixo:#a8dfb7; --map-moderado:#f8d77e; --map-alto:#f7a35f; --map-critico:#e5534b;
+  --map-bg:#eef1f5; --map-stroke:#ffffff;
+
+  --st-aberto:#2563eb; --st-triagem:#7c3aed; --st-despachado:#0891b2; --st-atendimento:#0f8a7e; --st-resolvido:#98a2b3;
+  --sb-w:252px;
+}
+[data-theme="escuro"]{
+  --bg:#0a0d14; --surface:#10151f; --surface-2:#0d121b; --surface-3:#161c28;
+  --border:#1e2532; --border-2:#2a3342;
+  --text:#e6e9ef; --text-2:#c5cbd6; --muted:#8a94a7; --faint:#5d6779;
+  --ink:#e6e9ef; --ink-text:#0a0d14; --ink-hover:#ffffff;
+  --brand:#2bb3a4; --brand-2:#43c6b8; --brand-soft:rgba(43,179,164,.14); --brand-text:#5fd3c6;
+  --focus:0 0 0 3px rgba(43,179,164,.3);
+  --shadow-sm:none; --shadow:none; --shadow-lg:0 20px 50px -10px rgba(0,0,0,.6);
+  --sb-bg:#070a10; --sb-border:#141a25; --sb-hover:#10161f; --sb-active:#151d2a;
+  --sev-baixo-bg:rgba(22,163,74,.15); --sev-baixo-fg:#4ade80;
+  --sev-moderado-bg:rgba(212,162,11,.16); --sev-moderado-fg:#facc15;
+  --sev-alto-bg:rgba(234,106,12,.17); --sev-alto-fg:#fb923c;
+  --sev-critico-bg:rgba(220,38,38,.18); --sev-critico-fg:#f87171;
+  --map-bg:#0d121b; --map-stroke:#10151f;
+  --map-baixo:#2f7a4a; --map-moderado:#a88a26; --map-alto:#b4612a; --map-critico:#b93a35;
+}

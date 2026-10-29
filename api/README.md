@@ -40,6 +40,7 @@ pytest -m integracao      # contra o Neon real, com o usuário só de leitura do
 | `GET /v1/arboviroses/bairros` | `epidemiologia`, `dim_bairro` | Notificações por bairro e distrito + o que não casou com a tabela oficial |
 | `GET /v1/territorio/bairros` | `dim_bairro`, `dim_distrito` | Bairros com RPA e distrito |
 | `GET /v1/territorio/distritos` | `dim_distrito` | Distritos sanitários |
+| `GET /v1/territorio/bairros-geo` | `geo_bairro`, `dim_bairro` | Malha dos 94 bairros em GeoJSON, com distrito e RPA |
 | `GET /v1/territorio/areas-alagaveis?distrito=` | `cop_areas_alagaveis` | Polígonos em GeoJSON |
 | `GET /v1/territorio/pontos-alagamento` | `cop_pontos_alagamento` | Pontos em GeoJSON |
 

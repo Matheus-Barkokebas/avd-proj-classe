@@ -9,10 +9,11 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 import logging
 
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, RedirectResponse
+from starlette.exceptions import HTTPException
 
 from app import config as cfg
 from app.esquemas.modelos import Atualizacao, Erro, Saude
@@ -70,9 +71,10 @@ def criar_app(configuracao: cfg.Configuracao | None = None, repositorio: Reposit
         return resposta
 
     # ------------------------------------------------------------ erros num formato único
+    # HTTPException do Starlette (a classe-mãe) também cobre rota inexistente e método não permitido.
     @app.exception_handler(HTTPException)
     async def erro_http(_: Request, exc: HTTPException):
-        codigos = {404: "nao_encontrado", 400: "requisicao_invalida", 503: "indisponivel"}
+        codigos = {404: "nao_encontrado", 400: "requisicao_invalida", 405: "metodo_nao_permitido", 503: "indisponivel"}
         return _erro(exc.status_code, codigos.get(exc.status_code, "erro"), str(exc.detail))
 
     @app.exception_handler(RequestValidationError)
