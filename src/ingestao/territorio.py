@@ -27,6 +27,7 @@ from pathlib import Path
 import re
 import time
 from typing import Any
+import unicodedata
 import pyarrow as pa
 import pyarrow.parquet as pq
 import requests
@@ -39,6 +40,8 @@ import sys
 if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
+from src.ingestao import armazenamento as armaz
+from src.ingestao import padronizada
 from src.ingestao import recife_ckan
 from src.ingestao import runner
 
@@ -174,10 +177,86 @@ def _transformar_tabular(registros_raw: list[dict[str, Any]], mapeamento: dict[s
     return linhas
 
 
+DDL_DIM_DISTRITO = """
+CREATE TABLE IF NOT EXISTS dim_distrito (
+    distrito_sanitario integer PRIMARY KEY,
+    descricao_distrito text NOT NULL
+)"""
+DDL_DIM_BAIRRO = """
+CREATE TABLE IF NOT EXISTS dim_bairro (
+    chave_bairro text PRIMARY KEY,
+    nome_bairro text NOT NULL,
+    rpa integer,
+    distrito_sanitario integer REFERENCES dim_distrito (distrito_sanitario)
+)"""
+
+
+def chave_bairro(nome: Any) -> str:
+    """Nome de bairro normalizado para cruzar bases: sem acento, maiúsculo, espaço único."""
+    texto = unicodedata.normalize("NFKD", str(nome or "")).encode("ascii", "ignore").decode()
+    return " ".join(texto.upper().split())
+
+
+def dimensoes(conteudo_raw: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    """Monta dim_distrito e dim_bairro (decisão 0001) a partir das bases tabulares da RAW.
+
+    Cruza "Bairros e RPAs" com "Distritos Sanitários" pelo nome normalizado do
+    bairro. Bairros que existem numa base e não na outra são devolvidos em
+    `sem_correspondencia` em vez de descartados em silêncio (ai-rules 5.5).
+    """
+    tabulares = config.get("bases_tabulares", {})
+
+    def linhas(base: str) -> list[dict[str, Any]]:
+        bloco = conteudo_raw.get(base)
+        if not isinstance(bloco, dict) or bloco.get("tipo") != "tabular":
+            raise ValueError(f"Base '{base}' ausente ou com erro na RAW do território")
+        return _transformar_tabular(bloco.get("records", []), tabulares.get(base, {}).get("mapeamento_colunas", {}))
+
+    rpa_por_bairro = {chave_bairro(l["nome_bairro"]): l for l in linhas("bairros_rpa") if l.get("nome_bairro")}
+    ds_por_bairro = {chave_bairro(l["nome_bairro"]): l for l in linhas("distritos_sanitarios") if l.get("nome_bairro")}
+
+    distritos: dict[int, str] = {}
+    for l in ds_por_bairro.values():
+        if l.get("distrito_sanitario") is not None:
+            distritos[l["distrito_sanitario"]] = l.get("descricao_distrito") or f"DS {l['distrito_sanitario']}"
+
+    bairros = []
+    for chave in sorted(set(rpa_por_bairro) | set(ds_por_bairro)):
+        rpa, ds = rpa_por_bairro.get(chave, {}), ds_por_bairro.get(chave, {})
+        bairros.append({
+            "chave_bairro": chave,
+            "nome_bairro": ds.get("nome_bairro") or rpa.get("nome_bairro"),
+            "rpa": rpa.get("rpa"),
+            "distrito_sanitario": ds.get("distrito_sanitario"),
+        })
+    return {
+        "dim_distrito": [{"distrito_sanitario": n, "descricao_distrito": d} for n, d in sorted(distritos.items())],
+        "dim_bairro": bairros,
+        "sem_correspondencia": {
+            "so_em_bairros_rpa": sorted(set(rpa_por_bairro) - set(ds_por_bairro)),
+            "so_em_distritos": sorted(set(ds_por_bairro) - set(rpa_por_bairro)),
+        },
+    }
+
+
+def gravar_dimensoes(conteudo_raw: dict[str, Any], destino: padronizada.DestinoNeon,
+                     caminho_config: Path | None = None) -> dict[str, Any]:
+    """Grava dim_distrito e dim_bairro no Neon, substituindo as anteriores."""
+    dims = dimensoes(conteudo_raw, carregar_configuracao_fonte(caminho_config))
+    return {
+        "dim_distrito": destino.gravar_tabela(
+            "dim_distrito", DDL_DIM_DISTRITO, ["distrito_sanitario", "descricao_distrito"], dims["dim_distrito"]),
+        "dim_bairro": destino.gravar_tabela(
+            "dim_bairro", DDL_DIM_BAIRRO, ["chave_bairro", "nome_bairro", "rpa", "distrito_sanitario"], dims["dim_bairro"]),
+        "sem_correspondencia": dims["sem_correspondencia"],
+    }
+
+
 def materializar_bronze(
     data_coleta: date,
     diretorio_dados: Path = RAIZ_PROJETO / "data",
     caminho_config: Path | None = None,
+    armazenamento: armaz.ArmazenamentoRaw | None = None,
 ) -> dict[str, Path]:
     """Lê a RAW já persistida pelo runner e materializa UMA saída por base:
     Parquet para bases tabulares, arquivo preservado (ex. GeoJSON) para
@@ -187,15 +266,9 @@ def materializar_bronze(
     Idempotência garantida pela substituição atômica de cada partição.
     Devolve {nome_base: caminho_gravado}.
     """
-    caminho_raw = (
-        Path(diretorio_dados) / "raw" / "territorio"
-        / f"{data_coleta.year:04d}" / f"{data_coleta.month:02d}"
-        / f"{data_coleta.day:02d}" / "territorio.json"
-    )
-    if not caminho_raw.is_file():
-        raise FileNotFoundError(f"Arquivo RAW não encontrado para a data {data_coleta}: {caminho_raw}")
-
-    conteudo_raw = json.loads(caminho_raw.read_text(encoding="utf-8"))
+    if armazenamento is None:
+        armazenamento = armaz.ArmazenamentoArquivo(diretorio_dados)
+    conteudo_raw = armaz.ler_json(armazenamento, "territorio", data_coleta, "territorio.json")
     config = carregar_configuracao_fonte(caminho_config)
     bases_tabulares = config.get("bases_tabulares", {})
 
@@ -236,21 +309,31 @@ def coletar_e_materializar(
     data_coleta: date | None = None,
     diretorio_dados: Path = RAIZ_PROJETO / "data",
     caminho_config: Path | None = None,
+    armazenamento: armaz.ArmazenamentoRaw | None = None,
+    destino: padronizada.DestinoNeon | None = None,
 ) -> dict[str, Any]:
-    """Fluxo completo de ponta a ponta: coleta RAW via runner e materializa Bronze."""
-    registro = runner.executar("territorio", data_coleta=data_coleta, diretorio_dados=diretorio_dados)
+    """Fluxo completo de ponta a ponta: coleta RAW via runner e materializa Bronze.
+
+    Com `destino` (Neon), em vez da Bronze local grava as dimensões de bairro e
+    distrito na camada padronizada (decisão 0001); as malhas ficam só na RAW.
+    """
+    if armazenamento is None:
+        armazenamento = armaz.ArmazenamentoArquivo(diretorio_dados)
+    registro = runner.executar("territorio", data_coleta=data_coleta, diretorio_dados=diretorio_dados,
+                               armazenamento=armazenamento)
 
     if registro.get("status") != "ok":
         return {"execucao": registro, "bronze": None}
 
     data_particao = date.fromisoformat(registro["data_coleta"])
     try:
-        caminhos = materializar_bronze(data_particao, diretorio_dados=diretorio_dados, caminho_config=caminho_config)
-        caminho_raw = (
-            Path(diretorio_dados) / "raw" / "territorio" / f"{data_particao.year:04d}"
-            / f"{data_particao.month:02d}" / f"{data_particao.day:02d}" / "territorio.json"
-        )
-        falhas = bases_com_erro(json.loads(caminho_raw.read_text(encoding="utf-8")))
+        conteudo_raw = armaz.ler_json(armazenamento, "territorio", data_particao, "territorio.json")
+        falhas = bases_com_erro(conteudo_raw)
+        if destino is not None:
+            return {"execucao": registro, "padronizada": gravar_dimensoes(conteudo_raw, destino, caminho_config),
+                    "bronze": None, "bases_com_erro": falhas}
+        caminhos = materializar_bronze(data_particao, diretorio_dados=diretorio_dados,
+                                       caminho_config=caminho_config, armazenamento=armazenamento)
         return {
             "execucao": registro,
             "bronze": {k: str(v) for k, v in caminhos.items()},
@@ -273,12 +356,24 @@ def main() -> int:
         "--diretorio-dados", type=Path, default=RAIZ_PROJETO / "data",
         help="Diretório raiz de dados; padrão: data/ do projeto",
     )
+    parser.add_argument(
+        "--armazenamento", choices=armaz.TIPOS, default=None,
+        help="Onde fica a RAW; padrão: AERVITA_ARMAZENAMENTO ou arquivo",
+    )
+    parser.add_argument(
+        "--padronizada", choices=["arquivo", "neon"], default=None,
+        help="Onde gravar os dados padronizados; padrão: AERVITA_PADRONIZADA ou arquivo (Parquet)",
+    )
     opcoes = parser.parse_args()
 
-    resultado = coletar_e_materializar(data_coleta=opcoes.data_coleta, diretorio_dados=opcoes.diretorio_dados)
+    resultado = coletar_e_materializar(
+        data_coleta=opcoes.data_coleta, diretorio_dados=opcoes.diretorio_dados,
+        armazenamento=armaz.criar(opcoes.armazenamento, opcoes.diretorio_dados),
+        destino=padronizada.criar(opcoes.padronizada),
+    )
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
     # Falha parcial (alguma base) também sai com código != 0 para o agendador perceber.
-    sucesso = resultado["execucao"].get("status") == "ok" and resultado.get("bronze")
+    sucesso = resultado["execucao"].get("status") == "ok" and (resultado.get("bronze") or resultado.get("padronizada"))
     return 0 if sucesso and not resultado.get("bases_com_erro") else 1
 
 

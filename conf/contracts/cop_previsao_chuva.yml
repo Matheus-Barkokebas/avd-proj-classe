@@ -1,0 +1,43 @@
+# Contrato de dados: Previsão de chuva hora a hora por modelo, publicada pelo COP Recife
+# Fonte: conf/sources/cop_recife.yml / decisão 0001
+tabela: cop_previsao_chuva
+chave_negocio:
+  - data_hora_prevista
+campo_data_referencia: data_hora_prevista
+campos:
+  - nome: data_hora_prevista
+    tipo: datetime
+    obrigatorio: true
+    descricao: "Hora prevista (America/Recife)"
+  - nome: chuva_gfs_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Chuva prevista pelo modelo GFS (mm)"
+  - nome: chuva_ecmwf_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Chuva prevista pelo modelo ECMWF (mm)"
+  - nome: chuva_icon_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Chuva prevista pelo modelo ICON (mm)"
+  - nome: chuva_wrf_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Chuva prevista pelo modelo WRF (mm)"
+  - nome: p_gfs
+    tipo: float
+    obrigatorio: false
+    descricao: "Campo P_GFS da fonte (significado a confirmar com o COP)"
+  - nome: p_ecmwf
+    tipo: float
+    obrigatorio: false
+    descricao: "Campo P_ECMWF da fonte (significado a confirmar com o COP)"
+  - nome: p_icon
+    tipo: float
+    obrigatorio: false
+    descricao: "Campo P_ICON da fonte (significado a confirmar com o COP)"
+  - nome: p_wrf
+    tipo: float
+    obrigatorio: false
+    descricao: "Campo P_WRF da fonte (significado a confirmar com o COP)"

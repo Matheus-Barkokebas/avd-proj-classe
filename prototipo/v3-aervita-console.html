@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="claro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AerVita Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* =====================================================================
+   Tokens
+   ===================================================================== */
+:root{
+  --font:'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono:'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+  --bg:#f4f5f7; --surface:#ffffff; --surface-2:#f8f9fb; --surface-3:#f1f3f6;
+  --border:#e4e7ec; --border-2:#d0d5dd;
+  --text:#101828; --text-2:#344054; --muted:#667085; --faint:#98a2b3;
+  --ink:#101828; --ink-text:#ffffff; --ink-hover:#1d2939;
+  --brand:#0f8a7e; --brand-2:#0b6b62; --brand-soft:#e2f5f2; --brand-text:#0b6b62;
+  --focus:0 0 0 3px rgba(15,138,126,.22);
+  --shadow-sm:0 1px 2px rgba(16,24,40,.05);
+  --shadow:0 1px 3px rgba(16,24,40,.06), 0 1px 2px rgba(16,24,40,.04);
+  --shadow-lg:0 20px 40px -12px rgba(16,24,40,.22), 0 4px 10px -4px rgba(16,24,40,.08);
+
+  --sb-bg:#0c111c; --sb-border:#1a2130; --sb-text:#c4cad6; --sb-muted:#677184; --sb-hover:#151c2a; --sb-active:#1b2435; --sb-active-text:#ffffff;
+
+  --sev-baixo:#16a34a; --sev-moderado:#d4a20b; --sev-alto:#ea6a0c; --sev-critico:#dc2626;
+  --sev-baixo-bg:#e8f7ed; --sev-baixo-fg:#15803d;
+  --sev-moderado-bg:#fdf5dc; --sev-moderado-fg:#9a6b00;
+  --sev-alto-bg:#feeedf; --sev-alto-fg:#c2410c;
+  --sev-critico-bg:#fdecec; --sev-critico-fg:#b91c1c;
+
+  --map-baixo:#a8dfb7; --map-moderado:#f8d77e; --map-alto:#f7a35f; --map-critico:#e5534b;
+  --map-bg:#eef1f5; --map-stroke:#ffffff;
+
+  --st-aberto:#2563eb; --st-triagem:#7c3aed; --st-despachado:#0891b2; --st-atendimento:#0f8a7e; --st-resolvido:#98a2b3;
+  --sb-w:252px;
+}
+[data-theme="escuro"]{
+  --bg:#0a0d14; --surface:#10151f; --surface-2:#0d121b; --surface-3:#161c28;
+  --border:#1e2532; --border-2:#2a3342;
+  --text:#e6e9ef; --text-2:#c5cbd6; --muted:#8a94a7; --faint:#5d6779;
+  --ink:#e6e9ef; --ink-text:#0a0d14; --ink-hover:#ffffff;
+  --brand:#2bb3a4; --brand-2:#43c6b8; --brand-soft:rgba(43,179,164,.14); --brand-text:#5fd3c6;
+  --focus:0 0 0 3px rgba(43,179,164,.3);
+  --shadow-sm:none; --shadow:none; --shadow-lg:0 20px 50px -10px rgba(0,0,0,.6);
+  --sb-bg:#070a10; --sb-border:#141a25; --sb-hover:#10161f; --sb-active:#151d2a;
+  --sev-baixo-bg:rgba(22,163,74,.15); --sev-baixo-fg:#4ade80;
+  --sev-moderado-bg:rgba(212,162,11,.16); --sev-moderado-fg:#facc15;
+  --sev-alto-bg:rgba(234,106,12,.17); --sev-alto-fg:#fb923c;
+  --sev-critico-bg:rgba(220,38,38,.18); --sev-critico-fg:#f87171;
+  --map-bg:#0d121b; --map-stroke:#10151f;
+  --map-baixo:#2f7a4a; --map-moderado:#a88a26; --map-alto:#b4612a; --map-critico:#b93a35;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{-webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
+body{font-family:var(--font); font-size:14px; line-height:1.5; color:var(--text); background:var(--bg); font-feature-settings:"tnum" 0;}
+button,input,select,textarea{font:inherit; color:inherit;}
+a{color:inherit; text-decoration:none;}
+.num, .mono{font-variant-numeric:tabular-nums;}
+.mono{font-family:var(--mono);}
+.ic{flex-shrink:0; display:block;}
+::selection{background:var(--brand-soft);}
+
+/* =====================================================================
+   Shell
+   ===================================================================== */
+.app{display:grid; grid-template-columns:var(--sb-w) minmax(0,1fr); min-height:100vh; transition:grid-template-columns .2s ease;}
+.app.recolhida{--sb-w:68px;}
+
+.sidebar{position:sticky; top:0; height:100vh; background:var(--sb-bg); border-right:1px solid var(--sb-border); display:flex; flex-direction:column; color:var(--sb-text); overflow:hidden; z-index:40;}
+.sb-brand{height:60px; display:flex; align-items:center; gap:11px; padding:0 18px; border-bottom:1px solid var(--sb-border); flex-shrink:0;}
+.logo{width:30px; height:30px; border-radius:8px; background:var(--brand); display:grid; place-items:center; color:#fff; flex-shrink:0;}
+.sb-brand .nome{font-weight:600; color:#fff; font-size:15px; letter-spacing:-.01em; white-space:nowrap;}
+.sb-brand .nome span{color:var(--sb-muted); font-weight:500;}
+.sb-org{margin:14px 12px 4px; padding:9px 10px; border:1px solid var(--sb-border); border-radius:9px; display:flex; align-items:center; gap:10px; cursor:default; flex-shrink:0;}
+.sb-org .av{width:26px; height:26px; border-radius:6px; background:#1f2a3d; display:grid; place-items:center; font-size:11px; font-weight:600; color:#9fb0c8; flex-shrink:0;}
+.sb-org .t{font-size:12.5px; color:#fff; font-weight:500; line-height:1.2; white-space:nowrap;}
+.sb-org .s{font-size:11.5px; color:var(--sb-muted); white-space:nowrap;}
+.sb-nav{flex:1; overflow-y:auto; overflow-x:hidden; padding:6px 10px 12px; scrollbar-width:thin; scrollbar-color:#222b3b transparent;}
+.sb-grupo{font-size:11px; font-weight:500; color:var(--sb-muted); padding:16px 10px 6px; letter-spacing:.02em; white-space:nowrap;}
+.sb-item{display:flex; align-items:center; gap:11px; height:36px; padding:0 10px; border-radius:7px; color:var(--sb-text); font-size:13.5px; font-weight:450; cursor:pointer; position:relative; white-space:nowrap; transition:background .12s, color .12s;}
+.sb-item:hover{background:var(--sb-hover); color:#fff;}
+.sb-item.ativo{background:var(--sb-active); color:var(--sb-active-text);}
+.sb-item.ativo::before{content:''; position:absolute; left:-10px; top:9px; bottom:9px; width:3px; border-radius:0 3px 3px 0; background:var(--brand);}
+.sb-item .ic{opacity:.85;}
+.sb-item .cont{font-style:normal; margin-left:auto; font-size:11.5px; font-weight:600; min-width:20px; height:19px; padding:0 6px; border-radius:10px; background:#2a1416; color:#ff8a80; display:grid; place-items:center;}
+.sb-item .cont.neutro{background:#1d2534; color:#9fb0c8;}
+.sb-foot{border-top:1px solid var(--sb-border); padding:12px; flex-shrink:0;}
+.sb-env{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--sb-muted); padding:6px 8px; border-radius:7px; white-space:nowrap;}
+.sb-env .pt{width:7px; height:7px; border-radius:50%; background:#f5a524; flex-shrink:0; box-shadow:0 0 0 3px rgba(245,165,36,.15);}
+.sb-env b{color:var(--sb-text); font-weight:500;}
+.sb-colapsar{display:flex; align-items:center; gap:10px; width:100%; height:34px; padding:0 8px; border:none; background:none; color:var(--sb-muted); border-radius:7px; cursor:pointer; font-size:12.5px; white-space:nowrap;}
+.sb-colapsar:hover{background:var(--sb-hover); color:#fff;}
+.app.recolhida .sb-brand{padding:0 19px;}
+.app.recolhida .sb-brand .nome, .app.recolhida .sb-org .t, .app.recolhida .sb-org .s, .app.recolhida .sb-grupo, .app.recolhida .sb-item span, .app.recolhida .sb-item .cont, .app.recolhida .sb-env span, .app.recolhida .sb-colapsar span{display:none;}
+.app.recolhida .sb-org{justify-content:center; padding:9px 0; margin:14px 10px 4px;}
+.app.recolhida .sb-grupo{height:14px; padding:0;}
+.app.recolhida .sb-item{justify-content:center; padding:0;}
+.app.recolhida .sb-env, .app.recolhida .sb-colapsar{justify-content:center;}
+.app.recolhida .sb-colapsar .ic{transform:rotate(180deg);}
+.app.recolhida .sb-item[data-cont]:not([data-cont="0"])::after{content:''; position:absolute; top:8px; right:12px; width:7px; height:7px; border-radius:50%; background:#ff5d52;}
+
+.main{display:flex; flex-direction:column; min-width:0;}
+.topbar{position:sticky; top:0; z-index:30; height:60px; background:color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter:saturate(1.4) blur(10px); -webkit-backdrop-filter:saturate(1.4) blur(10px); border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; padding:0 22px;}
+.crumbs{display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--muted); white-space:nowrap; min-width:0;}
+.crumbs b{color:var(--text); font-weight:550;}
+.crumbs .ic{color:var(--faint);}
+.tb-esp{flex:1;}
+.busca{display:flex; align-items:center; gap:9px; height:36px; width:300px; padding:0 8px 0 11px; border:1px solid var(--border); border-radius:9px; background:var(--surface); color:var(--faint); font-size:13px; cursor:text; transition:border-color .12s;}
+.busca:hover{border-color:var(--border-2);}
+.busca span{flex:1; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+kbd{font-family:var(--mono); font-size:11px; color:var(--muted); border:1px solid var(--border); border-bottom-width:2px; border-radius:5px; padding:0 5px; background:var(--surface-2); line-height:17px;}
+.tb-relogio{font-family:var(--mono); font-size:12px; color:var(--muted); padding:0 6px; white-space:nowrap;}
+.ib{width:36px; height:36px; border-radius:9px; border:1px solid transparent; background:none; display:grid; place-items:center; color:var(--text-2); cursor:pointer; position:relative; transition:background .12s;}
+.ib:hover{background:var(--surface-3);}
+.ib .dot{position:absolute; top:6px; right:6px; min-width:16px; height:16px; border-radius:8px; padding:0 4px; background:var(--sev-critico); color:#fff; font-size:10px; font-weight:600; display:grid; place-items:center; border:2px solid var(--bg);}
+.vivo{display:flex; align-items:center; gap:8px; height:32px; padding:0 11px; border-radius:16px; border:1px solid var(--border); background:var(--surface); font-size:12.5px; font-weight:500; color:var(--text-2); cursor:pointer; white-space:nowrap;}
+.vivo .pt{width:7px; height:7px; border-radius:50%; background:var(--faint);}
+.vivo.on{border-color:color-mix(in srgb, var(--sev-baixo) 45%, var(--border)); color:var(--text);}
+.vivo.on .pt{background:var(--sev-baixo); animation:pulso 1.6s infinite;}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(22,163,74,.5);}70%{box-shadow:0 0 0 6px rgba(22,163,74,0);}100%{box-shadow:0 0 0 0 rgba(22,163,74,0);}}
+.avatar{width:32px; height:32px; border-radius:50%; background:linear-gradient(135deg,#334155,#0f8a7e); color:#fff; font-size:12px; font-weight:600; display:grid; place-items:center; cursor:pointer; border:none; margin-left:4px;}
+.hamb{display:none;}
+
+.banner{display:none; align-items:center; gap:12px; padding:9px 22px; background:var(--sev-moderado-bg); color:var(--sev-moderado-fg); border-bottom:1px solid color-mix(in srgb, var(--sev-moderado) 30%, transparent); font-size:13px;}
+.banner.on{display:flex;}
+.banner b{font-weight:600;}
+.banner .btn{margin-left:auto;}
+
+.conteudo{padding:26px 28px 56px; width:100%; max-width:1480px; margin:0 auto; animation:entra .2s ease;}
+@keyframes entra{from{opacity:0; transform:translateY(4px);}to{opacity:1; transform:none;}}
+
+/* =====================================================================
+   Componentes
+   ===================================================================== */
+.ph{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:22px; flex-wrap:wrap;}
+.ph h1{font-size:23px; font-weight:600; letter-spacing:-.02em; line-height:1.25;}
+.ph p{color:var(--muted); font-size:13.5px; margin-top:4px; max-width:720px;}
+.ph-acoes{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.upd{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--muted); margin-right:6px;}
+.upd b{font-weight:500; color:var(--text-2); font-family:var(--mono); font-size:12px;}
+
+.btn{display:inline-flex; align-items:center; gap:7px; height:34px; padding:0 13px; border-radius:8px; border:1px solid var(--border-2); background:var(--surface); color:var(--text); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; box-shadow:var(--shadow-sm); transition:background .12s, border-color .12s;}
+.btn:hover{background:var(--surface-2); border-color:var(--border-2);}
+.btn:focus-visible, .input:focus, .select:focus, textarea.input:focus{outline:none; box-shadow:var(--focus); border-color:var(--brand);}
+.btn:disabled{opacity:.45; cursor:not-allowed;}
+.btn-primary{background:var(--ink); color:var(--ink-text); border-color:var(--ink);}
+.btn-primary:hover{background:var(--ink-hover); border-color:var(--ink-hover);}
+.btn-brand{background:var(--brand); border-color:var(--brand); color:#fff;}
+.btn-brand:hover{background:var(--brand-2); border-color:var(--brand-2);}
+.btn-perigo{color:var(--sev-critico-fg);}
+.btn-sm{height:28px; padding:0 10px; font-size:12.5px; border-radius:7px;}
+.btn-ghost{border-color:transparent; background:none; box-shadow:none;}
+.btn-ghost:hover{background:var(--surface-3);}
+
+.card{background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow); min-width:0;}
+.card-h{display:flex; align-items:center; gap:10px; padding:14px 18px; border-bottom:1px solid var(--border); min-height:52px;}
+.card-h h3{font-size:14px; font-weight:600; letter-spacing:-.005em;}
+.card-h .sub{font-size:12.5px; color:var(--muted);}
+.card-h .dir{margin-left:auto; display:flex; align-items:center; gap:8px;}
+.card-b{padding:16px 18px;}
+.card-f{padding:10px 18px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:8px;}
+.link{color:var(--brand-text); font-weight:500; cursor:pointer; display:inline-flex; align-items:center; gap:4px; font-size:12.5px;}
+.link:hover{text-decoration:underline;}
+
+.fonte{font-size:10.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding:2px 6px; border-radius:5px; border:1px solid var(--border); color:var(--muted); cursor:help; white-space:nowrap;}
+.fonte.real{color:var(--brand-text); background:var(--brand-soft); border-color:transparent;}
+
+.grade{display:grid; grid-template-columns:repeat(12, minmax(0,1fr)); gap:18px;}
+.c3{grid-column:span 3;} .c4{grid-column:span 4;} .c5{grid-column:span 5;} .c6{grid-column:span 6;} .c7{grid-column:span 7;} .c8{grid-column:span 8;} .c12{grid-column:span 12;}
+.pilha{display:flex; flex-direction:column; gap:18px; min-width:0;}
+.mb{margin-bottom:18px;}
+
+.sev{display:inline-flex; align-items:center; gap:6px; height:22px; padding:0 8px; border-radius:6px; font-size:12px; font-weight:550; white-space:nowrap;}
+.sev::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
+.sev.baixo{background:var(--sev-baixo-bg); color:var(--sev-baixo-fg);}
+.sev.moderado{background:var(--sev-moderado-bg); color:var(--sev-moderado-fg);}
+.sev.alto{background:var(--sev-alto-bg); color:var(--sev-alto-fg);}
+.sev.critico{background:var(--sev-critico-bg); color:var(--sev-critico-fg);}
+.pt-sev{width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0;}
+.pt-sev.baixo{background:var(--sev-baixo);} .pt-sev.moderado{background:var(--sev-moderado);} .pt-sev.alto{background:var(--sev-alto);} .pt-sev.critico{background:var(--sev-critico);}
+
+.st{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:500; white-space:nowrap; color:var(--text-2);}
+.st::before{content:''; width:7px; height:7px; border-radius:2px; background:var(--c, var(--faint));}
+.st.aberto{--c:var(--st-aberto);} .st.triagem{--c:var(--st-triagem);} .st.despachado{--c:var(--st-despachado);} .st.em_atendimento{--c:var(--st-atendimento);} .st.resolvido{--c:var(--st-resolvido); color:var(--muted);}
+.st.disponivel{--c:var(--sev-baixo);} .st.deslocamento{--c:var(--st-despachado);} .st.atendimento{--c:var(--st-atendimento);} .st.fora{--c:var(--faint); color:var(--muted);}
+
+.sla{font-family:var(--mono); font-size:12px; white-space:nowrap; color:var(--text-2);}
+.sla.warn{color:var(--sev-moderado-fg);} .sla.late{color:var(--sev-critico-fg); font-weight:600;} .sla.ok{color:var(--muted);}
+
+.tbl-wrap{overflow-x:auto;}
+.tbl{width:100%; border-collapse:separate; border-spacing:0; font-size:13px;}
+.tbl th{font-size:12px; font-weight:500; color:var(--muted); text-align:left; padding:9px 14px; background:var(--surface-2); border-bottom:1px solid var(--border); white-space:nowrap; user-select:none;}
+.tbl th.ord{cursor:pointer;}
+.tbl th.ord:hover{color:var(--text);}
+.tbl th .seta{opacity:.5; margin-left:3px; font-size:10px;}
+.tbl td{padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle;}
+.tbl tbody tr:last-child td{border-bottom:none;}
+.tbl.clic tbody tr{cursor:pointer; transition:background .1s;}
+.tbl.clic tbody tr:hover{background:var(--surface-2);}
+.tbl tr.sel td{background:var(--brand-soft);}
+.tbl .r{text-align:right;}
+.tbl .cod{font-family:var(--mono); font-size:12px; color:var(--muted); white-space:nowrap;}
+.tbl .tit{font-weight:500; color:var(--text);}
+.tbl .sub{font-size:12px; color:var(--muted);}
+.muted{color:var(--muted);} .faint{color:var(--faint);} .small{font-size:12.5px;} .xs{font-size:11.5px;} .b{font-weight:600;}
+.vazio{padding:40px 20px; text-align:center; color:var(--muted); font-size:13px;}
+.vazio .ic{margin:0 auto 10px; color:var(--faint);}
+
+.input, .select{height:34px; border:1px solid var(--border-2); border-radius:8px; background:var(--surface); padding:0 11px; font-size:13px; color:var(--text); min-width:0;}
+.select{padding-right:28px; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667085' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 9px center;}
+textarea.input{height:auto; padding:9px 11px; resize:vertical; line-height:1.5;}
+.campo{display:flex; flex-direction:column; gap:6px;}
+.campo label{font-size:12.5px; font-weight:500; color:var(--text-2);}
+.campo .ajuda{font-size:12px; color:var(--muted);}
+.busca-in{position:relative;}
+.busca-in .ic{position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--faint);}
+.busca-in .input{padding-left:32px;}
+
+.toolbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:12px 14px; border-bottom:1px solid var(--border);}
+.toolbar .esp{flex:1;}
+
+.abas{display:flex; gap:2px; border-bottom:1px solid var(--border); padding:0 14px; overflow-x:auto;}
+.abas button{display:flex; align-items:center; gap:7px; height:44px; padding:0 10px; border:none; background:none; font-size:13px; font-weight:500; color:var(--muted); border-bottom:2px solid transparent; margin-bottom:-1px; cursor:pointer; white-space:nowrap;}
+.abas button:hover{color:var(--text);}
+.abas button.on{color:var(--text); border-bottom-color:var(--text);}
+.abas .n{font-size:11.5px; font-weight:600; padding:0 6px; border-radius:9px; background:var(--surface-3); color:var(--muted); line-height:18px;}
+.abas button.on .n{background:var(--ink); color:var(--ink-text);}
+
+.seg{display:inline-flex; padding:3px; background:var(--surface-3); border-radius:9px; gap:2px;}
+.seg button{border:none; background:none; height:28px; padding:0 11px; border-radius:7px; font-size:12.5px; font-weight:500; color:var(--muted); cursor:pointer; white-space:nowrap;}
+.seg button:hover{color:var(--text);}
+.seg button.on{background:var(--surface); color:var(--text); box-shadow:0 1px 2px rgba(16,24,40,.08), 0 0 0 1px var(--border);}
+
+.chip{display:inline-flex; align-items:center; gap:7px; height:28px; padding:0 11px; border-radius:14px; border:1px solid var(--border-2); background:var(--surface); font-size:12.5px; cursor:pointer; user-select:none;}
+.chip.on{border-color:var(--text); background:var(--surface-3);}
+.chip i{width:9px; height:9px; border-radius:50%;}
+
+/* métricas */
+.metricas{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:18px; margin-bottom:18px;}
+.metrica{padding:16px 18px;}
+.m-top{display:flex; align-items:center; justify-content:space-between; gap:8px;}
+.m-label{font-size:13px; color:var(--muted); font-weight:500;}
+.m-row{display:flex; align-items:flex-end; justify-content:space-between; gap:10px; margin-top:10px;}
+.m-val{font-size:28px; font-weight:600; letter-spacing:-.03em; line-height:1.1; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.m-val small{font-size:14px; color:var(--muted); font-weight:500; margin-left:3px; letter-spacing:0;}
+.m-foot{margin-top:10px; font-size:12.5px; color:var(--muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap;}
+.delta{display:inline-flex; align-items:center; gap:2px; font-weight:600; font-size:12px; padding:1px 6px; border-radius:5px;}
+.delta.up{color:var(--sev-critico-fg); background:var(--sev-critico-bg);}
+.delta.down{color:var(--sev-baixo-fg); background:var(--sev-baixo-bg);}
+.delta.eq{color:var(--muted); background:var(--surface-3);}
+.distrib{display:flex; height:6px; border-radius:3px; overflow:hidden; gap:2px; margin-top:12px; background:var(--surface-3);}
+.distrib i{display:block; height:100%;}
+
+/* barra mini */
+.minibar{display:inline-block; width:74px; height:6px; border-radius:3px; background:var(--surface-3); overflow:hidden; vertical-align:middle; margin-right:8px;}
+.minibar i{display:block; height:100%; border-radius:3px;}
+
+/* listas */
+.lista{list-style:none;}
+.lista li{display:flex; gap:11px; padding:12px 18px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s;}
+.lista li:last-child{border-bottom:none;}
+.lista li:hover{background:var(--surface-2);}
+.lista .l-c{flex:1; min-width:0;}
+.lista .l-t{font-size:13px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.lista .l-s{font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:2px;}
+.lista .l-d{text-align:right; flex-shrink:0;}
+.feed{list-style:none; padding:6px 0;}
+.feed li{display:grid; grid-template-columns:52px 1fr; gap:10px; padding:7px 18px; font-size:12.5px;}
+.feed .t{font-family:var(--mono); font-size:11.5px; color:var(--faint); padding-top:1px;}
+.feed .x{color:var(--text-2);}
+.feed .x b{font-weight:550; color:var(--text);}
+
+/* gráficos */
+svg.graf{width:100%; height:auto; display:block; overflow:visible;}
+svg.graf text{font-family:var(--mono); font-size:10.5px; fill:var(--faint);}
+svg.graf .gl{stroke:var(--border); stroke-width:1;}
+.leg{display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:var(--muted); margin-top:12px;}
+.leg i{display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:6px; vertical-align:-1px;}
+
+/* mapa */
+.mapa-box{position:relative; background:var(--map-bg); overflow:hidden;}
+.mapa-box svg.mapa{width:100%; height:100%; display:block; touch-action:none; cursor:grab;}
+.mapa-box svg.mapa.arrastando{cursor:grabbing;}
+svg.mapa path.bairro{stroke:var(--map-stroke); stroke-width:.8; vector-effect:non-scaling-stroke; transition:fill .35s ease, opacity .2s;}
+svg.mapa path.bairro:hover{stroke:var(--text); stroke-width:1.8;}
+svg.mapa path.bairro.sel{stroke:var(--text); stroke-width:2.6;}
+svg.mapa path.bairro.apagado{opacity:.18;}
+svg.mapa text.rot-ds{font-family:var(--font); font-size:15px; font-weight:700; fill:var(--text); paint-order:stroke; stroke:var(--map-bg); stroke-width:4px; pointer-events:none; letter-spacing:.02em; opacity:.85;}
+svg.mapa.sem-rotulos text.rot-ds{display:none;}
+.mapa-mini{height:340px;}
+.mapa-mini svg.mapa{cursor:pointer;}
+.mapa-pagina{height:calc(100vh - 60px - 130px); min-height:540px; border-radius:12px; border:1px solid var(--border);}
+.flut{position:absolute; background:var(--surface); border:1px solid var(--border); border-radius:11px; box-shadow:var(--shadow-lg); z-index:2;}
+.flut-camadas{top:14px; left:14px; width:270px; padding:14px;}
+.flut-camadas h4{font-size:12px; font-weight:600; color:var(--muted); margin-bottom:8px;}
+.camada{display:flex; align-items:center; gap:10px; padding:8px 9px; border-radius:8px; cursor:pointer; font-size:13px; border:1px solid transparent;}
+.camada:hover{background:var(--surface-2);}
+.camada.on{border-color:var(--border-2); background:var(--surface-2); font-weight:500;}
+.camada .rd{width:14px; height:14px; border-radius:50%; border:1.5px solid var(--border-2); display:grid; place-items:center; flex-shrink:0;}
+.camada.on .rd{border-color:var(--brand);}
+.camada.on .rd::after{content:''; width:7px; height:7px; border-radius:50%; background:var(--brand);}
+.camada .fonte{margin-left:auto;}
+.flut-zoom{top:14px; right:14px; display:flex; flex-direction:column; overflow:hidden;}
+.flut-zoom button{width:36px; height:36px; border:none; background:none; display:grid; place-items:center; cursor:pointer; color:var(--text-2); border-bottom:1px solid var(--border);}
+.flut-zoom button:last-child{border-bottom:none;}
+.flut-zoom button:hover{background:var(--surface-2);}
+.flut-leg{left:14px; bottom:14px; padding:12px 14px; font-size:12px; color:var(--text-2); min-width:180px;}
+.flut-leg .lt{font-size:12px; font-weight:600; margin-bottom:6px;}
+.flut-leg .lr{display:flex; align-items:center; gap:8px; margin-top:4px;}
+.flut-leg .lr i{width:16px; height:10px; border-radius:3px;}
+.mapa-norte{position:absolute; right:14px; bottom:14px; font-family:var(--mono); font-size:11px; color:var(--muted); background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:3px 8px; z-index:2;}
+
+/* drawer, modal, popover */
+.veu{position:fixed; inset:0; background:rgba(9,13,20,.36); opacity:0; pointer-events:none; transition:opacity .18s; z-index:80;}
+.veu.on{opacity:1; pointer-events:auto;}
+.drawer{position:fixed; top:0; right:0; bottom:0; width:min(520px, 100vw); background:var(--surface); border-left:1px solid var(--border); box-shadow:var(--shadow-lg); z-index:90; transform:translateX(102%); transition:transform .22s cubic-bezier(.2,.8,.2,1); display:flex; flex-direction:column;}
+.drawer.on{transform:none;}
+.dr-h{padding:18px 22px 16px; border-bottom:1px solid var(--border); display:flex; gap:12px; align-items:flex-start;}
+.dr-h .tt{flex:1; min-width:0;}
+.dr-h .ey{font-family:var(--mono); font-size:12px; color:var(--muted); display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+.dr-h h2{font-size:18px; font-weight:600; letter-spacing:-.015em; margin-top:6px; line-height:1.3;}
+.dr-b{flex:1; overflow-y:auto; padding:18px 22px 24px;}
+.dr-f{padding:14px 22px; border-top:1px solid var(--border); display:flex; gap:8px; flex-wrap:wrap; align-items:center; background:var(--surface-2);}
+.kv{display:grid; grid-template-columns:140px 1fr; gap:9px 14px; font-size:13px;}
+.kv dt{color:var(--muted);}
+.kv dd{color:var(--text); min-width:0;}
+.secao{font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; margin:22px 0 10px;}
+.caixa{background:var(--surface-2); border:1px solid var(--border); border-radius:9px; padding:11px 13px; font-size:13px; color:var(--text-2);}
+.etapas{display:flex; gap:4px; margin-top:4px;}
+.etapas div{flex:1;}
+.etapas i{display:block; height:4px; border-radius:2px; background:var(--surface-3);}
+.etapas div.on i{background:var(--brand);}
+.etapas span{display:block; font-size:11px; color:var(--faint); margin-top:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.etapas div.on span{color:var(--text-2);}
+.etapas div.atual span{color:var(--text); font-weight:600;}
+.tl{list-style:none; position:relative;}
+.tl::before{content:''; position:absolute; left:5px; top:6px; bottom:6px; width:1px; background:var(--border);}
+.tl li{position:relative; padding:0 0 14px 22px; font-size:13px;}
+.tl li::before{content:''; position:absolute; left:1px; top:6px; width:9px; height:9px; border-radius:50%; background:var(--surface); border:2px solid var(--border-2);}
+.tl li.sis::before{border-color:var(--faint);}
+.tl li.op::before{border-color:var(--brand); background:var(--brand);}
+.tl li.eq::before{border-color:var(--st-despachado);}
+.tl .tm{font-size:11.5px; color:var(--faint); font-family:var(--mono);}
+.tl .au{font-size:12px; color:var(--muted);}
+
+.modal-wrap{position:fixed; inset:0; z-index:100; display:none; align-items:flex-start; justify-content:center; padding:12vh 16px 16px;}
+.modal-wrap.on{display:flex;}
+.modal{width:min(520px, 100%); background:var(--surface); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-lg); animation:pop .16s ease;}
+@keyframes pop{from{opacity:0; transform:translateY(6px) scale(.99);}to{opacity:1; transform:none;}}
+.modal-h{padding:18px 20px 4px;}
+.modal-h h3{font-size:16px; font-weight:600;}
+.modal-h p{font-size:13px; color:var(--muted); margin-top:3px;}
+.modal-b{padding:16px 20px; display:flex; flex-direction:column; gap:14px;}
+.modal-f{padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; background:var(--surface-2); border-radius:0 0 14px 14px;}
+
+.paleta{width:min(620px, 100%); padding:0; overflow:hidden;}
+.paleta .pin{display:flex; align-items:center; gap:10px; padding:0 16px; border-bottom:1px solid var(--border);}
+.paleta .pin input{flex:1; height:52px; border:none; background:none; font-size:15px; outline:none;}
+.paleta ul{list-style:none; max-height:380px; overflow-y:auto; padding:6px;}
+.paleta .pg{font-size:11.5px; color:var(--faint); padding:10px 10px 4px; font-weight:500;}
+.paleta li.it{display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:8px; cursor:pointer; font-size:13.5px; color:var(--text-2);}
+.paleta li.it .ic{color:var(--muted);}
+.paleta li.it .dica{margin-left:auto; font-size:12px; color:var(--faint);}
+.paleta li.it.on{background:var(--surface-3); color:var(--text);}
+.paleta .rod{display:flex; gap:14px; padding:9px 16px; border-top:1px solid var(--border); font-size:11.5px; color:var(--faint);}
+
+.pop{position:fixed; z-index:95; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-lg); display:none; animation:pop .14s ease;}
+.pop.on{display:block;}
+.pop-notif{width:380px;}
+.pop-h{display:flex; align-items:center; padding:12px 16px; border-bottom:1px solid var(--border);}
+.pop-h b{font-size:14px; font-weight:600;}
+.pop-h .link{margin-left:auto;}
+.pop-notif ul{list-style:none; max-height:420px; overflow-y:auto;}
+.pop-notif li{display:flex; gap:11px; padding:12px 16px; border-bottom:1px solid var(--border); cursor:pointer;}
+.pop-notif li:hover{background:var(--surface-2);}
+.pop-notif li.nl{background:color-mix(in srgb, var(--brand-soft) 55%, transparent);}
+.pop-notif li .pt-sev{margin-top:6px;}
+.pop-notif .nt{font-size:13px; font-weight:500;}
+.pop-notif .ns{font-size:12.5px; color:var(--muted);}
+.pop-notif .nh{font-size:11.5px; color:var(--faint); font-family:var(--mono); margin-top:2px;}
+.pop-menu{width:250px; padding:6px;}
+.pop-menu .us{padding:10px 10px 12px; border-bottom:1px solid var(--border); margin-bottom:6px;}
+.pop-menu .us b{display:block; font-size:13.5px; font-weight:600;}
+.pop-menu .us span{font-size:12.5px; color:var(--muted);}
+.pop-menu button{display:flex; align-items:center; gap:10px; width:100%; height:34px; padding:0 10px; border:none; background:none; border-radius:7px; font-size:13px; cursor:pointer; color:var(--text-2);}
+.pop-menu button:hover{background:var(--surface-3); color:var(--text);}
+.pop-menu hr{border:none; border-top:1px solid var(--border); margin:6px 0;}
+
+.dica-flut{position:fixed; z-index:120; pointer-events:none; background:#0c111c; color:#e6e9ef; font-size:12px; padding:8px 10px; border-radius:8px; box-shadow:0 8px 24px rgba(0,0,0,.25); display:none; max-width:260px; line-height:1.45;}
+.dica-flut b{display:block; font-size:12.5px; margin-bottom:2px;}
+.dica-flut span{color:#97a3b8;}
+
+.toasts{position:fixed; right:20px; bottom:20px; z-index:130; display:flex; flex-direction:column; gap:8px; align-items:flex-end;}
+.toast{display:flex; gap:11px; align-items:flex-start; width:360px; padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-radius:11px; box-shadow:var(--shadow-lg); animation:pop .18s ease; cursor:pointer;}
+.toast .pt-sev{margin-top:6px;}
+.toast b{display:block; font-size:13px; font-weight:600;}
+.toast span{font-size:12.5px; color:var(--muted);}
+.toast .ok{color:var(--sev-baixo); margin-top:1px;}
+
+/* hidro */
+.rio{padding:16px 18px;}
+.rio .rt{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.rio .rn{font-weight:600; font-size:14px;}
+.rio .rs{font-size:12px; color:var(--muted);}
+.rio .rv{font-size:28px; font-weight:600; letter-spacing:-.03em; margin-top:10px; font-variant-numeric:tabular-nums;}
+.rio .rv small{font-size:14px; color:var(--muted); font-weight:500;}
+.regua{position:relative; height:8px; border-radius:4px; background:var(--surface-3); margin:14px 0 22px;}
+.regua .f{position:absolute; left:0; top:0; bottom:0; border-radius:4px; transition:width .6s ease;}
+.regua .mk{position:absolute; top:-4px; bottom:-4px; width:2px; border-radius:1px;}
+.regua .mk span{position:absolute; top:18px; font-size:10.5px; font-family:var(--mono); white-space:nowrap;}
+.regua .mk.at span{right:3px;} .regua .mk.al span{left:3px;}
+
+/* simulador */
+.preset{display:flex; gap:12px; align-items:flex-start; padding:12px; border:1px solid var(--border); border-radius:10px; cursor:pointer; margin-bottom:8px; transition:border-color .12s, background .12s;}
+.preset:hover{border-color:var(--border-2);}
+.preset.on{border-color:var(--brand); background:var(--brand-soft);}
+.preset .rd{width:16px; height:16px; border-radius:50%; border:1.5px solid var(--border-2); margin-top:2px; flex-shrink:0; display:grid; place-items:center;}
+.preset.on .rd{border-color:var(--brand);}
+.preset.on .rd::after{content:''; width:8px; height:8px; border-radius:50%; background:var(--brand);}
+.preset b{font-size:13.5px; font-weight:600; display:block;}
+.preset span{font-size:12.5px; color:var(--muted);}
+.preset .pv{margin-left:auto; font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right; white-space:nowrap;}
+.slider{margin-top:18px;}
+.slider .sh{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px;}
+.slider label{font-size:13px; font-weight:500;}
+.slider output{font-family:var(--mono); font-size:13px; font-weight:600; color:var(--text);}
+.slider input[type=range]{width:100%; accent-color:var(--brand);}
+.slider .ajuda{font-size:12px; color:var(--muted); margin-top:3px;}
+.seta-mud{font-size:12px; font-weight:700;}
+.seta-mud.up{color:var(--sev-critico-fg);} .seta-mud.down{color:var(--sev-baixo-fg);} .seta-mud.eq{color:var(--faint);}
+
+/* boletim */
+.papel{background:#fff; color:#1b2230; border:1px solid var(--border); border-radius:6px; box-shadow:var(--shadow); padding:44px 52px; font-size:13px; line-height:1.6; max-width:820px; margin:0 auto;}
+.papel .pp-h{display:flex; justify-content:space-between; align-items:flex-start; border-bottom:2px solid #1b2230; padding-bottom:16px; margin-bottom:20px;}
+.papel .pp-marca{display:flex; gap:10px; align-items:center;}
+.papel .pp-marca .logo{width:34px; height:34px;}
+.papel .pp-marca b{font-size:15px; display:block;}
+.papel .pp-marca span{font-size:11.5px; color:#5b6474;}
+.papel .pp-num{text-align:right; font-family:var(--mono); font-size:11.5px; color:#5b6474;}
+.papel .pp-num b{display:block; color:#1b2230; font-size:13px;}
+.papel h1{font-size:20px; font-weight:700; letter-spacing:-.01em; margin-bottom:4px;}
+.papel .pp-sub{color:#5b6474; font-size:12.5px; margin-bottom:18px;}
+.papel h2{font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:#5b6474; margin:22px 0 8px; font-weight:700;}
+.papel .pp-aviso{background:#fff6dd; border:1px solid #f0d58c; color:#7a5800; padding:8px 12px; border-radius:6px; font-size:12px; margin-bottom:16px; font-weight:500;}
+.papel .pp-resumo{font-size:14px;}
+.papel ul{padding-left:18px;}
+.papel li{margin:3px 0;}
+.papel table{width:100%; border-collapse:collapse; font-size:12px;}
+.papel th{text-align:left; font-weight:600; border-bottom:1px solid #1b2230; padding:5px 6px; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#5b6474;}
+.papel td{padding:5px 6px; border-bottom:1px solid #e3e6ec;}
+.papel .r{text-align:right; font-variant-numeric:tabular-nums;}
+.papel .nv{font-weight:700;}
+.papel .nv.baixo{color:#15803d;} .papel .nv.moderado{color:#9a6b00;} .papel .nv.alto{color:#c2410c;} .papel .nv.critico{color:#b91c1c;}
+.papel .pp-rod{margin-top:28px; padding-top:12px; border-top:1px solid #e3e6ec; font-size:11px; color:#5b6474; display:flex; justify-content:space-between; gap:12px;}
+
+/* fontes */
+.fluxo{display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:0; align-items:stretch;}
+.etapa{padding:14px 16px; border-right:1px solid var(--border); position:relative;}
+.etapa:last-child{border-right:none;}
+.etapa .en{font-size:12px; color:var(--muted); font-weight:500; display:flex; align-items:center; gap:6px;}
+.etapa .ev{font-size:17px; font-weight:600; margin-top:6px; letter-spacing:-.01em;}
+.etapa .ed{font-size:12px; color:var(--muted); margin-top:2px;}
+.etapa .barra{height:3px; border-radius:2px; margin-top:12px; background:var(--surface-3);}
+.etapa.ok .barra{background:var(--sev-baixo);}
+.etapa.prox .barra{background:repeating-linear-gradient(90deg, var(--border-2) 0 6px, transparent 6px 10px);}
+.conector{display:flex; gap:14px; padding:16px 18px;}
+.conector .ci{width:38px; height:38px; border-radius:9px; background:var(--surface-3); display:grid; place-items:center; color:var(--text-2); flex-shrink:0;}
+.conector .cn{font-weight:600; font-size:14px;}
+.conector .cd{font-size:12.5px; color:var(--muted); margin-top:2px;}
+.conector .cm{display:flex; gap:16px; margin-top:10px; font-size:12px; color:var(--muted); flex-wrap:wrap;}
+.conector .cm b{color:var(--text); font-weight:600; font-family:var(--mono); font-size:12.5px;}
+.badge{display:inline-flex; align-items:center; gap:6px; height:22px; padding:0 8px; border-radius:6px; font-size:12px; font-weight:550; white-space:nowrap;}
+.badge::before{content:''; width:6px; height:6px; border-radius:50%; background:currentColor;}
+.badge.ok{background:var(--sev-baixo-bg); color:var(--sev-baixo-fg);}
+.badge.esp{background:var(--sev-moderado-bg); color:var(--sev-moderado-fg);}
+.badge.err{background:var(--sev-critico-bg); color:var(--sev-critico-fg);}
+.badge.neu{background:var(--surface-3); color:var(--muted);}
+
+/* config */
+.cfg{display:grid; grid-template-columns:240px minmax(0,1fr); gap:28px; align-items:start;}
+.cfg-nav{position:sticky; top:84px; display:flex; flex-direction:column; gap:2px;}
+.cfg-nav a{padding:8px 11px; border-radius:7px; font-size:13px; color:var(--muted); cursor:pointer;}
+.cfg-nav a:hover{background:var(--surface-3); color:var(--text);}
+.cfg-sec{padding:20px 22px; display:grid; grid-template-columns:260px minmax(0,1fr); gap:24px; border-bottom:1px solid var(--border);}
+.cfg-sec:last-child{border-bottom:none;}
+.cfg-sec h4{font-size:14px; font-weight:600;}
+.cfg-sec p{font-size:12.5px; color:var(--muted); margin-top:4px;}
+.cfg-campos{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px;}
+.in-un{position:relative;}
+.in-un .input{width:100%; padding-right:44px; font-family:var(--mono);}
+.in-un span{position:absolute; right:11px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--faint);}
+.tema-op{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+.tema-op button{border:1px solid var(--border); border-radius:10px; background:var(--surface); padding:10px; text-align:left; cursor:pointer; font-size:13px;}
+.tema-op button.on{border-color:var(--brand); box-shadow:var(--focus);}
+.tema-op .prev{height:52px; border-radius:6px; margin-bottom:8px; border:1px solid var(--border);}
+
+.pag{display:flex; align-items:center; gap:8px; padding:10px 14px; border-top:1px solid var(--border); font-size:12.5px; color:var(--muted);}
+.pag .esp{flex:1;}
+
+@media (max-width:1200px){
+  .metricas{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .c3{grid-column:span 6;} .c4,.c5,.c7,.c8{grid-column:span 12;}
+  .busca{width:220px;}
+  .cfg{grid-template-columns:1fr;} .cfg-nav{display:none;}
+  .fluxo{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .etapa:nth-child(3){border-right:none;} .etapa:nth-child(-n+3){border-bottom:1px solid var(--border);}
+}
+@media (max-width:900px){
+  .app, .app.recolhida{grid-template-columns:minmax(0,1fr);}
+  .sidebar{position:fixed; left:0; top:0; bottom:0; width:264px; transform:translateX(-100%); transition:transform .2s ease;}
+  .app.menu-aberto .sidebar{transform:none; box-shadow:var(--shadow-lg);}
+  .app.recolhida .sb-brand .nome, .app.recolhida .sb-item span, .app.recolhida .sb-grupo, .app.recolhida .sb-org .t, .app.recolhida .sb-org .s, .app.recolhida .sb-env span{display:revert;}
+  .sb-colapsar{display:none !important;}
+  .hamb{display:grid;}
+  .busca{width:auto;} .busca span, .busca kbd{display:none;}
+  .tb-relogio, .crumbs .grupo, .crumbs .sepg{display:none;}
+  .c6{grid-column:span 12;}
+  .cfg-sec{grid-template-columns:1fr;}
+}
+@media (max-width:640px){
+  .conteudo{padding:18px 16px 40px;}
+  .topbar{padding:0 12px; gap:4px;}
+  .vivo span{display:none;} .vivo{padding:0 10px;}
+  .metricas{grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px;}
+  .m-val{font-size:22px;}
+  .c3{grid-column:span 12;}
+  .cfg-campos{grid-template-columns:1fr 1fr;}
+  .fluxo{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .etapa{border-right:none !important; border-bottom:1px solid var(--border);}
+  .papel{padding:24px 20px;}
+  .kv{grid-template-columns:110px 1fr;}
+  .flut-camadas{width:auto; right:64px;}
+  .toast{width:calc(100vw - 40px);}
+  .pop-notif{width:calc(100vw - 24px);}
+}
+@media print{
+  body{background:#fff;}
+  .sidebar, .topbar, .banner, .toasts, .nao-imprime, .drawer, .veu{display:none !important;}
+  .app{display:block;}
+  .conteudo{padding:0; max-width:none;}
+  .papel{border:none; box-shadow:none; padding:0; max-width:none;}
+  .grade{display:block;}
+}
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="logo" id="logoMarca"></div>
+      <div class="nome">AerVita <span>Console</span></div>
+    </div>
+    <div class="sb-org" title="Ambiente de demonstração">
+      <div class="av">REC</div>
+      <div><div class="t">Recife · PE</div><div class="s">Centro de operações</div></div>
+    </div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-foot">
+      <div class="sb-env" title="Chuva, rios, ocorrências e equipes são simulados. Malha de bairros, distritos e arboviroses são dados reais."><span class="pt"></span><span><b>Demonstração</b> · v0.3</span></div>
+      <button class="sb-colapsar" id="sbColapsar"><span class="ic-wrap"></span><span>Recolher menu</span></button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="ib hamb" id="hamb" aria-label="Abrir menu"></button>
+      <div class="crumbs" id="crumbs"></div>
+      <div class="tb-esp"></div>
+      <button class="busca" id="abrirBusca"><span class="ic-wrap"></span><span>Buscar ou executar…</span><kbd>Ctrl K</kbd></button>
+      <span class="tb-relogio" id="relogio"></span>
+      <button class="vivo" id="vivo" title="Simula novas leituras a cada 4 segundos"><i class="pt"></i><span>Ao vivo</span></button>
+      <button class="ib" id="btnNotif" aria-label="Notificações"></button>
+      <button class="ib" id="btnTema" aria-label="Alternar tema"></button>
+      <button class="avatar" id="btnUser" aria-label="Conta">OP</button>
+    </header>
+    <div class="banner" id="banner"></div>
+    <main class="conteudo" id="conteudo"></main>
+  </div>
+</div>
+
+<div class="veu" id="veu"></div>
+<aside class="drawer" id="drawer" aria-hidden="true"></aside>
+<div class="modal-wrap" id="modal"></div>
+<div class="pop pop-notif" id="popNotif"></div>
+<div class="pop pop-menu" id="popUser"></div>
+<div class="dica-flut" id="dica"></div>
+<div class="toasts" id="toasts"></div>
+
+<script src="dados/recife-real.js"></script>
+<script>
+'use strict';
+/* =====================================================================
+   AerVita Console — protótipo v3
+   Um único estado (store) alimenta todas as telas. Chuva, rios, ocorrências
+   e equipes são simulados; malha de bairros, distritos sanitários e
+   notificações de arboviroses vêm do Portal de Dados Abertos do Recife.
+   ===================================================================== */
+
+/* ------------------------------------------------------------ utilidades */
+const DADOS = window.AERVITA_DADOS || { bairros: [], epidemiologia: null };
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => Math.round(n).toLocaleString('pt-BR');
+const fmt1 = n => Number(n).toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const hash = s => { let h = 2166136261; for (const c of String(s)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); } return ((h >>> 0) % 10000) / 10000; };
+const normalizar = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().trim();
+const hhmm = t => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+const hhmmss = t => new Date(t).toLocaleTimeString('pt-BR');
+const dataCurta = t => new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+function tempoRel(t) {
+  const m = Math.max(0, Math.round((Date.now() - t) / 60000));
+  if (m < 1) return 'agora';
+  if (m < 60) return `há ${m} min`;
+  const h = Math.floor(m / 60), r = m % 60;
+  return h < 24 ? `há ${h} h${r ? ` ${r} min` : ''}` : `há ${Math.floor(h / 24)} d`;
+}
+function relogioMs(ms) {
+  const s = Math.max(0, Math.floor(Math.abs(ms) / 1000)), h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60;
+  return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${String(m).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+}
+function lsGet(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } }
+function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* armazenamento indisponível */ } }
+function baixar(nome, conteudo, tipo) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([conteudo], { type: tipo }));
+  a.download = nome; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+}
+const csv = linhas => '﻿' + linhas.map(l => l.map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(';')).join('\n');
+
+/* ------------------------------------------------------------ ícones (traço próprio, sem dependência) */
+const ICONES = {
+  painel: '<rect x="3" y="3" width="7.5" height="9" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="5.5" rx="1.5"/><rect x="13.5" y="11.5" width="7.5" height="9.5" rx="1.5"/><rect x="3" y="15" width="7.5" height="6" rx="1.5"/>',
+  mapa: '<path d="M9 4 3.5 6v14L9 18l6 2 5.5-2V4L15 6 9 4z"/><path d="M9 4v14M15 6v14"/>',
+  sirene: '<path d="M7 18v-6a5 5 0 0 1 10 0v6"/><path d="M5 21h14M12 3v1.5M4.2 6.2l1.1 1.1M19.8 6.2l-1.1 1.1M3 12h1.5M19.5 12H21"/><path d="M10 18v-5.5"/>',
+  equipe: '<circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c.8-3.6 3.3-5.6 6.2-5.6s5.4 2 6.2 5.6"/><path d="M16 4.6a3.4 3.4 0 0 1 0 6.8M18.2 14.6c1.8.7 2.8 2.5 3.1 5.4"/>',
+  chuva: '<path d="M7 15.5a4.5 4.5 0 1 1 1.3-8.8A6 6 0 0 1 19.6 9.2a3.4 3.4 0 0 1-1.1 6.3H7z"/><path d="M8.5 18.5 7.5 21M12.5 18.5l-1 2.5M16.5 18.5l-1 2.5"/>',
+  pulso: '<path d="M3 12h3.5l2.5-6.5 4 13 2.8-6.5H21"/>',
+  ajustes: '<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/><path d="M4 12h13M21 12h-1"/><circle cx="18.5" cy="12" r="0"/>',
+  doc: '<path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5L14 3z"/><path d="M14 3v4.5h4.5M9 12.5h6M9 16h4"/>',
+  banco: '<ellipse cx="12" cy="5.5" rx="7.5" ry="2.5"/><path d="M4.5 5.5v13c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5v-13M4.5 12c0 1.4 3.4 2.5 7.5 2.5s7.5-1.1 7.5-2.5"/>',
+  engrenagem: '<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M5.5 5.5l1.7 1.7M16.8 16.8l1.7 1.7M2.8 12h2.4M18.8 12h2.4M5.5 18.5l1.7-1.7M16.8 7.2l1.7-1.7"/><circle cx="12" cy="12" r="6.5"/>',
+  busca: '<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
+  sino: '<path d="M6 9a6 6 0 0 1 12 0c0 6.5 2.5 8 2.5 8h-17S6 15.5 6 9z"/><path d="M10.2 20.5a2 2 0 0 0 3.6 0"/>',
+  sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/>',
+  lua: '<path d="M20 14.6A8 8 0 1 1 9.4 4a6.4 6.4 0 0 0 10.6 10.6z"/>',
+  lateral: '<rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9.5 4v16M5.5 8.5h1.5M5.5 11.5h1.5"/>',
+  recolher: '<path d="m15 6-6 6 6 6"/>',
+  menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  dir: '<path d="m9 6 6 6-6 6"/>',
+  baixo: '<path d="m6 9 6 6 6-6"/>',
+  download: '<path d="M12 3.5v11.5M7.5 10.5 12 15l4.5-4.5M5 20.5h14"/>',
+  impressora: '<path d="M6.5 9V3.5h11V9M6.5 17.5H5a1.5 1.5 0 0 1-1.5-1.5v-5A2 2 0 0 1 5.5 9h13a2 2 0 0 1 2 2v5a1.5 1.5 0 0 1-1.5 1.5h-1.5"/><rect x="6.5" y="14" width="11" height="7" rx="1"/>',
+  copiar: '<rect x="9" y="9" width="11.5" height="11.5" rx="2"/><path d="M5.5 15H5a1.5 1.5 0 0 1-1.5-1.5V5A1.5 1.5 0 0 1 5 3.5h8.5A1.5 1.5 0 0 1 15 5v.5"/>',
+  mais: '<path d="M12 5v14M5 12h14"/>',
+  relogio: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  pino: '<path d="M12 21s-6.5-5.8-6.5-11.3a6.5 6.5 0 0 1 13 0C18.5 15.2 12 21 12 21z"/><circle cx="12" cy="9.7" r="2.4"/>',
+  camadas: '<path d="m12 3.5 8.5 4.5-8.5 4.5L3.5 8 12 3.5z"/><path d="m3.5 12.5 8.5 4.5 8.5-4.5M3.5 16.5 12 21l8.5-4.5"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  caminhao: '<path d="M2.5 6.5h11v10h-11zM13.5 9.5h4l3 3.5v3.5h-7"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+  mais_zoom: '<path d="M12 6v12M6 12h12"/>',
+  menos_zoom: '<path d="M6 12h12"/>',
+  enquadrar: '<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>',
+  atualizar: '<path d="M20 11a8 8 0 0 0-14.6-3.6M4 4.5v3.8h3.8M4 13a8 8 0 0 0 14.6 3.6M20 19.5v-3.8h-3.8"/>',
+  usuario: '<circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c1-3.8 3.9-5.8 7.5-5.8s6.5 2 7.5 5.8"/>',
+  sair: '<path d="M14 4h4.5A1.5 1.5 0 0 1 20 5.5v13a1.5 1.5 0 0 1-1.5 1.5H14M10 8l-4 4 4 4M6 12h10"/>',
+  teclado: '<rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6.5 10h1M10 10h1M13.5 10h1M17 10h.5M7 14h10"/>',
+  gota: '<path d="M12 3.5s6.5 6.8 6.5 11.2a6.5 6.5 0 0 1-13 0C5.5 10.3 12 3.5 12 3.5z"/>',
+  ondas: '<path d="M2.5 8.5c2.4 0 2.4-2 4.75-2s2.4 2 4.75 2 2.4-2 4.75-2 2.4 2 4.75 2M2.5 13.5c2.4 0 2.4-2 4.75-2s2.4 2 4.75 2 2.4-2 4.75-2 2.4 2 4.75 2M2.5 18.5c2.4 0 2.4-2 4.75-2s2.4 2 4.75 2 2.4-2 4.75-2 2.4 2 4.75 2"/>',
+  tendencia: '<path d="m3 16.5 6-6 4 4 7.5-7.5M15 7h5.5v5.5"/>',
+  seta: '<path d="M7 17 17 7M8.5 7H17v8.5"/>',
+  play: '<path d="M7 5v14l11-7L7 5z"/>',
+  escudo: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.2 7.5 9.5 4.3-1.3 7.5-4.9 7.5-9.5V6L12 3z"/><path d="m9 12 2.2 2.2L15.5 10"/>',
+  alerta: '<path d="M12 3.5 2.5 20h19L12 3.5z"/><path d="M12 10v4.5M12 17.4v.1"/>',
+  filtro: '<path d="M3.5 5h17l-6.5 8v6l-4-2v-4L3.5 5z"/>',
+  editar: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/>',
+  enviar: '<path d="M4 12 20 4l-6 16-2.5-6.5L4 12z"/>',
+  marca: '<path d="M3.5 18 9.5 7.5l3.4 5.6 2.1-3.1 5.5 8"/><circle cx="16.5" cy="5.5" r="1.6"/>',
+};
+const ic = (n, t = 16, sw = 1.75) => `<svg class="ic" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONES[n] || ''}</svg>`;
+
+/* ------------------------------------------------------------ domínio */
+const NIVEIS = ['baixo', 'moderado', 'alto', 'critico'];
+const ROT = { baixo: 'Baixo', moderado: 'Moderado', alto: 'Alto', critico: 'Crítico' };
+const COR = { baixo: 'var(--sev-baixo)', moderado: 'var(--sev-moderado)', alto: 'var(--sev-alto)', critico: 'var(--sev-critico)' };
+const COR_MAPA = { baixo: 'var(--map-baixo)', moderado: 'var(--map-moderado)', alto: 'var(--map-alto)', critico: 'var(--map-critico)' };
+const AGRAVOS = { dengue: { nome: 'Dengue', cor: '#e5534b' }, chikungunya: { nome: 'Chikungunya', cor: '#3b6fe0' }, zika: { nome: 'Zika', cor: '#0f8a7e' } };
+const pillSev = n => `<span class="sev ${n}">${ROT[n]}</span>`;
+
+/* Distritos sanitários: vínculo bairro → DS é dado real; perfil, foco e
+   população em área de risco são parâmetros SIMULADOS. */
+const DISTRITOS = [
+  { code: 'DS I',    nome: 'Centro',         peso: 0.97,  perfil: 'alagamento', foco: 'Coelhos',         popRisco: 1850 },
+  { code: 'DS II',   nome: 'Norte',          peso: 0.44,  perfil: 'alagamento', foco: 'Beberibe',        popRisco: 1420 },
+  { code: 'DS III',  nome: 'Noroeste',       peso: 0.64,  perfil: 'encosta',    foco: 'Alto do Mandu',   popRisco: 1510 },
+  { code: 'DS IV',   nome: 'Oeste',          peso: 1.16,  perfil: 'alagamento', foco: 'Várzea',          popRisco: 3100 },
+  { code: 'DS V',    nome: 'Sudoeste',       peso: 0.91,  perfil: 'alagamento', foco: 'Jiquiá',          popRisco: 1200 },
+  { code: 'DS VI',   nome: 'Sul',            peso: 1.75,  perfil: 'alagamento', foco: 'Imbiribeira',     popRisco: 4780 },
+  { code: 'DS VII',  nome: 'Ibura / Jordão', peso: 1.375, perfil: 'encosta',    foco: 'Ibura',           popRisco: 2980 },
+  { code: 'DS VIII', nome: 'Nordeste',       peso: 0.73,  perfil: 'encosta',    foco: 'Nova Descoberta', popRisco: 2350 },
+];
+const DS = Object.fromEntries(DISTRITOS.map(d => [d.code, d]));
+DISTRITOS.forEach(d => { d.bairros = DADOS.bairros.filter(b => b.ds === d.code).map(b => b.nome); });
+
+const RIOS = [
+  { id: 'capibaribe', nome: 'Rio Capibaribe', trecho: 'Várzea → Centro', ds: ['DS IV', 'DS III', 'DS I'], base: 1.6, coef: 0.0225, max: 5 },
+  { id: 'beberibe', nome: 'Rio Beberibe', trecho: 'Dois Unidos → Peixinhos', ds: ['DS II', 'DS VIII'], base: 1.0, coef: 0.02, max: 4 },
+  { id: 'tejipio', nome: 'Rio Tejipió', trecho: 'Tejipió → Jiquiá', ds: ['DS V', 'DS VII'], base: 0.9, coef: 0.019, max: 3.6 },
+  { id: 'setubal', nome: 'Canal de Setúbal', trecho: 'Boa Viagem', ds: ['DS VI'], base: 0.45, coef: 0.01, max: 2.6 },
+];
+
+const PRESETS = [
+  { id: 'atual', nome: 'Operação normal', desc: 'Leituras do momento', chuva: 64, mare: 2.1, solo: 50 },
+  { id: 'seco', nome: 'Tempo seco', desc: 'Pouca chuva e maré baixa', chuva: 6, mare: 1.4, solo: 20 },
+  { id: 'frente', nome: 'Frente de chuva', desc: 'Chuva forte com maré alta', chuva: 95, mare: 2.4, solo: 70 },
+  { id: 'extremo', nome: 'Evento extremo', desc: 'Chuva histórica, solo saturado', chuva: 165, mare: 2.7, solo: 90 },
+];
+
+const CFG_PADRAO = {
+  limiares: { moderado: 30, alto: 70, critico: 100 },
+  cotas: { capibaribe: { atencao: 3.0, alerta: 3.6 }, beberibe: { atencao: 2.4, alerta: 3.0 }, tejipio: { atencao: 2.2, alerta: 2.6 }, setubal: { atencao: 1.4, alerta: 1.7 } },
+  sla: { critico: 15, alto: 60, moderado: 240 },
+  tema: 'claro',
+};
+const cfg = (() => {
+  const s = lsGet('aervita.cfg.v3', {});
+  return { limiares: { ...CFG_PADRAO.limiares, ...s.limiares }, cotas: Object.fromEntries(Object.entries(CFG_PADRAO.cotas).map(([k, v]) => [k, { ...v, ...(s.cotas || {})[k] }])), sla: { ...CFG_PADRAO.sla, ...s.sla }, tema: s.tema || CFG_PADRAO.tema };
+})();
+const salvarCfg = () => lsSet('aervita.cfg.v3', cfg);
+
+const REFERENCIA_MM = 48; // referência histórica simulada para o delta da chuva
+const SERIE_7D = [12, 8, 22, 15, 40, 51];
+
+function nivelChuva(mm) { const l = cfg.limiares; return mm > l.critico ? 3 : mm >= l.alto ? 2 : mm >= l.moderado ? 1 : 0; }
+function nivelRio(r, n) { const c = cfg.cotas[r.id]; return n >= c.alerta + 0.4 ? 3 : n >= c.alerta ? 2 : n >= c.atencao ? 1 : 0; }
+const fatorSolo = s => 1 + (s - 50) / 200;
+
+function calcularCenario(p) {
+  const fs = fatorSolo(p.solo);
+  const ds = DISTRITOS.map(d => ({ ...d, chuva: p.chuva * d.peso, chuvaEf: p.chuva * d.peso * fs }));
+  const porCod = Object.fromEntries(ds.map(d => [d.code, d]));
+  const rios = RIOS.map(r => {
+    const media = r.ds.reduce((s, c) => s + porCod[c].chuva, 0) / r.ds.length;
+    const nivel = clamp(r.base + r.coef * media * fs + 0.35 * (p.mare - 1.6), 0.2, r.max);
+    return { ...r, ...cfg.cotas[r.id], nivel, nivelIdx: nivelRio(r, nivel) };
+  });
+  ds.forEach(d => {
+    const nc = nivelChuva(d.chuvaEf);
+    const rio = rios.filter(r => r.ds.includes(d.code)).sort((a, b) => b.nivelIdx - a.nivelIdx)[0];
+    const nr = rio ? rio.nivelIdx : 0;
+    d.idx = Math.max(nc, nr); d.nivel = NIVEIS[d.idx]; d.rio = rio;
+    d.gatilho = nc >= nr
+      ? `Chuva de ${fmt(d.chuva)} mm em 24h${p.solo > 60 ? ' com solo saturado' : ''}`
+      : `${rio.nome} a ${fmt1(rio.nivel)} m (cota de ${rio.nivel >= rio.alerta ? 'alerta' : 'atenção'})`;
+    d.popExp = Math.round(d.popRisco * [0.08, 0.35, 0.7, 1][d.idx]);
+    d.ocorrencia = textoOcorrencia(d);
+  });
+  const chuvaMedia = ds.reduce((s, d) => s + d.chuva, 0) / ds.length;
+  const media = ds.reduce((s, d) => s + d.idx, 0) / ds.length;
+  const maxIdx = Math.max(...ds.map(d => d.idx));
+  return { params: { ...p }, ds, rios, chuvaMedia, geral: NIVEIS[Math.max(Math.round(media), maxIdx - 1)], popExp: ds.reduce((s, d) => s + d.popExp, 0) };
+}
+function textoOcorrencia(d) {
+  const e = d.perfil === 'encosta';
+  return ['Sem ocorrências',
+    e ? `Vistoria de barreira em ${d.foco}` : `Alagamentos pontuais em ${d.foco}`,
+    e ? `Deslizamento monitorado em ${d.foco}` : `Ruas alagadas em ${d.foco}`,
+    e ? `Deslizamento com desalojados em ${d.foco}` : `Inundação ativa em ${d.foco}`][d.idx];
+}
+function riscoBairro(b, cen) {
+  const d = cen.ds.find(x => x.code === b.ds);
+  if (!d) return { idx: 0, nivel: 'baixo', chuva: 0 };
+  const chuva = d.chuva * (0.85 + 0.3 * hash(b.chave));
+  let idx = Math.max(nivelChuva(chuva * fatorSolo(cen.params.solo)), d.rio && d.rio.nivelIdx >= 2 && hash(b.chave + 'r') > 0.5 ? d.rio.nivelIdx : 0);
+  if (normalizar(b.nome) === normalizar(d.foco)) idx = Math.max(idx, d.idx);
+  return { idx, nivel: NIVEIS[idx], chuva };
+}
+
+/* arboviroses (dado real) */
+const EPI = DADOS.epidemiologia;
+function arboPorDs() {
+  const out = Object.fromEntries(DISTRITOS.map(d => [d.code, { dengue: 0, chikungunya: 0, zika: 0 }]));
+  DADOS.bairros.forEach(b => { const c = EPI?.por_bairro?.[b.chave]; if (c && out[b.ds]) Object.keys(AGRAVOS).forEach(a => { out[b.ds][a] += c[a] || 0; }); });
+  return out;
+}
+const totalAgr = o => (o.dengue || 0) + (o.chikungunya || 0) + (o.zika || 0);
+function arboTendencia() {
+  if (!EPI) return null;
+  const tot = EPI.semanas.map((_, i) => Object.keys(AGRAVOS).reduce((s, a) => s + EPI.notificacoes[a][i], 0));
+  const n = tot.length - 2; // as 2 últimas semanas costumam vir incompletas (atraso de notificação)
+  const rec = tot.slice(n - 4, n).reduce((a, b) => a + b, 0), ant = tot.slice(n - 8, n - 4).reduce((a, b) => a + b, 0);
+  const dsTop = Object.entries(arboPorDs()).sort((a, b) => totalAgr(b[1]) - totalAgr(a[1]))[0][0];
+  return { variacao: ant ? rec / ant - 1 : 0, dsTop };
+}
+function mesDaSemana(se) { const a = Math.floor(se / 100), s = se % 100; return new Date(a, 0, 1 + (s - 1) * 7 + 3).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); }
+const casosBairro = (b, ag) => { const c = EPI?.por_bairro?.[b.chave] || {}; return ag === 'todas' ? totalAgr(c) : (c[ag] || 0); };
+
+/* ------------------------------------------------------------ estado */
+const BASE = { ...PRESETS[0] };
+const store = {
+  params: { chuva: BASE.chuva, mare: BASE.mare, solo: BASE.solo },
+  simulado: false, nomeCenario: 'Operação normal',
+  cen: null,
+  inc: new Map(), porChave: {}, seq: 412,
+  silenciadas: {}, // chave -> severidade encerrada pelo operador com a condição ainda ativa
+  equipes: [
+    { id: 'DC-01', nome: 'Defesa Civil · Norte', tipo: 'Defesa Civil', base: 'DS II', membros: 5 },
+    { id: 'DC-02', nome: 'Defesa Civil · Sul', tipo: 'Defesa Civil', base: 'DS VI', membros: 6 },
+    { id: 'DC-03', nome: 'Defesa Civil · Oeste', tipo: 'Defesa Civil', base: 'DS IV', membros: 5 },
+    { id: 'DC-04', nome: 'Defesa Civil · Morros', tipo: 'Defesa Civil', base: 'DS VII', membros: 7 },
+    { id: 'DR-01', nome: 'Drenagem urbana · Centro', tipo: 'Drenagem', base: 'DS I', membros: 8 },
+    { id: 'VA-01', nome: 'Vigilância ambiental · Endemias', tipo: 'Vigilância em saúde', base: 'DS VIII', membros: 12 },
+    { id: 'AS-01', nome: 'Assistência social · Abrigos', tipo: 'Assistência social', base: 'DS V', membros: 4 },
+  ].map(e => ({ ...e, status: 'disponivel', incidente: null, desde: Date.now() - (60 + hash(e.id) * 240) * 60000 })),
+  notifs: [], atividade: [], boletins: [], seqBol: 6,
+  atualizadoEm: Date.now(),
+  ui: {
+    pagina: 'painel', recolhida: lsGet('aervita.sb', false),
+    inc: { aba: 'abertas', busca: '', sev: '', ds: '', tipo: '', ord: { col: 'sev', dir: -1 } },
+    mapa: { camada: 'risco', ds: '', agravo: 'todas', bairro: null, rotulos: true },
+    arbo: { modo: 'notificacoes', ativos: ['dengue', 'chikungunya', 'zika'], busca: '', ord: { col: 'total', dir: -1 }, pag: 0 },
+    hidro: 'chuva',
+    sim: { chuva: BASE.chuva, mare: BASE.mare, solo: BASE.solo, preset: 'atual' },
+    bol: { modo: 'lista', atual: null, opcoes: { distritos: true, rios: true, arbo: true, previsao: true, recomendacoes: true } },
+    drawer: null,
+  },
+};
+
+/* ------------------------------------------------------------ ocorrências */
+const SLA_MS = sev => (cfg.sla[sev] || 0) * 60000;
+const ABERTAS = ['aberto', 'triagem'], EM_CURSO = ['despachado', 'em_atendimento'];
+const ROT_STATUS = { aberto: 'Aberta', triagem: 'Em triagem', despachado: 'Equipe a caminho', em_atendimento: 'Em atendimento', resolvido: 'Resolvida' };
+const ROT_EQ = { disponivel: 'Disponível', deslocamento: 'Em deslocamento', atendimento: 'Em atendimento', fora: 'Fora de serviço' };
+const ORDEM_STATUS = ['aberto', 'triagem', 'despachado', 'em_atendimento', 'resolvido'];
+const novoCodigo = () => 'OC-' + String(++store.seq).padStart(4, '0');
+
+function condicoes(cen) {
+  const out = [];
+  cen.ds.filter(d => d.idx >= 1).forEach(d => {
+    const enc = d.perfil === 'encosta';
+    const tipo = enc ? (d.idx >= 2 ? 'Deslizamento' : 'Encosta') : (d.idx >= 3 ? 'Inundação' : 'Alagamento');
+    out.push({ chave: 'ds-' + d.code, sev: d.nivel, tipo, ds: d.code, bairro: d.foco, origem: 'Regra de risco',
+      titulo: `${d.ocorrencia}`, descricao: `${fmt(d.popExp)} pessoas expostas no ${d.code} (${d.nome}).`, gatilho: d.gatilho });
+  });
+  cen.rios.filter(r => r.nivelIdx >= 2).forEach(r => out.push({ chave: 'rio-' + r.id, sev: NIVEIS[r.nivelIdx], tipo: 'Rio acima da cota', ds: r.ds[0], bairro: r.trecho, origem: 'Sensor de nível',
+    titulo: `${r.nome} acima da cota de alerta`, descricao: `Trecho ${r.trecho}: ${fmt1(r.nivel)} m (alerta em ${fmt1(r.alerta)} m).`, gatilho: `Nível ${fmt1(r.nivel)} m ≥ cota de alerta · maré ${fmt1(cen.params.mare)} m` }));
+  const prev = cen.params.chuva * 0.7;
+  if (prev >= 40) out.push({ chave: 'previsao', sev: prev >= 90 ? 'alto' : 'moderado', tipo: 'Previsão', ds: 'DS VI', bairro: 'Cidade inteira', origem: 'Modelo de previsão',
+    titulo: 'Nova frente de chuva prevista para as próximas 24h', descricao: `Baseline indica ${fmt(prev * 0.8)}–${fmt(prev * 1.2)} mm.`, gatilho: `Previsão de ${fmt(prev)} mm ≥ 40 mm` });
+  const t = arboTendencia();
+  if (t && t.variacao > 0.1) out.push({ chave: 'arbo', sev: 'moderado', tipo: 'Arboviroses', ds: t.dsTop, bairro: '—', origem: 'Vigilância epidemiológica',
+    titulo: 'Alta de notificações de arboviroses', descricao: `Alta de ${Math.round(t.variacao * 100)}% nas últimas 4 semanas (dado real).`, gatilho: 'Média de 4 semanas acima da anterior' });
+  return out;
+}
+
+function evento(inc, texto, autor = 'Sistema', t = Date.now()) {
+  inc.eventos.push({ t, texto, autor });
+  inc.eventos.sort((a, b) => a.t - b.t);
+  inc.atualizado = Math.max(inc.atualizado || 0, t);
+  store.atividade.unshift({ t, texto: `<b>${inc.id}</b> · ${esc(texto)}`, autor });
+  if (store.atividade.length > 80) store.atividade.length = 80;
+}
+function notificar(nivel, titulo, texto, inc) {
+  store.notifs.unshift({ id: Math.random().toString(36).slice(2), t: Date.now(), nivel, titulo, texto, inc, lida: false });
+  if (store.notifs.length > 40) store.notifs.length = 40;
+}
+
+function sincronizar(silencioso = false) {
+  const agora = Date.now(), vistos = new Set(), avisos = [];
+  const OFF = [26, 9, 38, 41, 118, 47, 95, 22, 130, 300];
+  condicoes(store.cen).forEach((c, i) => {
+    vistos.add(c.chave);
+    const atual = store.inc.get(store.porChave[c.chave]);
+    if (atual && atual.status !== 'resolvido') {
+      const di = NIVEIS.indexOf(c.sev) - NIVEIS.indexOf(atual.sev);
+      Object.assign(atual, { titulo: c.titulo, descricao: c.descricao, gatilho: c.gatilho, tipo: c.tipo, condicaoAtiva: true });
+      if (di) {
+        atual.sev = c.sev;
+        evento(atual, `Severidade ${di > 0 ? 'elevada' : 'reduzida'} para ${ROT[c.sev]} — ${c.gatilho}`);
+        if (di > 0 && !silencioso) avisos.push(atual);
+      }
+      return;
+    }
+    // encerrada pelo operador: só reabre se a condição piorar
+    if (c.chave in store.silenciadas && NIVEIS.indexOf(c.sev) <= NIVEIS.indexOf(store.silenciadas[c.chave])) return;
+    delete store.silenciadas[c.chave];
+    const t = silencioso ? agora - OFF[i % OFF.length] * 60000 : agora;
+    const inc = { id: novoCodigo(), ...c, status: 'aberto', aberto: t, atualizado: t, equipe: null, eventos: [], condicaoAtiva: true };
+    evento(inc, `Ocorrência aberta automaticamente (${c.origem.toLowerCase()})`, 'Sistema', t);
+    store.inc.set(inc.id, inc); store.porChave[c.chave] = inc.id;
+    if (!silencioso) avisos.push(inc);
+  });
+  Object.keys(store.silenciadas).forEach(k => { if (!vistos.has(k)) delete store.silenciadas[k]; });
+  store.inc.forEach(inc => {
+    if (!inc.chave || vistos.has(inc.chave) || inc.status === 'resolvido' || !inc.condicaoAtiva) return;
+    inc.condicaoAtiva = false;
+    if (ABERTAS.includes(inc.status)) resolver(inc, 'Condição normalizada', 'Encerrada automaticamente pelo sistema', 'Sistema');
+    else evento(inc, 'Condição de origem normalizada — aguardando encerramento pela equipe');
+  });
+  const graves = avisos.filter(a => NIVEIS.indexOf(a.sev) >= 2);
+  graves.forEach(a => notificar(a.sev, a.eventos.length > 1 ? 'Severidade elevada' : 'Nova ocorrência', `${a.id} · ${a.titulo}`, a.id));
+  if (!silencioso && graves.length > 2) toast(graves[0].sev, `${graves.length} ocorrências novas ou agravadas`, 'Abra a fila de ocorrências para priorizar.', () => navegar('ocorrencias'));
+  else if (!silencioso) graves.forEach(a => toast(a.sev, `${a.id} · ${ROT[a.sev]}`, a.titulo, () => abrirIncidente(a.id)));
+}
+
+function resolver(inc, motivo, nota, autor = 'Operador de plantão') {
+  if (inc.chave && inc.condicaoAtiva && autor !== 'Sistema') store.silenciadas[inc.chave] = inc.sev;
+  inc.status = 'resolvido'; inc.resolvido = Date.now(); inc.motivo = motivo;
+  evento(inc, `Encerrada — ${motivo}${nota ? `: ${nota}` : ''}`, autor);
+  const eq = store.equipes.find(e => e.incidente === inc.id);
+  if (eq) { eq.status = 'disponivel'; eq.incidente = null; eq.desde = Date.now(); }
+}
+function reconhecer(inc) { inc.status = 'triagem'; evento(inc, 'Reconhecida e em triagem', 'Operador de plantão'); }
+function despachar(inc, eqId) {
+  const eq = store.equipes.find(e => e.id === eqId); if (!eq) return;
+  eq.status = 'deslocamento'; eq.incidente = inc.id; eq.desde = Date.now();
+  inc.status = 'despachado'; inc.equipe = eq.id; inc.despachadoEm = Date.now();
+  evento(inc, `Equipe ${eq.id} (${eq.nome}) despachada`, 'Operador de plantão');
+  toast('ok', `${eq.id} a caminho`, `${inc.id} · ${inc.bairro}`, () => abrirIncidente(inc.id));
+}
+function slaInfo(inc) {
+  const prazo = SLA_MS(inc.sev);
+  if (!prazo) return { txt: '—', cls: 'ok' };
+  const limite = inc.aberto + prazo;
+  if (ABERTAS.includes(inc.status)) {
+    const resta = limite - Date.now();
+    if (resta < 0) return { txt: `+${relogioMs(-resta)} atrasada`, cls: 'late', atrasada: true };
+    return { txt: relogioMs(resta), cls: resta < prazo * 0.25 ? 'warn' : '' };
+  }
+  const resp = inc.despachadoEm || inc.resolvido || Date.now();
+  return resp <= limite ? { txt: 'No prazo', cls: 'ok' } : { txt: 'Fora do prazo', cls: 'late' };
+}
+const incAbertas = () => [...store.inc.values()].filter(i => i.status !== 'resolvido');
+const ordSev = (a, b) => NIVEIS.indexOf(b.sev) - NIVEIS.indexOf(a.sev) || a.aberto - b.aberto;
+
+function semearHistorico() {
+  const agora = Date.now();
+  [
+    { h: 9.2, dur: 96, sev: 'alto', tipo: 'Deslizamento', ds: 'DS III', bairro: 'Alto do Mandu', titulo: 'Queda de barreira atingindo muro de residência', eq: 'DC-04', origem: 'Chamado telefônico', motivo: 'Situação controlada' },
+    { h: 7.6, dur: 58, sev: 'moderado', tipo: 'Alagamento', ds: 'DS I', bairro: 'Coelhos', titulo: 'Alagamento em via de acesso à comunidade', eq: 'DR-01', origem: 'Regra de risco', motivo: 'Condição normalizada' },
+    { h: 6.1, dur: 41, sev: 'moderado', tipo: 'Queda de árvore', ds: 'DS IV', bairro: 'Madalena', titulo: 'Queda de árvore sobre a via', eq: 'DC-03', origem: 'Chamado telefônico', motivo: 'Situação controlada' },
+    { h: 4.4, dur: 122, sev: 'alto', tipo: 'Alagamento', ds: 'DS V', bairro: 'Afogados', titulo: 'Residências com água acima do joelho', eq: 'DC-02', origem: 'Regra de risco', motivo: 'Situação controlada' },
+    { h: 2.9, dur: 33, sev: 'moderado', tipo: 'Vistoria', ds: 'DS VIII', bairro: 'Morro da Conceição', titulo: 'Vistoria de imóvel com rachaduras', eq: 'DC-01', origem: 'Registro manual', motivo: 'Encaminhado a outro órgão' },
+  ].forEach(h => {
+    const t0 = agora - h.h * 3600000, inc = { id: novoCodigo(), chave: null, sev: h.sev, tipo: h.tipo, ds: h.ds, bairro: h.bairro, origem: h.origem, titulo: h.titulo, descricao: `Atendimento concluído pela equipe ${h.eq}.`, gatilho: h.origem, status: 'resolvido', aberto: t0, equipe: h.eq, eventos: [], condicaoAtiva: false };
+    evento(inc, `Ocorrência registrada (${h.origem.toLowerCase()})`, 'Sistema', t0);
+    evento(inc, 'Reconhecida e em triagem', 'Operador de plantão', t0 + 3 * 60000);
+    inc.despachadoEm = t0 + 7 * 60000;
+    evento(inc, `Equipe ${h.eq} despachada`, 'Operador de plantão', inc.despachadoEm);
+    evento(inc, `Equipe ${h.eq} chegou ao local`, h.eq, t0 + 22 * 60000);
+    inc.resolvido = t0 + h.dur * 60000; inc.motivo = h.motivo;
+    evento(inc, `Encerrada — ${h.motivo}`, h.eq, inc.resolvido);
+    store.inc.set(inc.id, inc);
+  });
+}
+function semearOperacao() {
+  const crit = store.inc.get(store.porChave['ds-DS VI']);
+  if (crit) {
+    const eq = store.equipes.find(e => e.id === 'DC-02');
+    crit.status = 'em_atendimento'; crit.equipe = 'DC-02'; crit.despachadoEm = crit.aberto + 6 * 60000;
+    evento(crit, 'Reconhecida e em triagem', 'Operador de plantão', crit.aberto + 2 * 60000);
+    evento(crit, 'Equipe DC-02 (Defesa Civil · Sul) despachada', 'Operador de plantão', crit.despachadoEm);
+    evento(crit, 'Equipe DC-02 chegou ao local — remoção preventiva iniciada', 'DC-02', crit.aberto + 19 * 60000);
+    Object.assign(eq, { status: 'atendimento', incidente: crit.id, desde: crit.aberto + 19 * 60000 });
+  }
+  const alto = store.inc.get(store.porChave['ds-DS VII']);
+  if (alto) { alto.status = 'triagem'; evento(alto, 'Reconhecida e em triagem', 'Operador de plantão', alto.aberto + 4 * 60000); }
+  const fora = store.equipes.find(e => e.id === 'AS-01'); fora.status = 'fora';
+}
+
+/* ------------------------------------------------------------ boletins */
+function snapshotBoletim(params, simulado, nome, opcoes, t = Date.now(), status = 'Rascunho') {
+  return { num: `BOL-2026-${String(++store.seqBol).padStart(4, '0')}`, t, params: { ...params }, simulado, nome, opcoes: { ...opcoes }, status, autor: 'Operador de plantão' };
+}
+function semearBoletins() {
+  const op = { distritos: true, rios: true, arbo: true, previsao: true, recomendacoes: true };
+  const ontem = new Date(); ontem.setDate(ontem.getDate() - 1);
+  const b1 = new Date(ontem); b1.setHours(18, 0, 0, 0);
+  const b0 = new Date(ontem); b0.setHours(6, 0, 0, 0);
+  const hoje = new Date(); hoje.setHours(6, 0, 0, 0);
+  store.boletins = [
+    snapshotBoletim({ chuva: 22, mare: 1.8, solo: 40 }, false, 'Operação normal', op, b0.getTime(), 'Emitido'),
+    snapshotBoletim({ chuva: 41, mare: 2.0, solo: 45 }, false, 'Operação normal', op, b1.getTime(), 'Emitido'),
+    snapshotBoletim({ chuva: 58, mare: 2.1, solo: 50 }, false, 'Operação normal', op, hoje.getTime(), 'Emitido'),
+  ].reverse();
+}
+
+/* ------------------------------------------------------------ componentes: toast, dica, drawer, modal */
+function toast(nivel, titulo, texto, acao) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = (nivel === 'ok' ? `<span class="ok">${ic('check', 16, 2.2)}</span>` : `<span class="pt-sev ${nivel}"></span>`) + `<div><b>${esc(titulo)}</b><span>${esc(texto)}</span></div>`;
+  el.addEventListener('click', () => { el.remove(); acao && acao(); });
+  $('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+function mostrarDica(e, html) {
+  const d = $('#dica'); d.innerHTML = html; d.style.display = 'block';
+  const r = d.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  d.style.left = x + 'px'; d.style.top = y + 'px';
+}
+const esconderDica = () => { $('#dica').style.display = 'none'; };
+
+function abrirDrawer(spec) {
+  store.ui.drawer = spec; renderDrawer();
+  $('#drawer').classList.add('on'); $('#drawer').setAttribute('aria-hidden', 'false');
+  // no mapa o painel do bairro fica aberto sem véu, para continuar clicando em outros bairros
+  $('#veu').classList.toggle('on', spec.tipo !== 'bairro');
+}
+function fecharDrawer() {
+  store.ui.drawer = null; $('#drawer').classList.remove('on'); $('#drawer').setAttribute('aria-hidden', 'true');
+  if (!$('#app').classList.contains('menu-aberto')) $('#veu').classList.remove('on');
+  if (store.ui.pagina === 'mapa') { store.ui.mapa.bairro = null; pintarMapa(MAPAS.grande, store.ui.mapa.camada, store.cen); }
+}
+function renderDrawer() {
+  const sp = store.ui.drawer; if (!sp) return;
+  const ta = $('#drawer textarea'), rasc = ta ? ta.value : '', foco = ta && document.activeElement === ta;
+  const sel = $('#drawer select[data-eq]'), eqSel = sel ? sel.value : null;
+  $('#drawer').innerHTML = sp.tipo === 'inc' ? drawerIncidente(sp.id) : drawerBairro(sp.i);
+  const nta = $('#drawer textarea'); if (nta) { nta.value = rasc; if (foco) nta.focus(); }
+  const nsel = $('#drawer select[data-eq]'); if (nsel && eqSel && [...nsel.options].some(o => o.value === eqSel)) nsel.value = eqSel;
+}
+
+function abrirModal({ titulo, texto, corpo, confirmar = 'Confirmar', perigo = false, aoConfirmar }) {
+  const m = $('#modal');
+  m.innerHTML = `<div class="modal" role="dialog" aria-modal="true"><div class="modal-h"><h3>${esc(titulo)}</h3>${texto ? `<p>${esc(texto)}</p>` : ''}</div>${corpo ? `<div class="modal-b">${corpo}</div>` : '<div style="height:12px"></div>'}<div class="modal-f"><button class="btn" data-m="cancelar">Cancelar</button><button class="btn ${perigo ? 'btn-primary' : 'btn-brand'}" data-m="ok">${esc(confirmar)}</button></div></div>`;
+  m.classList.add('on');
+  const primeiro = m.querySelector('input, select, textarea'); (primeiro || m.querySelector('[data-m=ok]')).focus();
+  m.onclick = e => {
+    if (e.target === m || e.target.closest('[data-m=cancelar]')) fecharModal();
+    else if (e.target.closest('[data-m=ok]')) { if (aoConfirmar(m) !== false) fecharModal(); }
+  };
+}
+const fecharModal = () => { $('#modal').classList.remove('on'); $('#modal').innerHTML = ''; };
+
+/* ------------------------------------------------------------ gráficos (SVG puro) */
+function sparkline(vals, { w = 110, h = 34, cor = 'var(--brand)' } = {}) {
+  const max = Math.max(...vals), min = Math.min(...vals), r = max - min || 1;
+  const pts = vals.map((v, i) => [i / (vals.length - 1) * w, h - 3 - (v - min) / r * (h - 6)]);
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join('');
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;flex-shrink:0"><path d="${d}L${w},${h}L0,${h}Z" fill="${cor}" opacity=".1"/><path d="${d}" fill="none" stroke="${cor}" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="2.6" fill="${cor}"/></svg>`;
+}
+
+function graficoLinhas(el, series, rotulos, { altura = 240, refs = [], faixa = null, divisao = null, unidade = '' } = {}) {
+  const w = 720, h = altura, pl = 38, pr = 10, pt = 14, pb = 26, n = rotulos.length;
+  const vals = series.flatMap(s => s.valores.filter(v => v != null)).concat(refs.map(r => r.v), faixa ? faixa.alto.filter(v => v != null) : []);
+  const max = Math.max(...vals, 1) * 1.08;
+  const x = i => pl + (w - pl - pr) * (n === 1 ? .5 : i / (n - 1)), y = v => pt + (h - pt - pb) * (1 - v / max);
+  let s = `<svg class="graf" viewBox="0 0 ${w} ${h}">`;
+  for (let k = 0; k <= 4; k++) { const v = max * k / 4; s += `<line class="gl" x1="${pl}" x2="${w - pr}" y1="${y(v)}" y2="${y(v)}"/><text x="${pl - 8}" y="${y(v) + 3.5}" text-anchor="end">${v >= 10 ? fmt(v) : fmt1(v)}</text>`; }
+  const passo = Math.ceil(n / 10);
+  rotulos.forEach((r, i) => { if ((i % passo === 0 && n - 1 - i >= passo / 2) || i === n - 1) s += `<text x="${x(i)}" y="${h - 7}" text-anchor="middle">${esc(r)}</text>`; });
+  if (divisao != null) s += `<rect x="${x(divisao)}" y="${pt}" width="${w - pr - x(divisao)}" height="${h - pt - pb}" fill="var(--surface-3)" opacity=".55"/><line x1="${x(divisao)}" x2="${x(divisao)}" y1="${pt}" y2="${h - pb}" stroke="var(--border-2)" stroke-dasharray="3 3"/><text x="${x(divisao) + 6}" y="${pt + 11}" style="fill:var(--muted)">previsão</text>`;
+  if (faixa) {
+    const idx = faixa.alto.map((v, i) => v == null ? null : i).filter(i => i != null);
+    s += `<polygon points="${idx.map(i => `${x(i)},${y(faixa.alto[i])}`).concat(idx.slice().reverse().map(i => `${x(i)},${y(faixa.baixo[i])}`)).join(' ')}" fill="var(--brand)" opacity=".12"/>`;
+  }
+  refs.forEach(r => { s += `<line x1="${pl}" x2="${w - pr}" y1="${y(r.v)}" y2="${y(r.v)}" stroke="${r.cor}" stroke-dasharray="4 4" stroke-width="1.2" opacity=".9"/><text x="${w - pr - 2}" y="${y(r.v) - 5}" text-anchor="end" style="fill:${r.cor};font-weight:500">${esc(r.rotulo)}</text>`; });
+  series.forEach(se => {
+    let d = '', ab = false;
+    se.valores.forEach((v, i) => { if (v == null) { ab = false; return; } d += (ab ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(v).toFixed(1); ab = true; });
+    s += `<path d="${d}" fill="none" stroke="${se.cor}" stroke-width="${se.esp || 2}" ${se.trac ? 'stroke-dasharray="5 4"' : ''} stroke-linejoin="round" stroke-linecap="round"/>`;
+  });
+  s += `<line class="hl" y1="${pt}" y2="${h - pb}" stroke="var(--text)" stroke-width="1" opacity="0"/><g class="pts"></g>`;
+  for (let i = 0; i < n; i++) { const a = i ? (x(i - 1) + x(i)) / 2 : pl, b = i === n - 1 ? w - pr : (x(i) + x(i + 1)) / 2; s += `<rect x="${a}" y="${pt}" width="${b - a}" height="${h - pt - pb}" fill="transparent" data-i="${i}"/>`; }
+  el.innerHTML = s + '</svg>';
+  const svg = el.querySelector('svg'), hl = svg.querySelector('.hl'), g = svg.querySelector('.pts');
+  svg.addEventListener('mousemove', e => {
+    const r = e.target.closest('rect[data-i]'); if (!r) return;
+    const i = +r.dataset.i;
+    hl.setAttribute('x1', x(i)); hl.setAttribute('x2', x(i)); hl.setAttribute('opacity', .25);
+    g.innerHTML = series.filter(se => se.valores[i] != null).map(se => `<circle cx="${x(i)}" cy="${y(se.valores[i])}" r="3.5" fill="var(--surface)" stroke="${se.cor}" stroke-width="2"/>`).join('');
+    mostrarDica(e, `<b>${esc(rotulos[i])}</b>` + series.filter(se => se.valores[i] != null).map(se => `<span>${esc(se.nome)}:</span> ${se.valores[i] >= 10 ? fmt(se.valores[i]) : fmt1(se.valores[i])} ${unidade}`).join('<br>'));
+  });
+  svg.addEventListener('mouseleave', () => { hl.setAttribute('opacity', 0); g.innerHTML = ''; esconderDica(); });
+}
+
+function graficoColunas(el, vals, rotulos, { cor = 'var(--brand)', altura = 170, unidade = '', destaque = -1 } = {}) {
+  const w = 420, h = altura, pb = 22, pt = 8, n = vals.length, gap = 6, bw = (w - gap * (n - 1)) / n, max = Math.max(...vals, 1) * 1.1;
+  let s = `<svg class="graf" viewBox="0 0 ${w} ${h}">`;
+  vals.forEach((v, i) => {
+    const bh = Math.max(2, (h - pb - pt) * v / max), x = i * (bw + gap);
+    s += `<rect x="${x}" y="${h - pb - bh}" width="${bw}" height="${bh}" rx="3" fill="${cor}" opacity="${i === destaque || destaque === -1 ? 1 : .4}" data-i="${i}"/>`;
+    s += `<text x="${x + bw / 2}" y="${h - 6}" text-anchor="middle">${esc(rotulos[i])}</text>`;
+  });
+  el.innerHTML = s + '</svg>';
+  el.querySelector('svg').addEventListener('mousemove', e => { const r = e.target.closest('rect[data-i]'); if (!r) return esconderDica(); mostrarDica(e, `<b>${esc(rotulos[+r.dataset.i])}</b>${fmt(vals[+r.dataset.i])} ${unidade}`); });
+  el.querySelector('svg').addEventListener('mouseleave', esconderDica);
+}
+
+function barrasH(itens, { max, unidade = '', cor = 'var(--brand)' } = {}) {
+  const m = max || Math.max(...itens.map(i => i.valor)) * 1.08 || 1;
+  return `<div style="display:flex;flex-direction:column;gap:10px">` + itens.map(it => `
+    <div style="display:grid;grid-template-columns:150px 1fr 70px;gap:12px;align-items:center;font-size:12.5px">
+      <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-2)">${esc(it.rotulo)}</span>
+      <span style="height:8px;border-radius:4px;background:var(--surface-3);overflow:hidden"><i style="display:block;height:100%;width:${(it.valor / m * 100).toFixed(1)}%;background:${it.cor || cor};border-radius:4px;transition:width .5s"></i></span>
+      <span class="num" style="text-align:right;font-weight:500">${fmt(it.valor)} ${unidade}</span>
+    </div>`).join('') + '</div>';
+}
+
+/* ------------------------------------------------------------ mapa */
+const GEO = (() => {
+  const pts = DADOS.bairros.flatMap(b => b.poligonos.flat());
+  if (!pts.length) return null;
+  const lons = pts.map(p => p[0]), lats = pts.map(p => p[1]);
+  const minLon = Math.min(...lons), maxLon = Math.max(...lons), minLat = Math.min(...lats), maxLat = Math.max(...lats);
+  const k = Math.cos((minLat + maxLat) / 2 * Math.PI / 180), W = 1000, S = W / ((maxLon - minLon) * k), H = (maxLat - minLat) * S;
+  const proj = ([lo, la]) => [(lo - minLon) * k * S, (maxLat - la) * S];
+  const caminhos = [], centros = [];
+  DADOS.bairros.forEach(b => {
+    caminhos.push(b.poligonos.map(a => 'M' + a.map(p => proj(p).map(v => v.toFixed(1)).join(',')).join('L') + 'Z').join(''));
+    const maior = b.poligonos.reduce((m, a) => a.length > m.length ? a : m, []).map(proj);
+    const xs = maior.map(p => p[0]), ys = maior.map(p => p[1]);
+    centros.push([(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2, Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)]);
+  });
+  const rotulosDs = DISTRITOS.map(d => {
+    const idx = DADOS.bairros.map((b, i) => b.ds === d.code ? i : -1).filter(i => i >= 0);
+    const peso = idx.map(i => DADOS.bairros[i].area_km2), tot = peso.reduce((a, b) => a + b, 0) || 1;
+    return { code: d.code, x: idx.reduce((s, i, j) => s + centros[i][0] * peso[j], 0) / tot, y: idx.reduce((s, i, j) => s + centros[i][1] * peso[j], 0) / tot };
+  });
+  return { W, H, caminhos, centros, rotulosDs };
+})();
+const MAPAS = {};
+const ESC_CHUVA = [[0, '#eaf2fb'], [20, '#c2d9f3'], [40, '#8cb8e8'], [60, '#5591d6'], [80, '#2a68be'], [100, '#164591'], [130, '#0b2858']];
+const corChuva = mm => ESC_CHUVA.reduce((c, [l, k]) => mm >= l ? k : c, ESC_CHUVA[0][1]);
+const ESC_CASOS = ['#fbf0ea', '#f7cdb8', '#f0a07f', '#e06a4b', '#bd3a29', '#7f1d13'];
+const CORES_DS = ['#4e79a7', '#f28e2b', '#59a14f', '#b07aa1', '#e15759', '#76b7b2', '#d4a20b', '#9c755f'];
+function limitesCasos(ag) { const v = DADOS.bairros.map(b => casosBairro(b, ag)).sort((a, b) => a - b); return [.2, .4, .6, .8, .95].map(q => v[Math.floor(q * (v.length - 1))]); }
+
+function corBairro(b, camada, cen, lims) {
+  if (camada === 'risco') return COR_MAPA[riscoBairro(b, cen).nivel];
+  if (camada === 'chuva') return corChuva(riscoBairro(b, cen).chuva);
+  if (camada === 'ds') return CORES_DS[DISTRITOS.findIndex(d => d.code === b.ds)] || '#ccc';
+  const v = casosBairro(b, store.ui.mapa.agravo); let i = 0; while (i < lims.length && v > lims[i]) i++; return ESC_CASOS[i];
+}
+
+function criarMapa(chave, interativo, aoClicar) {
+  if (MAPAS[chave]) return MAPAS[chave];
+  if (!GEO) return null;
+  const ns = 'http://www.w3.org/2000/svg', svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('class', 'mapa'); svg.setAttribute('viewBox', `0 0 ${GEO.W} ${GEO.H.toFixed(0)}`); svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  DADOS.bairros.forEach((b, i) => { const p = document.createElementNS(ns, 'path'); p.setAttribute('d', GEO.caminhos[i]); p.setAttribute('class', 'bairro'); p.dataset.i = i; svg.appendChild(p); });
+  GEO.rotulosDs.forEach(r => { const t = document.createElementNS(ns, 'text'); t.setAttribute('x', r.x); t.setAttribute('y', r.y); t.setAttribute('text-anchor', 'middle'); t.setAttribute('class', 'rot-ds'); t.textContent = r.code; svg.appendChild(t); });
+  const arr = { on: false, mov: false };
+  svg.addEventListener('mousemove', e => {
+    const p = e.target.closest('path.bairro'); if (!p || arr.mov) return esconderDica();
+    const b = DADOS.bairros[+p.dataset.i], r = riscoBairro(b, svg.cenario || store.cen);
+    mostrarDica(e, `<b>${esc(b.nome)}</b><span>${esc(b.ds)} · ${esc(DS[b.ds]?.nome || '')}</span><br>Risco ${ROT[r.nivel].toLowerCase()} · ${fmt(r.chuva)} mm em 24h<br>${fmt(casosBairro(b, 'todas'))} notificações de arboviroses em 2025`);
+  });
+  svg.addEventListener('mouseleave', esconderDica);
+  if (!interativo) { svg.addEventListener('click', e => { const p = e.target.closest('path.bairro'); aoClicar && aoClicar(p ? +p.dataset.i : null); }); return (MAPAS[chave] = svg); }
+  let vb = [0, 0, GEO.W, GEO.H];
+  const aplicar = () => svg.setAttribute('viewBox', vb.map(v => v.toFixed(1)).join(' '));
+  const escala = () => { const r = svg.getBoundingClientRect(); return Math.max(vb[2] / r.width, vb[3] / r.height); };
+  const ptSvg = e => { const r = svg.getBoundingClientRect(), s = escala(); return [vb[0] - (r.width * s - vb[2]) / 2 + (e.clientX - r.left) * s, vb[1] - (r.height * s - vb[3]) / 2 + (e.clientY - r.top) * s]; };
+  const zoom = (f, cx = vb[0] + vb[2] / 2, cy = vb[1] + vb[3] / 2) => { const nw = clamp(vb[2] * f, GEO.W / 14, GEO.W * 1.3), fr = nw / vb[2]; vb = [cx - (cx - vb[0]) * fr, cy - (cy - vb[1]) * fr, nw, vb[3] * fr]; aplicar(); };
+  svg.addEventListener('wheel', e => { e.preventDefault(); const [cx, cy] = ptSvg(e); zoom(e.deltaY > 0 ? 1.18 : 1 / 1.18, cx, cy); }, { passive: false });
+  svg.addEventListener('pointerdown', e => { Object.assign(arr, { on: true, mov: false, x: e.clientX, y: e.clientY, vb: vb.slice(), s: escala() }); });
+  svg.addEventListener('pointermove', e => {
+    if (!arr.on) return;
+    const dx = e.clientX - arr.x, dy = e.clientY - arr.y;
+    if (!arr.mov && Math.hypot(dx, dy) < 4) return;
+    if (!arr.mov) { arr.mov = true; svg.setPointerCapture(e.pointerId); svg.classList.add('arrastando'); esconderDica(); }
+    vb = [arr.vb[0] - dx * arr.s, arr.vb[1] - dy * arr.s, vb[2], vb[3]]; aplicar();
+  });
+  svg.addEventListener('pointerup', e => {
+    if (arr.on && !arr.mov) { const p = e.target.closest('path.bairro'); aoClicar && aoClicar(p ? +p.dataset.i : null); }
+    arr.on = false; setTimeout(() => { arr.mov = false; }, 0); svg.classList.remove('arrastando');
+  });
+  svg.zoom = zoom;
+  svg.enquadrar = () => { vb = [0, 0, GEO.W, GEO.H]; aplicar(); };
+  svg.focar = i => { const [cx, cy, bw, bh] = GEO.centros[i]; const lw = Math.max(GEO.W / 4.5, bw * 3.2, bh * 3.2 * GEO.W / GEO.H), fr = lw / GEO.W; vb = [cx - lw / 2, cy - GEO.H * fr / 2, lw, GEO.H * fr]; aplicar(); };
+  return (MAPAS[chave] = svg);
+}
+function pintarMapa(svg, camada, cen, { filtroDs = '', sel = null } = {}) {
+  if (!svg) return;
+  svg.cenario = cen;
+  const lims = camada === 'arbo' ? limitesCasos(store.ui.mapa.agravo) : null;
+  $$('path.bairro', svg).forEach(p => {
+    const i = +p.dataset.i, b = DADOS.bairros[i];
+    p.style.fill = corBairro(b, camada, cen, lims);
+    p.classList.toggle('apagado', !!filtroDs && b.ds !== filtroDs);
+    p.classList.toggle('sel', i === sel);
+  });
+}
+function legendaMapa() {
+  const c = store.ui.mapa.camada;
+  if (c === 'risco') return `<div class="lt">Risco por bairro</div>` + NIVEIS.map(n => `<div class="lr"><i style="background:${COR_MAPA[n]}"></i>${ROT[n]}</div>`).join('');
+  if (c === 'chuva') return `<div class="lt">Chuva em 24h</div>` + ESC_CHUVA.map(([l, k], i) => `<div class="lr"><i style="background:${k}"></i>${i === ESC_CHUVA.length - 1 ? `≥ ${l}` : `${l}–${ESC_CHUVA[i + 1][0]}`} mm</div>`).join('');
+  if (c === 'ds') return `<div class="lt">Distritos sanitários</div>` + DISTRITOS.map((d, i) => `<div class="lr"><i style="background:${CORES_DS[i]}"></i>${d.code} · ${esc(d.nome)}</div>`).join('');
+  const l = limitesCasos(store.ui.mapa.agravo), fx = [`0–${l[0]}`, ...l.slice(0, -1).map((v, i) => `${v + 1}–${l[i + 1]}`), `> ${l.at(-1)}`];
+  return `<div class="lt">Notificações 2025 · ${store.ui.mapa.agravo === 'todas' ? 'todas' : AGRAVOS[store.ui.mapa.agravo].nome}</div>` + ESC_CASOS.map((k, i) => `<div class="lr"><i style="background:${k}"></i>${fx[i]}</div>`).join('');
+}
+
+/* ------------------------------------------------------------ navegação */
+const PAGINAS = {
+  painel:     { titulo: 'Visão geral', grupo: 'Operação', icone: 'painel', render: pgPainel },
+  mapa:       { titulo: 'Mapa operacional', grupo: 'Operação', icone: 'mapa', render: pgMapa, update: upMapa },
+  ocorrencias:{ titulo: 'Ocorrências', grupo: 'Operação', icone: 'sirene', render: pgOcorrencias, update: upOcorrencias },
+  equipes:    { titulo: 'Equipes de campo', grupo: 'Operação', icone: 'equipe', render: pgEquipes },
+  hidro:      { titulo: 'Chuva e rios', grupo: 'Monitoramento', icone: 'chuva', render: pgHidro },
+  arbo:       { titulo: 'Arboviroses', grupo: 'Monitoramento', icone: 'pulso', render: pgArbo, update: () => {} },
+  simulador:  { titulo: 'Simulador de cenários', grupo: 'Planejamento', icone: 'ajustes', render: pgSimulador, update: () => {} },
+  boletins:   { titulo: 'Boletins', grupo: 'Planejamento', icone: 'doc', render: pgBoletins, update: el => { if (store.ui.bol.modo === 'lista') pgBoletins(el); } },
+  fontes:     { titulo: 'Fontes de dados', grupo: 'Plataforma', icone: 'banco', render: pgFontes, update: () => {} },
+  config:     { titulo: 'Configurações', grupo: 'Plataforma', icone: 'engrenagem', render: pgConfig, update: () => {} },
+};
+
+function montarSidebar() {
+  let grupo = '', h = '';
+  Object.entries(PAGINAS).forEach(([id, p]) => {
+    if (p.grupo !== grupo) { grupo = p.grupo; h += `<div class="sb-grupo">${grupo}</div>`; }
+    h += `<a class="sb-item" data-nav="${id}" title="${esc(p.titulo)}">${ic(p.icone, 18)}<span>${esc(p.titulo)}</span>${id === 'ocorrencias' ? '<em class="cont" id="contInc">0</em>' : id === 'equipes' ? '<em class="cont neutro" id="contEq">0</em>' : ''}</a>`;
+  });
+  $('#sbNav').innerHTML = h;
+}
+function navegar(p) { if (location.hash !== '#/' + p) location.hash = '#/' + p; else montarPagina(); }
+function montarPagina() {
+  let p = location.hash.replace(/^#\/?/, '').split('?')[0];
+  if (!PAGINAS[p]) p = 'painel';
+  store.ui.pagina = p;
+  $$('.sb-item').forEach(a => a.classList.toggle('ativo', a.dataset.nav === p));
+  $('#crumbs').innerHTML = `<span class="grupo">${PAGINAS[p].grupo}</span><span class="sepg">${ic('dir', 14)}</span><b>${PAGINAS[p].titulo}</b>`;
+  document.title = `${PAGINAS[p].titulo} · AerVita Console`;
+  const el = $('#conteudo');
+  el.style.animation = 'none'; void el.offsetWidth; el.style.animation = '';
+  PAGINAS[p].render(el);
+  $('#app').classList.remove('menu-aberto'); if (!store.ui.drawer) $('#veu').classList.remove('on');
+  window.scrollTo(0, 0);
+}
+function atualizar() {
+  store.atualizadoEm = Date.now();
+  atualizarMoldura();
+  const p = PAGINAS[store.ui.pagina];
+  (p.update || p.render)($('#conteudo'));
+  if (store.ui.drawer) renderDrawer();
+}
+function atualizarMoldura() {
+  const ab = incAbertas();
+  const naoAt = ab.filter(i => ABERTAS.includes(i.status)).length;
+  $('#contInc').textContent = naoAt; $('#contInc').style.display = naoAt ? '' : 'none';
+  $('#contInc').parentElement.dataset.cont = naoAt;
+  const disp = store.equipes.filter(e => e.status === 'disponivel').length;
+  $('#contEq').textContent = `${disp}/${store.equipes.length}`;
+  const nl = store.notifs.filter(n => !n.lida).length;
+  $('#btnNotif').innerHTML = ic('sino', 18) + (nl ? `<span class="dot">${nl > 9 ? '9+' : nl}</span>` : '');
+  const b = $('#banner');
+  b.classList.toggle('on', store.simulado);
+  if (store.simulado) b.innerHTML = `${ic('alerta', 16)}<span>Cenário simulado ativo: <b>${esc(store.nomeCenario)}</b>. Indicadores, mapa e ocorrências refletem a simulação.</span><button class="btn btn-sm" data-act="encerrar-sim">Encerrar simulação</button>`;
+}
+
+function aplicarCenario(params, nome, simulado) {
+  store.params = { ...params }; store.simulado = simulado; store.nomeCenario = nome;
+  store.cen = calcularCenario(store.params);
+  sincronizar(false);
+  atualizar();
+}
+
+/* ------------------------------------------------------------ página: visão geral */
+function cab(titulo, desc, acoes = '') { return `<div class="ph"><div><h1>${titulo}</h1>${desc ? `<p>${desc}</p>` : ''}</div><div class="ph-acoes">${acoes}</div></div>`; }
+const tagFonte = (real, dica) => `<span class="fonte ${real ? 'real' : ''}" title="${esc(dica || (real ? 'Dado real · Portal de Dados Abertos do Recife' : 'Dado simulado para demonstração'))}">${real ? 'Real' : 'Simulado'}</span>`;
+
+function serieHoraria(total, semente) { const w = Array.from({ length: 24 }, (_, h) => Math.exp(-((23 - h) / 7)) * (0.6 + 0.8 * hash(semente + h))); const s = w.reduce((a, b) => a + b, 0); return w.map(v => v / s * total); }
+
+function pgPainel(el) {
+  const cen = store.cen, ab = incAbertas(), crit = cen.ds.filter(d => d.idx === 3), altos = cen.ds.filter(d => d.idx === 2);
+  const delta = Math.round((cen.chuvaMedia / REFERENCIA_MM - 1) * 100);
+  const atrasadas = ab.filter(i => slaInfo(i).atrasada).length;
+  const porSev = NIVEIS.slice(1).reverse().map(n => [n, ab.filter(i => i.sev === n).length]);
+  const base = calcularCenario(BASE), dPop = cen.popExp - base.popExp;
+  const disp = store.equipes.filter(e => e.status === 'disponivel').length, campo = store.equipes.filter(e => ['deslocamento', 'atendimento'].includes(e.status)).length;
+  const ocPorDs = c => ab.filter(i => i.ds === c).length;
+
+  el.innerHTML = cab('Visão geral', 'Situação consolidada do Recife — 94 bairros em 8 distritos sanitários.',
+    `<span class="upd">${ic('atualizar', 14)}Atualizado às <b id="hrUpd">${hhmmss(store.atualizadoEm)}</b></span>
+     <button class="btn" data-act="exportar-distritos">${ic('download')}Exportar</button>
+     <button class="btn btn-primary" data-act="novo-boletim">${ic('doc')}Gerar boletim</button>`) + `
+  <div class="metricas">
+    <div class="card metrica">
+      <div class="m-top"><span class="m-label">Risco geral</span>${tagFonte(false)}</div>
+      <div class="m-row"><div class="m-val" style="color:${COR[cen.geral]}">${ROT[cen.geral]}</div></div>
+      <div class="m-foot">${crit.length ? `<b style="color:var(--sev-critico-fg)">${crit.length} crítico${crit.length > 1 ? 's' : ''}</b> · ` : ''}${altos.length} em alto · ${cen.ds.filter(d => d.idx === 1).length} em moderado</div>
+      <div class="distrib">${NIVEIS.map(n => { const q = cen.ds.filter(d => d.nivel === n).length; return q ? `<i style="flex:${q};background:${COR[n]}"></i>` : ''; }).join('')}</div>
+    </div>
+    <div class="card metrica">
+      <div class="m-top"><span class="m-label">Chuva média · 24h</span>${tagFonte(false)}</div>
+      <div class="m-row"><div class="m-val">${fmt(cen.chuvaMedia)}<small>mm</small></div>${sparkline(serieHoraria(cen.chuvaMedia, 'c').map((v, i, a) => a.slice(0, i + 1).reduce((x, y) => x + y, 0)), { cor: '#3b6fe0' })}</div>
+      <div class="m-foot"><span class="delta ${delta > 0 ? 'up' : 'down'}">${delta > 0 ? '+' : ''}${delta}%</span>vs. referência histórica</div>
+    </div>
+    <div class="card metrica">
+      <div class="m-top"><span class="m-label">Ocorrências abertas</span>${tagFonte(false)}</div>
+      <div class="m-row"><div class="m-val">${ab.length}</div><div class="small muted" style="text-align:right">${porSev.map(([n, q]) => `<div><span class="pt-sev ${n}"></span> ${q} ${ROT[n].toLowerCase()}</div>`).join('')}</div></div>
+      <div class="m-foot">${atrasadas ? `<span class="delta up">${atrasadas} fora do SLA</span>` : '<span class="delta down">SLA em dia</span>'} ${ab.filter(i => ABERTAS.includes(i.status)).length} aguardando despacho</div>
+    </div>
+    <div class="card metrica">
+      <div class="m-top"><span class="m-label">População exposta</span>${tagFonte(false)}</div>
+      <div class="m-row"><div class="m-val">${fmt1(cen.popExp / 1000)}<small>mil</small></div>${sparkline(Array.from({ length: 12 }, (_, i) => cen.popExp * (0.7 + 0.3 * (i / 11)) + hash('p' + i) * 400), { cor: 'var(--sev-alto)' })}</div>
+      <div class="m-foot">${dPop ? `<span class="delta ${dPop > 0 ? 'up' : 'down'}">${dPop > 0 ? '+' : '−'}${fmt(Math.abs(dPop))}</span>vs. operação normal` : '<span class="delta eq">estável</span>em relação a ontem'}</div>
+    </div>
+  </div>
+
+  <div class="grade">
+    <div class="c8 pilha">
+      <div class="card">
+        <div class="card-h"><h3>Risco por distrito sanitário</h3><span class="sub">clique para ver no mapa</span><div class="dir">${tagFonte(false)}</div></div>
+        <div class="tbl-wrap"><table class="tbl clic"><thead><tr><th>Distrito</th><th>Risco</th><th>Chuva 24h</th><th class="r">Expostos</th><th class="r">Ocorr.</th><th>Situação em campo</th></tr></thead><tbody>
+        ${cen.ds.map(d => `<tr data-ds-mapa="${d.code}">
+          <td><div class="tit">${d.code}</div><div class="sub">${esc(d.nome)}</div></td>
+          <td>${pillSev(d.nivel)}</td>
+          <td class="num" style="white-space:nowrap"><span class="minibar"><i style="width:${clamp(d.chuva / 1.6, 3, 100)}%;background:${COR[NIVEIS[nivelChuva(d.chuva)]]}"></i></span>${fmt(d.chuva)} mm</td>
+          <td class="num r">${fmt(d.popExp)}</td>
+          <td class="num r">${ocPorDs(d.code) || '<span class="faint">—</span>'}</td>
+          <td class="small muted" title="${esc(d.gatilho)}">${esc(d.ocorrencia)}</td></tr>`).join('')}
+        </tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Mapa de risco</h3><span class="sub">94 bairros · malha oficial</span><div class="dir">${tagFonte(true, 'Malha de bairros real; cores de risco simuladas')}<a class="link" data-nav="mapa">Abrir mapa ${ic('seta', 13)}</a></div></div>
+        <div class="mapa-box mapa-mini" id="miniMapa"></div>
+        <div class="card-f">${NIVEIS.map(n => `<span style="display:inline-flex;align-items:center;gap:6px;margin-right:10px"><i style="width:10px;height:10px;border-radius:3px;background:${COR_MAPA[n]}"></i>${ROT[n]}</span>`).join('')}</div>
+      </div>
+    </div>
+    <div class="c4 pilha">
+      <div class="card">
+        <div class="card-h"><h3>Fila de ocorrências</h3><div class="dir"><a class="link" data-nav="ocorrencias">Ver todas ${ic('seta', 13)}</a></div></div>
+        ${ab.length ? `<ul class="lista">${ab.slice().sort(ordSev).slice(0, 6).map(i => { const s = slaInfo(i); return `<li data-inc="${i.id}"><span class="pt-sev ${i.sev}" style="margin-top:6px"></span><div class="l-c"><div class="l-t">${esc(i.titulo)}</div><div class="l-s"><span class="mono">${i.id}</span><span>${i.ds}</span><span class="st ${i.status}">${ROT_STATUS[i.status]}</span></div></div><div class="l-d"><div class="sla ${s.cls}" data-sla="${i.id}">${s.txt}</div><div class="xs faint">${ABERTAS.includes(i.status) ? 'SLA' : (i.equipe || '')}</div></div></li>`; }).join('')}</ul>` : `<div class="vazio">${ic('check', 22)}Nenhuma ocorrência aberta.</div>`}
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Equipes</h3><span class="sub">${disp} disponíveis · ${campo} em campo</span><div class="dir"><a class="link" data-nav="equipes">Gerenciar ${ic('seta', 13)}</a></div></div>
+        <ul class="lista">${store.equipes.map(e => `<li data-nav="equipes"><div class="l-c"><div class="l-t">${e.id} · ${esc(e.nome)}</div><div class="l-s"><span class="st ${e.status}">${ROT_EQ[e.status]}</span>${e.incidente ? `<span class="mono">${e.incidente}</span>` : ''}</div></div><div class="l-d xs faint">${e.base}</div></li>`).join('')}</ul>
+      </div>
+    </div>
+    <div class="c8">
+      <div class="card">
+        <div class="card-h"><h3>Chuva — 7 dias e previsão de 72h</h3><span class="sub">média da cidade</span><div class="dir">${tagFonte(false)}</div></div>
+        <div class="card-b"><div id="grafChuva"></div></div>
+      </div>
+    </div>
+    <div class="c4 pilha">
+      <div class="card">
+        <div class="card-h"><h3>Arboviroses</h3><span class="sub">últimas 10 semanas de 2025</span><div class="dir">${tagFonte(true)}</div></div>
+        <div class="card-b"><div id="grafArboMini"></div><div class="leg"><span>Notificações/semana · dengue, chikungunya e zika</span></div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><h3>Atividade recente</h3></div>
+        <ul class="feed">${store.atividade.slice(0, 7).map(a => `<li><span class="t">${hhmm(a.t)}</span><span class="x">${a.texto}</span></li>`).join('') || '<li class="muted">Sem atividade.</li>'}</ul>
+      </div>
+    </div>
+  </div>`;
+
+  const mm = criarMapa('mini', false, i => { if (i != null) { store.ui.mapa.bairro = i; } navegar('mapa'); if (i != null) setTimeout(() => abrirBairro(i), 60); });
+  if (mm) { $('#miniMapa').appendChild(mm); mm.classList.add('sem-rotulos'); pintarMapa(mm, 'risco', cen); }
+  graficoPrevisao($('#grafChuva'), 'chuva', 220);
+  if (EPI) {
+    const n = EPI.semanas.length, k = 10;
+    const v = EPI.semanas.slice(n - k).map((_, j) => Object.keys(AGRAVOS).reduce((s, a) => s + EPI.notificacoes[a][n - k + j], 0));
+    graficoColunas($('#grafArboMini'), v, EPI.semanas.slice(n - k).map(s => 'S' + String(s).slice(4)), { cor: '#e5534b', unidade: 'notificações', altura: 150 });
+  }
+}
+
+function graficoPrevisao(el, modo, altura = 240) {
+  const cen = store.cen, hoje = new Date(), diaria = SERIE_7D.concat([cen.chuvaMedia]);
+  const capi = cen.rios.find(r => r.id === 'capibaribe');
+  const nivelDe = mm => clamp(capi.base + capi.coef * mm * fatorSolo(cen.params.solo) * 0.85 + 0.35 * (cen.params.mare - 1.6), 0.2, capi.max);
+  const val = mm => modo === 'chuva' ? mm : nivelDe(mm);
+  const rot = [], obs = [], prev = [], alto = [], baixo = [];
+  for (let k = 6; k >= 0; k--) { const d = new Date(hoje); d.setDate(hoje.getDate() - k); rot.push(k ? dataCurta(d) : 'hoje'); obs.push(val(diaria[6 - k])); prev.push(null); alto.push(null); baixo.push(null); }
+  prev[6] = alto[6] = baixo[6] = obs[6];
+  const tend = (diaria[6] - diaria[4]) / 2;
+  for (let h = 1; h <= 6; h++) {
+    const d = new Date(hoje.getTime() + h * 12 * 3600000);
+    rot.push(`${dataCurta(d)} ${d.getHours() < 12 ? '00h' : '12h'}`);
+    const mm = Math.max(0, diaria[6] * Math.pow(0.82, h) + tend * 0.3 * Math.exp(-h / 3) * h), v = val(mm), inc = 0.12 + 0.07 * h;
+    obs.push(null); prev.push(v); alto.push(v * (1 + inc)); baixo.push(v * (1 - inc));
+  }
+  const L = cfg.limiares;
+  const refs = modo === 'chuva'
+    ? [{ v: L.moderado, rotulo: `moderado ${L.moderado} mm`, cor: 'var(--sev-moderado)' }, { v: L.alto, rotulo: `alto ${L.alto} mm`, cor: 'var(--sev-alto)' }, { v: L.critico, rotulo: `crítico ${L.critico} mm`, cor: 'var(--sev-critico)' }]
+    : [{ v: capi.atencao, rotulo: `atenção ${fmt1(capi.atencao)} m`, cor: 'var(--sev-moderado)' }, { v: capi.alerta, rotulo: `alerta ${fmt1(capi.alerta)} m`, cor: 'var(--sev-critico)' }];
+  graficoLinhas(el, [{ nome: 'Observado', cor: '#3b6fe0', valores: obs, esp: 2.2 }, { nome: 'Previsão', cor: 'var(--brand)', valores: prev, trac: true, esp: 2.2 }], rot, { altura, refs, faixa: { alto, baixo }, divisao: 6, unidade: modo === 'chuva' ? 'mm' : 'm' });
+}
+
+/* ------------------------------------------------------------ página: mapa */
+function pgMapa(el) {
+  const m = store.ui.mapa;
+  el.innerHTML = cab('Mapa operacional', 'Malha oficial dos 94 bairros e vínculo com os distritos sanitários (Portal de Dados Abertos do Recife). Arraste, use a roda do mouse e clique em um bairro.',
+    `<select class="select" id="mapaDs"><option value="">Todos os distritos</option>${DISTRITOS.map(d => `<option value="${d.code}" ${m.ds === d.code ? 'selected' : ''}>${d.code} · ${esc(d.nome)}</option>`).join('')}</select>
+     <button class="btn" data-act="registrar">${ic('mais')}Registrar ocorrência</button>`) + `
+  <div class="mapa-box mapa-pagina" id="mapaGrande">
+    <div class="flut flut-camadas">
+      <h4>Camadas</h4>
+      ${[['risco', 'Risco por bairro', false], ['chuva', 'Chuva em 24h', false], ['arbo', 'Arboviroses 2025', true], ['ds', 'Distritos sanitários', true]].map(([k, t, real]) => `<div class="camada ${m.camada === k ? 'on' : ''}" data-camada="${k}"><span class="rd"></span>${t}${tagFonte(real)}</div>`).join('')}
+      <div id="agravoBox" style="margin-top:10px;${m.camada === 'arbo' ? '' : 'display:none'}"><select class="select" id="mapaAgravo" style="width:100%"><option value="todas">Todos os agravos</option>${Object.entries(AGRAVOS).map(([k, a]) => `<option value="${k}" ${m.agravo === k ? 'selected' : ''}>${a.nome}</option>`).join('')}</select></div>
+      <label class="small muted" style="display:flex;gap:8px;align-items:center;margin-top:12px;cursor:pointer"><input type="checkbox" id="mapaRot" ${m.rotulos ? 'checked' : ''} style="accent-color:var(--brand)"> Rótulos dos distritos</label>
+    </div>
+    <div class="flut flut-zoom"><button data-z="in" title="Aproximar">${ic('mais_zoom')}</button><button data-z="out" title="Afastar">${ic('menos_zoom')}</button><button data-z="fit" title="Enquadrar">${ic('enquadrar')}</button></div>
+    <div class="flut flut-leg" id="mapaLeg"></div>
+    <div class="mapa-norte">N ↑</div>
+  </div>`;
+  const svg = criarMapa('grande', true, i => { if (i == null) return; abrirBairro(i); });
+  if (svg) $('#mapaGrande').prepend(svg); else $('#mapaGrande').insertAdjacentHTML('beforeend', '<div class="vazio">Malha de bairros não carregada (dados/recife-real.js).</div>');
+  $('#mapaDs').onchange = e => { m.ds = e.target.value; upMapa(); };
+  $('#mapaAgravo').onchange = e => { m.agravo = e.target.value; upMapa(); };
+  $('#mapaRot').onchange = e => { m.rotulos = e.target.checked; upMapa(); };
+  $$('[data-camada]', el).forEach(c => c.onclick = () => { m.camada = c.dataset.camada; $$('[data-camada]', el).forEach(x => x.classList.toggle('on', x === c)); $('#agravoBox').style.display = m.camada === 'arbo' ? '' : 'none'; upMapa(); });
+  $$('[data-z]', el).forEach(b => b.onclick = () => { const s = MAPAS.grande; if (!s) return; b.dataset.z === 'in' ? s.zoom(1 / 1.4) : b.dataset.z === 'out' ? s.zoom(1.4) : s.enquadrar(); });
+  upMapa();
+}
+function upMapa() {
+  const m = store.ui.mapa, svg = MAPAS.grande;
+  if (!svg || !$('#mapaLeg')) return;
+  svg.classList.toggle('sem-rotulos', !m.rotulos);
+  pintarMapa(svg, m.camada, store.cen, { filtroDs: m.ds, sel: m.bairro });
+  $('#mapaLeg').innerHTML = legendaMapa();
+}
+function abrirBairro(i) {
+  store.ui.mapa.bairro = i;
+  if (store.ui.pagina === 'mapa') upMapa();
+  abrirDrawer({ tipo: 'bairro', i });
+}
+function drawerBairro(i) {
+  const b = DADOS.bairros[i], r = riscoBairro(b, store.cen), d = store.cen.ds.find(x => x.code === b.ds), c = EPI?.por_bairro?.[b.chave] || {}, tot = totalAgr(c);
+  const rank = DADOS.bairros.map(x => casosBairro(x, 'todas')).sort((a, z) => z - a).indexOf(tot) + 1;
+  const ocs = incAbertas().filter(o => o.ds === b.ds);
+  return `<div class="dr-h"><div class="tt"><div class="ey">${ic('pino', 13)}${esc(b.ds)} · ${esc(d.nome)} · RPA ${esc(b.rpa)}</div><h2>${esc(b.nome)}</h2></div><button class="ib" data-act="fechar-drawer" aria-label="Fechar">${ic('x', 18)}</button></div>
+  <div class="dr-b">
+    <div style="display:flex;gap:8px;align-items:center">${pillSev(r.nivel)}<span class="small muted">risco estimado no bairro</span>${tagFonte(false)}</div>
+    <div class="secao">Situação</div>
+    <dl class="kv"><dt>Chuva estimada 24h</dt><dd class="num">${fmt(r.chuva)} mm</dd><dt>Risco do distrito</dt><dd>${pillSev(d.nivel)}</dd><dt>Ocorrência no distrito</dt><dd>${esc(d.ocorrencia)}</dd><dt>Área</dt><dd class="num">${fmt1(b.area_km2)} km²</dd></dl>
+    <div class="secao" style="display:flex;justify-content:space-between;align-items:center">Arboviroses em 2025 ${tagFonte(true)}</div>
+    <dl class="kv">${Object.entries(AGRAVOS).map(([k, a]) => `<dt>${a.nome}</dt><dd class="num">${fmt(c[k] || 0)}</dd>`).join('')}<dt><b>Total</b></dt><dd class="num b">${fmt(tot)}</dd><dt>Posição na cidade</dt><dd class="num">${rank}º de 94</dd><dt>Por km²</dt><dd class="num">${fmt1(tot / Math.max(b.area_km2, .01))}</dd></dl>
+    <div class="secao">Ocorrências abertas no ${esc(b.ds)}</div>
+    ${ocs.length ? `<ul class="lista" style="border:1px solid var(--border);border-radius:10px">${ocs.sort(ordSev).map(o => `<li data-inc="${o.id}"><span class="pt-sev ${o.sev}" style="margin-top:6px"></span><div class="l-c"><div class="l-t">${esc(o.titulo)}</div><div class="l-s"><span class="mono">${o.id}</span><span class="st ${o.status}">${ROT_STATUS[o.status]}</span></div></div></li>`).join('')}</ul>` : '<div class="caixa">Nenhuma ocorrência aberta neste distrito.</div>'}
+  </div>
+  <div class="dr-f"><button class="btn" data-act="focar-bairro" data-i="${i}">${ic('enquadrar')}Aproximar</button><button class="btn btn-primary" data-act="registrar" data-bairro="${i}">${ic('mais')}Registrar ocorrência aqui</button></div>`;
+}
+
+/* ------------------------------------------------------------ página: ocorrências */
+function pgOcorrencias(el) {
+  const f = store.ui.inc;
+  el.innerHTML = cab('Ocorrências', 'Fila única de ocorrências abertas automaticamente pela regra de risco, pelos sensores e pelo modelo de previsão, ou registradas pela central.',
+    `<button class="btn" data-act="exportar-inc">${ic('download')}Exportar CSV</button><button class="btn btn-primary" data-act="registrar">${ic('mais')}Registrar ocorrência</button>`) + `
+  <div class="card">
+    <div class="abas" id="incAbas"></div>
+    <div class="toolbar">
+      <div class="busca-in">${ic('busca', 15)}<input class="input" id="incBusca" placeholder="Buscar por código, bairro ou descrição" style="width:300px" value="${esc(f.busca)}"></div>
+      <select class="select" id="incSev"><option value="">Todas as severidades</option>${NIVEIS.slice(1).reverse().map(n => `<option value="${n}" ${f.sev === n ? 'selected' : ''}>${ROT[n]}</option>`).join('')}</select>
+      <select class="select" id="incDs"><option value="">Todos os distritos</option>${DISTRITOS.map(d => `<option value="${d.code}" ${f.ds === d.code ? 'selected' : ''}>${d.code} · ${esc(d.nome)}</option>`).join('')}</select>
+      <select class="select" id="incOrigem"><option value="">Todas as origens</option>${['Regra de risco', 'Sensor de nível', 'Modelo de previsão', 'Vigilância epidemiológica', 'Chamado telefônico', 'Registro manual'].map(o => `<option ${f.tipo === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+      <span class="esp"></span><span class="small muted" id="incTotal"></span>
+    </div>
+    <div class="tbl-wrap" id="incTabela"></div>
+  </div>`;
+  $('#incBusca').oninput = e => { f.busca = e.target.value; upOcorrencias(); };
+  $('#incSev').onchange = e => { f.sev = e.target.value; upOcorrencias(); };
+  $('#incDs').onchange = e => { f.ds = e.target.value; upOcorrencias(); };
+  $('#incOrigem').onchange = e => { f.tipo = e.target.value; upOcorrencias(); };
+  upOcorrencias();
+}
+function filtrarInc(aba) {
+  const f = store.ui.inc, q = normalizar(f.busca);
+  return [...store.inc.values()].filter(i =>
+    (aba === 'todas' || (aba === 'abertas' ? ABERTAS.includes(i.status) : aba === 'curso' ? EM_CURSO.includes(i.status) : i.status === 'resolvido')) &&
+    (!f.sev || i.sev === f.sev) && (!f.ds || i.ds === f.ds) && (!f.tipo || i.origem === f.tipo) &&
+    (!q || normalizar(`${i.id} ${i.titulo} ${i.bairro} ${i.descricao} ${i.tipo}`).includes(q)));
+}
+function upOcorrencias() {
+  const f = store.ui.inc; if (!$('#incTabela')) return;
+  const abas = [['abertas', 'Aguardando despacho'], ['curso', 'Em atendimento'], ['resolvidas', 'Resolvidas'], ['todas', 'Todas']];
+  $('#incAbas').innerHTML = abas.map(([k, t]) => `<button class="${f.aba === k ? 'on' : ''}" data-aba="${k}">${t}<span class="n">${filtrarInc(k).length}</span></button>`).join('');
+  $$('#incAbas button').forEach(b => b.onclick = () => { f.aba = b.dataset.aba; upOcorrencias(); });
+  const o = f.ord, chaves = { id: i => i.id, sev: i => NIVEIS.indexOf(i.sev), titulo: i => i.titulo, ds: i => DISTRITOS.findIndex(d => d.code === i.ds), status: i => ORDEM_STATUS.indexOf(i.status), aberto: i => i.aberto, equipe: i => i.equipe || '' };
+  const lista = filtrarInc(f.aba).sort((a, b) => { const ka = chaves[o.col](a), kb = chaves[o.col](b); return (ka > kb ? 1 : ka < kb ? -1 : 0) * o.dir || a.aberto - b.aberto; });
+  $('#incTotal').textContent = `${lista.length} ocorrência${lista.length === 1 ? '' : 's'}`;
+  const th = (col, t, cls = '') => `<th class="ord ${cls}" data-ord="${col}">${t}${o.col === col ? `<span class="seta">${o.dir > 0 ? '▲' : '▼'}</span>` : ''}</th>`;
+  $('#incTabela').innerHTML = lista.length ? `<table class="tbl clic"><thead><tr>${th('id', 'Código')}${th('sev', 'Severidade')}${th('titulo', 'Ocorrência')}${th('ds', 'Distrito')}<th>Origem</th>${th('status', 'Situação')}${th('equipe', 'Equipe')}<th>SLA</th>${th('aberto', 'Aberta')}</tr></thead><tbody>
+    ${lista.map(i => { const s = slaInfo(i); return `<tr data-inc="${i.id}" class="${store.ui.drawer?.id === i.id ? 'sel' : ''}"><td class="cod">${i.id}</td><td>${pillSev(i.sev)}</td><td style="max-width:380px"><div class="tit" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(i.titulo)}</div><div class="sub">${esc(i.tipo)} · ${esc(i.bairro)}</div></td><td><div class="tit">${i.ds}</div><div class="sub">${esc(DS[i.ds]?.nome || '')}</div></td><td class="small muted">${esc(i.origem)}</td><td><span class="st ${i.status}">${ROT_STATUS[i.status]}</span></td><td class="mono small">${i.equipe || '<span class="faint">—</span>'}</td><td><span class="sla ${s.cls}" data-sla="${i.id}">${s.txt}</span></td><td class="small muted" style="white-space:nowrap">${tempoRel(i.aberto)}</td></tr>`; }).join('')}
+  </tbody></table>` : `<div class="vazio">${ic('filtro', 22)}Nenhuma ocorrência com esses filtros.</div>`;
+  $$('#incTabela th[data-ord]').forEach(t => t.onclick = () => { const c = t.dataset.ord; f.ord = { col: c, dir: f.ord.col === c ? -f.ord.dir : (c === 'sev' ? -1 : 1) }; upOcorrencias(); });
+}
+function abrirIncidente(id) { abrirDrawer({ tipo: 'inc', id }); if (store.ui.pagina === 'ocorrencias') upOcorrencias(); }
+function drawerIncidente(id) {
+  const i = store.inc.get(id); if (!i) return '<div class="vazio">Ocorrência não encontrada.</div>';
+  const s = slaInfo(i), etapa = ORDEM_STATUS.indexOf(i.status);
+  const livres = store.equipes.filter(e => e.status === 'disponivel').sort((a, b) => (b.base === i.ds) - (a.base === i.ds));
+  let acoes = '';
+  if (i.status === 'aberto') acoes += `<button class="btn" data-act="reconhecer" data-id="${i.id}">${ic('check')}Reconhecer</button>`;
+  if (ABERTAS.includes(i.status)) acoes += livres.length
+    ? `<select class="select" data-eq>${livres.map(e => `<option value="${e.id}">${e.id} · ${esc(e.nome)}${e.base === i.ds ? ' (no distrito)' : ''}</option>`).join('')}</select><button class="btn btn-brand" data-act="despachar" data-id="${i.id}">${ic('caminhao')}Despachar</button>`
+    : '<span class="small muted">Nenhuma equipe disponível no momento.</span>';
+  if (i.status !== 'resolvido') acoes += `<button class="btn btn-ghost" data-act="encerrar" data-id="${i.id}" style="margin-left:auto">Encerrar</button>`;
+  else acoes += `<span class="small muted">Encerrada ${tempoRel(i.resolvido)} · ${esc(i.motivo || '')}</span>`;
+  return `<div class="dr-h"><div class="tt"><div class="ey">${i.id} ${pillSev(i.sev)} <span class="st ${i.status}">${ROT_STATUS[i.status]}</span></div><h2>${esc(i.titulo)}</h2></div><button class="ib" data-act="fechar-drawer" aria-label="Fechar">${ic('x', 18)}</button></div>
+  <div class="dr-b">
+    <div class="etapas">${['Aberta', 'Triagem', 'Despachada', 'Em atendimento', 'Resolvida'].map((t, k) => `<div class="${k <= etapa ? 'on' : ''} ${k === etapa ? 'atual' : ''}"><i></i><span>${t}</span></div>`).join('')}</div>
+    <div class="secao">Detalhes</div>
+    <dl class="kv">
+      <dt>Tipo</dt><dd>${esc(i.tipo)}</dd>
+      <dt>Local</dt><dd>${esc(i.bairro)} · ${i.ds} (${esc(DS[i.ds]?.nome || '')})</dd>
+      <dt>Origem</dt><dd>${esc(i.origem)}</dd>
+      <dt>Aberta em</dt><dd>${hhmm(i.aberto)} · ${tempoRel(i.aberto)}</dd>
+      <dt>SLA de despacho</dt><dd><span class="sla ${s.cls}" data-sla="${i.id}">${s.txt}</span> <span class="xs faint">· prazo ${cfg.sla[i.sev] || '—'} min</span></dd>
+      <dt>Equipe</dt><dd>${i.equipe ? `<span class="mono">${i.equipe}</span> · ${esc(store.equipes.find(e => e.id === i.equipe)?.nome || '')}` : '<span class="faint">não atribuída</span>'}</dd>
+    </dl>
+    <div class="secao">Gatilho</div>
+    <div class="caixa">${esc(i.gatilho)}. ${esc(i.descricao)}</div>
+    <div class="secao">Linha do tempo</div>
+    <ul class="tl">${i.eventos.slice().reverse().map(ev => `<li class="${ev.autor === 'Sistema' ? 'sis' : ev.autor === 'Operador de plantão' ? 'op' : 'eq'}"><div>${esc(ev.texto)}</div><div class="au"><span class="tm">${hhmm(ev.t)}</span> · ${esc(ev.autor)}</div></li>`).join('')}</ul>
+    ${i.status !== 'resolvido' ? `<div class="campo" style="margin-top:6px"><textarea class="input" rows="2" placeholder="Adicionar nota à ocorrência…" id="notaInc"></textarea><div style="display:flex;justify-content:flex-end"><button class="btn btn-sm" data-act="nota" data-id="${i.id}">Adicionar nota</button></div></div>` : ''}
+  </div>
+  <div class="dr-f">${acoes}</div>`;
+}
+
+/* ------------------------------------------------------------ página: equipes */
+function pgEquipes(el) {
+  const E = store.equipes, cont = s => E.filter(e => e.status === s).length;
+  const ab = incAbertas();
+  el.innerHTML = cab('Equipes de campo', 'Disponibilidade das equipes e cobertura por distrito sanitário. Despache equipes a partir de uma ocorrência.', tagFonte(false)) + `
+  <div class="metricas">${['disponivel', 'deslocamento', 'atendimento', 'fora'].map(s => `<div class="card metrica"><div class="m-top"><span class="m-label">${ROT_EQ[s]}</span><span class="st ${s}"></span></div><div class="m-row"><div class="m-val">${cont(s)}</div></div><div class="m-foot">${s === 'disponivel' ? `${E.filter(e => e.status === s).reduce((a, e) => a + e.membros, 0)} profissionais` : s === 'fora' ? 'fora da escala' : E.filter(e => e.status === s).map(e => e.id).join(' · ') || 'nenhuma'}</div></div>`).join('')}</div>
+  <div class="grade">
+    <div class="c8"><div class="card"><div class="card-h"><h3>Equipes</h3><span class="sub">${E.length} equipes · ${E.reduce((a, e) => a + e.membros, 0)} profissionais</span></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Equipe</th><th>Tipo</th><th>Base</th><th class="r">Pessoas</th><th>Situação</th><th>Ocorrência</th><th>Desde</th><th></th></tr></thead><tbody>
+      ${E.map(e => `<tr><td><div class="tit">${esc(e.nome)}</div><div class="sub mono">${e.id}</div></td><td class="small muted">${esc(e.tipo)}</td><td>${e.base}</td><td class="num r">${e.membros}</td><td><span class="st ${e.status}">${ROT_EQ[e.status]}</span></td><td>${e.incidente ? `<a class="link mono" data-inc="${e.incidente}">${e.incidente}</a>` : '<span class="faint">—</span>'}</td><td class="small muted" style="white-space:nowrap">${tempoRel(e.desde)}</td>
+        <td class="r">${e.incidente ? '' : `<button class="btn btn-sm" data-act="escala" data-id="${e.id}">${e.status === 'fora' ? 'Colocar em serviço' : 'Tirar de serviço'}</button>`}</td></tr>`).join('')}
+      </tbody></table></div></div></div>
+    <div class="c4"><div class="card"><div class="card-h"><h3>Cobertura por distrito</h3></div>
+      <ul class="lista">${store.cen.ds.map(d => { const eqs = E.filter(e => e.base === d.code && e.status !== 'fora'), oc = ab.filter(i => i.ds === d.code), sem = oc.some(i => NIVEIS.indexOf(i.sev) >= 2) && !eqs.length; return `<li data-ds-mapa="${d.code}"><span class="pt-sev ${d.nivel}" style="margin-top:6px"></span><div class="l-c"><div class="l-t">${d.code} · ${esc(d.nome)}</div><div class="l-s">${eqs.length ? eqs.map(e => `<span class="mono">${e.id}</span>`).join('') : '<span>sem equipe de base</span>'}${oc.length ? `<span>· ${oc.length} ocorr.</span>` : ''}</div></div><div class="l-d">${sem ? '<span class="badge err">Sem cobertura</span>' : ''}</div></li>`; }).join('')}</ul></div></div>
+  </div>`;
+}
+
+/* ------------------------------------------------------------ página: chuva e rios */
+function pgHidro(el) {
+  const cen = store.cen;
+  el.innerHTML = cab('Chuva e rios', 'Pluviômetros por distrito e nível dos rios e canais. Leituras simuladas: a coleta real (ANA HidroWeb) aguarda credenciais e os códigos das estações.', tagFonte(false)) + `
+  <div class="metricas">${cen.rios.map(r => { const pct = v => clamp(v / r.max * 100, 0, 100), n = NIVEIS[r.nivelIdx]; return `<div class="card rio">
+    <div class="rt"><div><div class="rn">${esc(r.nome)}</div><div class="rs">${esc(r.trecho)}</div></div>${pillSev(n)}</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-end"><div class="rv">${fmt1(r.nivel)}<small> m</small></div>${sparkline(Array.from({ length: 24 }, (_, h) => r.nivel * (0.82 + 0.18 * h / 23) + (hash(r.id + h) - .5) * .06), { cor: COR[n], w: 96 })}</div>
+    <div class="regua"><div class="f" style="width:${pct(r.nivel)}%;background:${COR[n]}"></div><div class="mk at" style="left:${pct(r.atencao)}%;background:var(--sev-moderado)"><span style="color:var(--sev-moderado-fg)">atenção ${fmt1(r.atencao)}</span></div><div class="mk al" style="left:${pct(r.alerta)}%;background:var(--sev-critico)"><span style="color:var(--sev-critico-fg)">alerta ${fmt1(r.alerta)}</span></div></div>
+  </div>`; }).join('')}</div>
+  <div class="grade">
+    <div class="c8"><div class="card"><div class="card-h"><h3>Observado e previsão</h3><div class="dir"><div class="seg" id="segHidro"><button data-m="chuva" class="${store.ui.hidro === 'chuva' ? 'on' : ''}">Chuva média</button><button data-m="rio" class="${store.ui.hidro === 'rio' ? 'on' : ''}">Nível do Capibaribe</button></div></div></div>
+      <div class="card-b"><div id="grafHidro"></div><div class="leg"><span><i style="background:#3b6fe0"></i>Observado</span><span><i style="background:var(--brand)"></i>Previsão (baseline)</span><span><i style="background:var(--brand);opacity:.25"></i>Faixa de incerteza</span><span style="margin-left:auto">Maré máxima: ${fmt1(cen.params.mare)} m</span></div></div></div></div>
+    <div class="c4"><div class="card"><div class="card-h"><h3>Chuva por distrito</h3><span class="sub">últimas 24h</span></div><div class="card-b">${barrasH(cen.ds.map(d => ({ rotulo: `${d.code} · ${d.nome}`, valor: d.chuva, cor: COR[NIVEIS[nivelChuva(d.chuva)]] })), { unidade: 'mm', max: Math.max(130, ...cen.ds.map(d => d.chuva * 1.05)) })}</div></div></div>
+    <div class="c12"><div class="card"><div class="card-h"><h3>Pluviômetros</h3><span class="sub">uma estação simulada por distrito</span></div>
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Estação</th><th>Distrito</th><th class="r">Última hora</th><th class="r">24 horas</th><th>Últimas 24h</th><th>Faixa</th><th>Situação</th><th>Leitura</th></tr></thead><tbody>
+      ${cen.ds.map((d, k) => { const serie = serieHoraria(d.chuva, d.code), off = k === 1 && !store.simulado; return `<tr><td><div class="tit">PLV-${String(k + 1).padStart(2, '0')} · ${esc(d.foco)}</div><div class="sub">pluviômetro automático</div></td><td>${d.code}</td><td class="num r">${fmt1(serie.at(-1))} mm</td><td class="num r">${fmt(d.chuva)} mm</td><td>${sparkline(serie, { w: 120, h: 26, cor: '#3b6fe0' })}</td><td>${pillSev(NIVEIS[nivelChuva(d.chuva)])}</td><td>${off ? '<span class="badge esp">Sinal intermitente</span>' : '<span class="badge ok">Online</span>'}</td><td class="small muted">${off ? 'há 17 min' : 'há 2 min'}</td></tr>`; }).join('')}
+      </tbody></table></div></div></div>
+  </div>`;
+  graficoPrevisao($('#grafHidro'), store.ui.hidro === 'chuva' ? 'chuva' : 'rio', 260);
+  $$('#segHidro button').forEach(b => b.onclick = () => { store.ui.hidro = b.dataset.m; pgHidro(el); });
+}
+
+/* ------------------------------------------------------------ página: arboviroses */
+function pgArbo(el) {
+  if (!EPI) { el.innerHTML = cab('Arboviroses', '') + '<div class="card vazio">Dados de arboviroses não carregados.</div>'; return; }
+  const a = store.ui.arbo, total = Object.values(EPI.totais).reduce((x, y) => x + y, 0);
+  const soma = s => EPI.semanas.map((_, i) => Object.keys(AGRAVOS).reduce((t, k) => t + EPI[s][k][i], 0));
+  const todas = soma('notificacoes'), naoDesc = soma('nao_descartadas'), pico = todas.indexOf(Math.max(...todas));
+  const pctDesc = 1 - naoDesc.reduce((x, y) => x + y, 0) / total, t = arboTendencia(), porDs = arboPorDs();
+  el.innerHTML = cab('Arboviroses', 'Notificações de dengue, chikungunya e zika em 2025, agregadas por semana epidemiológica, bairro e distrito. Sem nenhum dado pessoal.',
+    `${tagFonte(true)}<button class="btn" data-act="exportar-arbo">${ic('download')}Exportar CSV</button>`) + `
+  <div class="metricas">
+    <div class="card metrica"><div class="m-top"><span class="m-label">Notificações em 2025</span></div><div class="m-row"><div class="m-val">${fmt(total)}</div>${sparkline(todas, { cor: '#e5534b' })}</div><div class="m-foot">${Object.entries(EPI.totais).map(([k, v]) => `${AGRAVOS[k].nome} ${fmt(v)}`).join(' · ')}</div></div>
+    <div class="card metrica"><div class="m-top"><span class="m-label">Semana de pico</span></div><div class="m-row"><div class="m-val">SE ${String(EPI.semanas[pico]).slice(4)}</div></div><div class="m-foot">${fmt(todas[pico])} notificações · ${mesDaSemana(EPI.semanas[pico])}</div></div>
+    <div class="card metrica"><div class="m-top"><span class="m-label">Descartadas após investigação</span></div><div class="m-row"><div class="m-val">${Math.round(pctDesc * 100)}<small>%</small></div></div><div class="m-foot">${fmt(total - naoDesc.reduce((x, y) => x + y, 0))} notificações</div></div>
+    <div class="card metrica"><div class="m-top"><span class="m-label">Tendência · 4 semanas</span></div><div class="m-row"><div class="m-val">${t.variacao >= 0 ? '+' : '−'}${Math.abs(Math.round(t.variacao * 100))}<small>%</small></div></div><div class="m-foot">vs. 4 semanas anteriores (sem as 2 últimas, ainda incompletas)</div></div>
+  </div>
+  <div class="grade">
+    <div class="c8"><div class="card"><div class="card-h"><h3>Notificações por semana epidemiológica</h3><div class="dir"><div class="seg" id="arboModo"><button data-m="notificacoes" class="${a.modo === 'notificacoes' ? 'on' : ''}">Todas</button><button data-m="nao_descartadas" class="${a.modo === 'nao_descartadas' ? 'on' : ''}">Sem descartadas</button></div></div></div>
+      <div class="card-b"><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px" id="arboChips">${Object.entries(AGRAVOS).map(([k, g]) => `<span class="chip ${a.ativos.includes(k) ? 'on' : ''}" data-ag="${k}"><i style="background:${g.cor}"></i>${g.nome}</span>`).join('')}</div><div id="grafArbo"></div></div></div></div>
+    <div class="c4"><div class="card"><div class="card-h"><h3>Por distrito sanitário</h3></div><div class="card-b">${barrasH(DISTRITOS.map(d => ({ rotulo: `${d.code} · ${d.nome}`, valor: a.ativos.reduce((s, k) => s + porDs[d.code][k], 0) })).sort((x, y) => y.valor - x.valor), { cor: '#e5534b' })}</div>
+      <div class="card-f">${ic('pulso', 14)}Pico em ${mesDaSemana(EPI.semanas[pico])}: medir o atraso entre chuva e casos é o objetivo da PRD-02.</div></div></div>
+    <div class="c12"><div class="card"><div class="card-h"><h3>Bairros</h3><span class="sub">clique para ver no mapa</span><div class="dir"><div class="busca-in">${ic('busca', 15)}<input class="input" id="arboBusca" placeholder="Filtrar bairro" value="${esc(a.busca)}" style="width:220px"></div></div></div><div id="arboTabela"></div></div></div>
+  </div>`;
+  graficoLinhas($('#grafArbo'), a.ativos.map(k => ({ nome: AGRAVOS[k].nome, cor: AGRAVOS[k].cor, valores: EPI[a.modo][k] })), EPI.semanas.map(s => 'SE' + String(s).slice(4)), { altura: 270, unidade: 'notificações' });
+  $$('#arboModo button').forEach(b => b.onclick = () => { a.modo = b.dataset.m; pgArbo(el); });
+  $$('#arboChips .chip').forEach(c => c.onclick = () => { const k = c.dataset.ag; a.ativos = a.ativos.includes(k) ? a.ativos.filter(x => x !== k) : [...a.ativos, k]; if (!a.ativos.length) a.ativos = [k]; pgArbo(el); });
+  $('#arboBusca').oninput = e => { a.busca = e.target.value; a.pag = 0; tabelaArbo(); };
+  tabelaArbo();
+}
+function linhasArbo() {
+  const a = store.ui.arbo, q = normalizar(a.busca);
+  const ls = DADOS.bairros.map((b, i) => { const c = EPI.por_bairro[b.chave] || {}; return { i, nome: b.nome, ds: b.ds, dengue: c.dengue || 0, chikungunya: c.chikungunya || 0, zika: c.zika || 0, total: totalAgr(c), km2: totalAgr(c) / Math.max(b.area_km2, .01) }; })
+    .filter(l => !q || normalizar(l.nome).includes(q));
+  const o = a.ord; return ls.sort((x, y) => (x[o.col] > y[o.col] ? 1 : x[o.col] < y[o.col] ? -1 : 0) * o.dir);
+}
+function tabelaArbo() {
+  const a = store.ui.arbo, ls = linhasArbo(), por = 10, pags = Math.max(1, Math.ceil(ls.length / por));
+  a.pag = clamp(a.pag, 0, pags - 1);
+  const pg = ls.slice(a.pag * por, a.pag * por + por);
+  const th = (c, t, r = true) => `<th class="ord ${r ? 'r' : ''}" data-ord="${c}">${t}${a.ord.col === c ? `<span class="seta">${a.ord.dir > 0 ? '▲' : '▼'}</span>` : ''}</th>`;
+  $('#arboTabela').innerHTML = `<div class="tbl-wrap"><table class="tbl clic"><thead><tr>${th('nome', 'Bairro', false)}${th('ds', 'Distrito', false)}${th('dengue', 'Dengue')}${th('chikungunya', 'Chikungunya')}${th('zika', 'Zika')}${th('total', 'Total')}${th('km2', 'Por km²')}</tr></thead><tbody>
+    ${pg.map(l => `<tr data-bairro="${l.i}"><td class="tit">${esc(l.nome)}</td><td>${l.ds}</td><td class="num r">${fmt(l.dengue)}</td><td class="num r">${fmt(l.chikungunya)}</td><td class="num r">${fmt(l.zika)}</td><td class="num r b">${fmt(l.total)}</td><td class="num r">${fmt1(l.km2)}</td></tr>`).join('') || '<tr><td colspan="7" class="vazio">Nenhum bairro encontrado.</td></tr>'}
+  </tbody></table></div><div class="pag"><span>${ls.length ? `${a.pag * por + 1}–${Math.min(ls.length, a.pag * por + por)} de ${ls.length} bairros` : '0 bairros'}</span><span class="esp"></span><button class="btn btn-sm" data-pag="-1" ${a.pag === 0 ? 'disabled' : ''}>Anterior</button><span>${a.pag + 1} / ${pags}</span><button class="btn btn-sm" data-pag="1" ${a.pag >= pags - 1 ? 'disabled' : ''}>Próxima</button></div>`;
+  $$('#arboTabela th[data-ord]').forEach(t => t.onclick = () => { const c = t.dataset.ord; a.ord = { col: c, dir: a.ord.col === c ? -a.ord.dir : (['nome', 'ds'].includes(c) ? 1 : -1) }; tabelaArbo(); });
+  $$('#arboTabela [data-pag]').forEach(b => b.onclick = () => { a.pag += +b.dataset.pag; tabelaArbo(); });
+}
+
+/* ------------------------------------------------------------ página: simulador */
+function pgSimulador(el) {
+  const s = store.ui.sim;
+  el.innerHTML = cab('Simulador de cenários', 'Ajuste chuva, maré e saturação do solo para antecipar o impacto em cada distrito. Aplique o cenário para treinar a operação com o console inteiro.',
+    store.simulado ? `<button class="btn" data-act="encerrar-sim">Encerrar simulação</button>` : '') + `
+  <div class="grade">
+    <div class="c4"><div class="card"><div class="card-h"><h3>Parâmetros</h3></div><div class="card-b">
+      ${PRESETS.map(p => `<div class="preset ${s.preset === p.id ? 'on' : ''}" data-preset="${p.id}"><span class="rd"></span><div><b>${p.nome}</b><span>${p.desc}</span></div><div class="pv">${p.chuva} mm<br>maré ${fmt1(p.mare)} m</div></div>`).join('')}
+      <div class="slider"><div class="sh"><label for="sChuva">Chuva prevista em 24h</label><output id="oChuva"></output></div><input type="range" id="sChuva" min="0" max="200" step="1" value="${s.chuva}"><div class="ajuda">Média da cidade, distribuída pelo padrão espacial do último evento.</div></div>
+      <div class="slider"><div class="sh"><label for="sMare">Maré máxima</label><output id="oMare"></output></div><input type="range" id="sMare" min="0.5" max="2.9" step="0.1" value="${s.mare}"><div class="ajuda">Maré alta represa a drenagem e eleva rios e canais.</div></div>
+      <div class="slider"><div class="sh"><label for="sSolo">Saturação do solo</label><output id="oSolo"></output></div><input type="range" id="sSolo" min="0" max="100" step="5" value="${s.solo}"><div class="ajuda">Solo encharcado amplia o efeito da chuva.</div></div>
+    </div><div class="card-f" style="justify-content:flex-end"><button class="btn" data-act="sim-reset">Restaurar</button><button class="btn btn-primary" data-act="sim-aplicar">${ic('play', 14)}Aplicar ao console</button></div></div></div>
+    <div class="c8 pilha">
+      <div class="metricas" style="grid-template-columns:repeat(3,minmax(0,1fr));margin:0" id="simResumo"></div>
+      <div class="grade" style="gap:18px">
+        <div class="c7"><div class="card"><div class="card-h"><h3>Impacto por distrito</h3></div><div class="tbl-wrap" id="simTabela"></div></div></div>
+        <div class="c5"><div class="card"><div class="card-h"><h3>Prévia do mapa</h3><span class="sub">risco no cenário</span></div><div class="mapa-box" id="simMapa" style="height:380px"></div></div></div>
+      </div>
+    </div>
+  </div>`;
+  const svg = criarMapa('sim', false, null); if (svg) { $('#simMapa').appendChild(svg); svg.classList.add('sem-rotulos'); svg.style.cursor = 'default'; }
+  [['sChuva', 'chuva'], ['sMare', 'mare'], ['sSolo', 'solo']].forEach(([id, k]) => $('#' + id).oninput = e => { s[k] = +e.target.value; s.preset = null; $$('.preset', el).forEach(p => p.classList.remove('on')); upSimulador(); });
+  $$('.preset', el).forEach(p => p.onclick = () => { const pr = PRESETS.find(x => x.id === p.dataset.preset); Object.assign(s, { chuva: pr.chuva, mare: pr.mare, solo: pr.solo, preset: pr.id }); pgSimulador(el); });
+  upSimulador();
+}
+function upSimulador() {
+  const s = store.ui.sim, base = calcularCenario(BASE), novo = calcularCenario(s);
+  $('#oChuva').textContent = `${fmt(s.chuva)} mm`; $('#oMare').textContent = `${fmt1(s.mare)} m`; $('#oSolo').textContent = `${fmt(s.solo)}%`;
+  const aB = base.ds.filter(d => d.idx >= 2).length, aN = novo.ds.filter(d => d.idx >= 2).length;
+  const dl = (a, b, f = fmt) => b > a ? `<span class="delta up">+${f(b - a)}</span>` : b < a ? `<span class="delta down">−${f(a - b)}</span>` : '<span class="delta eq">igual</span>';
+  $('#simResumo').innerHTML = `
+    <div class="card metrica"><div class="m-label">Risco geral</div><div class="m-row"><div class="m-val" style="color:${COR[novo.geral]}">${ROT[novo.geral]}</div></div><div class="m-foot">hoje: ${ROT[base.geral].toLowerCase()}</div></div>
+    <div class="card metrica"><div class="m-label">Distritos em alto ou crítico</div><div class="m-row"><div class="m-val">${aN}<small>de 8</small></div></div><div class="m-foot">${dl(aB, aN)} vs. hoje</div></div>
+    <div class="card metrica"><div class="m-label">Pessoas expostas</div><div class="m-row"><div class="m-val">${fmt1(novo.popExp / 1000)}<small>mil</small></div></div><div class="m-foot">${dl(base.popExp, novo.popExp)} vs. hoje</div></div>`;
+  $('#simTabela').innerHTML = `<table class="tbl"><thead><tr><th>Distrito</th><th class="r">Chuva</th><th>Hoje</th><th></th><th>Cenário</th><th class="r">Expostos</th></tr></thead><tbody>${novo.ds.map((d, k) => { const b = base.ds[k], m = d.idx - b.idx; return `<tr><td><div class="tit">${d.code}</div><div class="sub">${esc(d.nome)}</div></td><td class="num r">${fmt(d.chuva)} mm</td><td>${pillSev(b.nivel)}</td><td><span class="seta-mud ${m > 0 ? 'up' : m < 0 ? 'down' : 'eq'}">${m > 0 ? '▲' : m < 0 ? '▼' : '→'}</span></td><td>${pillSev(d.nivel)}</td><td class="num r">${fmt(d.popExp)}</td></tr>`; }).join('')}</tbody></table>`;
+  pintarMapa(MAPAS.sim, 'risco', novo);
+}
+
+/* ------------------------------------------------------------ página: boletins */
+function pgBoletins(el) {
+  const u = store.ui.bol;
+  if (u.modo === 'editor') return editorBoletim(el);
+  el.innerHTML = cab('Boletins', 'Boletins situacionais gerados a partir dos indicadores do console — sem modelo de linguagem, só template e dados.',
+    `<button class="btn btn-primary" data-act="novo-boletim">${ic('mais')}Novo boletim</button>`) + `
+  <div class="card"><div class="tbl-wrap"><table class="tbl clic"><thead><tr><th>Número</th><th>Gerado em</th><th>Cenário</th><th>Risco</th><th>Autor</th><th>Situação</th><th></th></tr></thead><tbody>
+    ${store.boletins.map((b, k) => { const c = calcularCenario(b.params); return `<tr data-bol="${k}"><td class="cod">${b.num}</td><td class="small" style="white-space:nowrap">${new Date(b.t).toLocaleDateString('pt-BR')} · ${hhmm(b.t)}</td><td>${esc(b.nome)}${b.simulado ? ' <span class="badge esp">simulado</span>' : ''}</td><td>${pillSev(c.geral)}</td><td class="small muted">${esc(b.autor)}</td><td>${b.status === 'Emitido' ? '<span class="badge ok">Emitido</span>' : '<span class="badge neu">Rascunho</span>'}</td><td class="r"><span class="link">Abrir ${ic('dir', 13)}</span></td></tr>`; }).join('')}
+  </tbody></table></div></div>`;
+}
+function editorBoletim(el) {
+  const u = store.ui.bol, b = store.boletins[u.atual]; if (!b) { u.modo = 'lista'; return pgBoletins(el); }
+  const emit = b.status === 'Emitido';
+  el.innerHTML = `<div class="ph nao-imprime"><div><div class="small muted" style="margin-bottom:6px"><a class="link" data-act="bol-voltar">${ic('recolher', 13)}Boletins</a></div><h1>${b.num}</h1><p>${emit ? `Emitido em ${new Date(b.t).toLocaleString('pt-BR')}` : 'Rascunho — revise o conteúdo e emita.'}</p></div>
+    <div class="ph-acoes"><button class="btn" data-act="bol-copiar">${ic('copiar')}Copiar</button><button class="btn" data-act="bol-md">${ic('download')}Markdown</button><button class="btn" data-act="bol-imprimir">${ic('impressora')}Imprimir / PDF</button>${emit ? '' : `<button class="btn btn-primary" data-act="bol-emitir">${ic('enviar', 15)}Emitir</button>`}</div></div>
+  <div class="grade">
+    <div class="c3 nao-imprime"><div class="card"><div class="card-h"><h3>Seções</h3></div><div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+      ${[['distritos', 'Situação por distrito'], ['rios', 'Rios e canais'], ['arbo', 'Arboviroses'], ['previsao', 'Previsão 24h'], ['recomendacoes', 'Recomendações']].map(([k, t]) => `<label class="small" style="display:flex;gap:9px;align-items:center;cursor:${emit ? 'default' : 'pointer'}"><input type="checkbox" data-opc="${k}" ${b.opcoes[k] ? 'checked' : ''} ${emit ? 'disabled' : ''} style="accent-color:var(--brand)"> ${t}</label>`).join('')}
+      <div class="caixa xs" style="margin-top:6px">Baseado no cenário <b>${esc(b.nome)}</b>${b.simulado ? ' (simulado)' : ''} de ${hhmm(b.t)}.</div>
+    </div></div></div>
+    <div class="c9" style="grid-column:span 9"><div id="papel">${documentoBoletim(b)}</div></div>
+  </div>`;
+  $$('[data-opc]', el).forEach(c => c.onchange = () => { b.opcoes[c.dataset.opc] = c.checked; $('#papel').innerHTML = documentoBoletim(b); });
+}
+function dadosBoletim(b) {
+  const cen = calcularCenario(b.params), crit = cen.ds.filter(d => d.idx === 3), alto = cen.ds.filter(d => d.idx === 2), t = arboTendencia(), prev = cen.params.chuva * 0.7;
+  const delta = Math.round((cen.chuvaMedia / REFERENCIA_MM - 1) * 100), nOc = condicoes(cen).length;
+  const partes = [];
+  if (crit.length) partes.push(`${crit.length} distrito${crit.length > 1 ? 's' : ''} em nível crítico (${crit.map(d => `${d.code} — ${d.nome}`).join('; ')})`);
+  if (alto.length) partes.push(`${alto.length} em nível alto (${alto.map(d => `${d.code} — ${d.nome}`).join('; ')})`);
+  const resumo = `Risco geral ${ROT[cen.geral].toUpperCase()}${partes.length ? ', com ' + partes.join(' e ') : ', sem distritos em nível alto ou crítico'}. Chuva média de ${fmt(cen.chuvaMedia)} mm em 24h (${delta >= 0 ? `${delta}% acima` : `${-delta}% abaixo`} da referência histórica), ${nOc} ocorrência${nOc === 1 ? '' : 's'} ativa${nOc === 1 ? '' : 's'} e ${fmt(cen.popExp)} pessoas expostas.`;
+  const destaques = cen.ds.filter(d => d.idx >= 1).sort((a, z) => z.idx - a.idx).slice(0, 5).map(d => `${d.ocorrencia} (${d.code})`);
+  const rec = [];
+  const foco = cen.ds.filter(d => d.idx >= 2), enc = cen.ds.filter(d => d.idx >= 1 && d.perfil === 'encosta');
+  if (foco.length) rec.push(`Manter equipes de resposta mobilizadas em ${foco.map(d => d.code).join(', ')}.`);
+  if (enc.length) rec.push(`Vistoriar encostas em ${enc.map(d => d.foco).join(', ')}.`);
+  if (cen.rios.some(r => r.nivelIdx >= 2)) rec.push('Monitorar margens de rios acima da cota de alerta e preparar abrigos.');
+  rec.push(`Reforçar o monitoramento epidemiológico em ${t?.dsTop || 'DS VI'} após a chuva (água parada).`);
+  return { cen, resumo, destaques, rec, t, prev };
+}
+function documentoBoletim(b) {
+  const { cen, resumo, destaques, rec, t, prev } = dadosBoletim(b), o = b.opcoes;
+  return `<article class="papel">
+    <div class="pp-h"><div class="pp-marca"><div class="logo">${ic('marca', 18, 2)}</div><div><b>AerVita</b><span>Centro de operações · Recife/PE</span></div></div><div class="pp-num"><b>${b.num}</b>${new Date(b.t).toLocaleDateString('pt-BR')} · ${hhmm(b.t)}<br>${b.status}</div></div>
+    ${b.simulado ? `<div class="pp-aviso">Cenário simulado (${esc(b.nome)}) — documento de treinamento, não usar para decisão.</div>` : ''}
+    <h1>Boletim situacional</h1><div class="pp-sub">Emergências climáticas e arboviroses · consolidado automaticamente</div>
+    <h2>Resumo</h2><p class="pp-resumo">${esc(resumo)}</p>
+    <h2>Destaques</h2><ul>${(destaques.length ? destaques : ['Nenhuma ocorrência relevante registrada']).map(d => `<li>${esc(d)}</li>`).join('')}</ul>
+    ${o.distritos ? `<h2>Situação por distrito</h2><table><thead><tr><th>Distrito</th><th>Nível</th><th class="r">Chuva 24h</th><th class="r">Expostos</th><th>Ocorrência</th></tr></thead><tbody>${cen.ds.map(d => `<tr><td>${d.code} · ${esc(d.nome)}</td><td class="nv ${d.nivel}">${ROT[d.nivel]}</td><td class="r">${fmt(d.chuva)} mm</td><td class="r">${fmt(d.popExp)}</td><td>${esc(d.ocorrencia)}</td></tr>`).join('')}</tbody></table>` : ''}
+    ${o.rios ? `<h2>Rios e canais</h2><table><thead><tr><th>Corpo d'água</th><th class="r">Nível</th><th class="r">Atenção</th><th class="r">Alerta</th><th>Situação</th></tr></thead><tbody>${cen.rios.map(r => `<tr><td>${esc(r.nome)}</td><td class="r">${fmt1(r.nivel)} m</td><td class="r">${fmt1(r.atencao)} m</td><td class="r">${fmt1(r.alerta)} m</td><td class="nv ${NIVEIS[r.nivelIdx]}">${ROT[NIVEIS[r.nivelIdx]]}</td></tr>`).join('')}</tbody></table><p style="margin-top:6px;font-size:12px;color:#5b6474">Maré máxima considerada: ${fmt1(cen.params.mare)} m.</p>` : ''}
+    ${o.arbo && EPI ? `<h2>Arboviroses</h2><p>${fmt(Object.values(EPI.totais).reduce((x, y) => x + y, 0))} notificações em 2025 (${Object.entries(EPI.totais).map(([k, v]) => `${AGRAVOS[k].nome.toLowerCase()} ${fmt(v)}`).join(', ')}). Tendência das últimas 4 semanas: ${t.variacao >= 0 ? '+' : ''}${Math.round(t.variacao * 100)}%. Distrito com mais notificações: ${t.dsTop}.</p>` : ''}
+    ${o.previsao ? `<h2>Previsão para 24h</h2><p>Entre ${fmt(prev * .8)} e ${fmt(prev * 1.2)} mm esperados — ${prev >= cfg.limiares.alto ? 'tendência de agravamento' : prev >= cfg.limiares.moderado ? 'tendência de manutenção do cenário' : 'tendência de melhora'}.</p>` : ''}
+    ${o.recomendacoes ? `<h2>Recomendações</h2><ul>${rec.map(r => `<li>${esc(r)}</li>`).join('')}</ul>` : ''}
+    <div class="pp-rod"><span>Gerado pelo AerVita Console · ${esc(b.autor)}</span><span>Chuva, rios e ocorrências simulados · arboviroses e território: Dados Abertos Recife</span></div>
+  </article>`;
+}
+function markdownBoletim(b) {
+  const { cen, resumo, destaques, rec, t, prev } = dadosBoletim(b), o = b.opcoes, L = [];
+  L.push(`# Boletim situacional — ${b.num}`, '', `Recife/PE · ${new Date(b.t).toLocaleString('pt-BR')} · ${b.status}`, '');
+  if (b.simulado) L.push(`> **Cenário simulado (${b.nome})** — documento de treinamento.`, '');
+  L.push('## Resumo', '', resumo, '', '## Destaques', '', ...(destaques.length ? destaques : ['Nenhuma ocorrência relevante']).map(d => `- ${d}`), '');
+  if (o.distritos) L.push('## Situação por distrito', '', '| Distrito | Nível | Chuva 24h | Expostos | Ocorrência |', '|---|---|---:|---:|---|', ...cen.ds.map(d => `| ${d.code} · ${d.nome} | ${ROT[d.nivel]} | ${fmt(d.chuva)} mm | ${fmt(d.popExp)} | ${d.ocorrencia} |`), '');
+  if (o.rios) L.push('## Rios e canais', '', '| Corpo d\'água | Nível | Atenção | Alerta | Situação |', '|---|---:|---:|---:|---|', ...cen.rios.map(r => `| ${r.nome} | ${fmt1(r.nivel)} m | ${fmt1(r.atencao)} m | ${fmt1(r.alerta)} m | ${ROT[NIVEIS[r.nivelIdx]]} |`), '');
+  if (o.arbo && EPI) L.push('## Arboviroses', '', `${fmt(Object.values(EPI.totais).reduce((x, y) => x + y, 0))} notificações em 2025. Tendência de 4 semanas: ${Math.round(t.variacao * 100)}%. Distrito com mais notificações: ${t.dsTop}.`, '');
+  if (o.previsao) L.push('## Previsão 24h', '', `Entre ${fmt(prev * .8)} e ${fmt(prev * 1.2)} mm esperados.`, '');
+  if (o.recomendacoes) L.push('## Recomendações', '', ...rec.map(r => `- ${r}`), '');
+  L.push('---', '_Gerado pelo AerVita Console. Chuva, rios e ocorrências simulados; arboviroses e território: Portal de Dados Abertos do Recife._');
+  return L.join('\n');
+}
+
+/* ------------------------------------------------------------ página: fontes de dados */
+function pgFontes(el) {
+  el.innerHTML = cab('Fontes de dados', 'Situação real do pipeline construído nas Fases 0 e 1 e o que falta para o console sair da simulação.', tagFonte(true, 'Situação real do repositório')) + `
+  <div class="card mb"><div class="card-h"><h3>Fluxo de dados</h3><span class="sub">arquitetura medalhão</span></div>
+    <div class="fluxo">
+      ${[['Fontes', '4', 'CKAN Recife (3) e ANA', 'ok'], ['Ingestão', '5 conectores', 'runner, retry e backoff', 'ok'], ['RAW', 'Original', 'gravação atômica por data', 'ok'], ['Bronze', 'Parquet', 'contratos + quarentena', 'ok'], ['Silver', 'Fase 2', 'limpeza e padronização', 'prox'], ['Gold', 'Fase 2', 'distrito × dia → console', 'prox']].map(([n, v, d, c]) => `<div class="etapa ${c}"><div class="en">${c === 'ok' ? `<span style="color:var(--sev-baixo)">${ic('check', 14, 2.4)}</span>` : ic('relogio', 14)}${n}</div><div class="ev">${v}</div><div class="ed">${d}</div><div class="barra"></div></div>`).join('')}
+    </div></div>
+  <div class="grade">
+    ${[
+      ['pulso', 'Epidemiologia', 'Dengue, chikungunya e zika · diária', 'ok', 'Operando', [['Coletadas', '11.950'], ['Na Bronze', '11.931'], ['Em quarentena', '19']], 'Linhas inválidas vão para quarentena com o motivo registrado.'],
+      ['mapa', 'Território', 'Bairros, RPA, distritos e malhas · mensal', 'ok', 'Operando', [['Bases', '4'], ['Bairros', '94'], ['Distritos', '8']], 'É a malha usada no mapa deste console.'],
+      ['sirene', 'Ocorrências da Defesa Civil', 'Solicitações em tempo real · diária', 'err', 'Bloqueada', [['Último registro', '29/03/2023'], ['Limite', '7 dias']], 'O feed oficial parou em 2023 e a coleta recusa dado velho. Candidata a substituta: "Atendimentos 2024".'],
+      ['ondas', 'Hidrologia (ANA HidroWeb)', 'Chuva e nível dos rios · horária', 'esp', 'Aguardando', [['Conector', 'pronto'], ['Testes', 'ok']], 'Faltam credenciais, códigos das estações e cotas oficiais.'],
+    ].map(([ico, n, d, st, stt, ms, obs]) => `<div class="c6"><div class="card"><div class="conector"><div class="ci">${ic(ico, 18)}</div><div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><div class="cn">${n}</div><span class="badge ${st}">${stt}</span></div><div class="cd">${d}</div><div class="cm">${ms.map(([k, v]) => `<span>${k} <b>${v}</b></span>`).join('')}</div><div class="cd" style="margin-top:10px">${obs}</div></div></div></div></div>`).join('')}
+    <div class="c6"><div class="card"><div class="card-h"><h3>Neste console</h3></div><div class="tbl-wrap"><table class="tbl"><tbody>
+      ${[['Malha dos 94 bairros', 1], ['Vínculo bairro → distrito sanitário', 1], ['Notificações de arboviroses 2025', 1], ['Chuva, rios, maré e cotas', 0], ['Ocorrências, equipes e população exposta', 0], ['Previsões', 0]].map(([t, r]) => `<tr><td>${t}</td><td class="r">${tagFonte(!!r)}</td></tr>`).join('')}
+    </tbody></table></div></div></div>
+    <div class="c6"><div class="card"><div class="card-h"><h3>Qualidade</h3></div><div class="card-b"><dl class="kv"><dt>Testes automatizados</dt><dd><b>143</b> · sem acesso à rede</dd><dt>Integração contínua</dt><dd><span class="badge ok">Verde</span></dd><dt>Contratos de dados</dt><dd>YAML por fonte, validados na Bronze</dd><dt>Auditoria da Fase 1</dt><dd>12 bugs corrigidos</dd><dt>Próxima etapa</dt><dd>Fase 2 — Silver, Gold e indicadores reais</dd></dl></div></div></div>
+  </div>`;
+}
+
+/* ------------------------------------------------------------ página: configurações */
+function pgConfig(el) {
+  el.innerHTML = cab('Configurações', 'Parâmetros da regra de risco e da operação. As mudanças valem na hora para todo o console e ficam salvas neste navegador.',
+    `<button class="btn" data-act="cfg-padrao">Restaurar padrões</button>`) + `
+  <div class="cfg">
+    <nav class="cfg-nav"><a data-ir="cfg-risco">Regra de risco</a><a data-ir="cfg-rios">Cotas dos rios</a><a data-ir="cfg-sla">SLA de atendimento</a><a data-ir="cfg-aparencia">Aparência</a></nav>
+    <div class="card">
+      <div class="cfg-sec" id="cfg-risco"><div><h4>Regra de risco · chuva</h4><p>Limiares de chuva em 24h que definem o nível do distrito (ARQUITETURA §6.4). Calibrar com o histórico e a Defesa Civil.</p></div>
+        <div class="cfg-campos">${[['moderado', 'Moderado a partir de'], ['alto', 'Alto a partir de'], ['critico', 'Crítico acima de']].map(([k, t]) => `<div class="campo"><label>${t}</label><div class="in-un"><input class="input" type="number" min="0" max="400" data-cfg="limiares.${k}" value="${cfg.limiares[k]}"><span>mm</span></div></div>`).join('')}</div></div>
+      <div class="cfg-sec" id="cfg-rios"><div><h4>Cotas dos rios</h4><p>Cotas de atenção e de alerta por corpo d'água. Valores ilustrativos até a integração com a ANA.</p></div>
+        <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Corpo d'água</th><th>Atenção</th><th>Alerta</th></tr></thead><tbody>${RIOS.map(r => `<tr><td class="tit">${r.nome}</td>${['atencao', 'alerta'].map(k => `<td><div class="in-un" style="max-width:130px"><input class="input" type="number" step="0.1" min="0" max="6" data-cfg="cotas.${r.id}.${k}" value="${cfg.cotas[r.id][k]}"><span>m</span></div></td>`).join('')}</tr>`).join('')}</tbody></table></div></div>
+      <div class="cfg-sec" id="cfg-sla"><div><h4>SLA de despacho</h4><p>Tempo máximo entre a abertura da ocorrência e o despacho de uma equipe.</p></div>
+        <div class="cfg-campos">${['critico', 'alto', 'moderado'].map(k => `<div class="campo"><label>${ROT[k]}</label><div class="in-un"><input class="input" type="number" min="1" max="1440" data-cfg="sla.${k}" value="${cfg.sla[k]}"><span>min</span></div></div>`).join('')}</div></div>
+      <div class="cfg-sec" id="cfg-aparencia"><div><h4>Aparência</h4><p>Tema do console. O modo escuro é pensado para salas de operação.</p></div>
+        <div class="tema-op">${[['claro', 'Claro', '#f4f5f7', '#fff'], ['escuro', 'Escuro', '#0a0d14', '#10151f']].map(([k, t, a, b]) => `<button data-tema="${k}" class="${cfg.tema === k ? 'on' : ''}"><div class="prev" style="background:linear-gradient(90deg,#0c111c 0 22%, ${a} 22%);"><div style="margin:10px 10px 0 30%;height:24px;border-radius:4px;background:${b};border:1px solid rgba(128,128,128,.25)"></div></div>${t}</button>`).join('')}</div></div>
+    </div>
+  </div>`;
+  let deb;
+  $$('[data-cfg]', el).forEach(inp => inp.oninput = () => {
+    const v = parseFloat(inp.value); if (!isFinite(v)) return;
+    const [a, b, c] = inp.dataset.cfg.split('.');
+    if (c) cfg[a][b][c] = v; else cfg[a][b] = v;
+    clearTimeout(deb);
+    deb = setTimeout(() => { salvarCfg(); store.cen = calcularCenario(store.params); sincronizar(false); atualizarMoldura(); toast('ok', 'Configuração salva', 'Risco e ocorrências recalculados.'); }, 500);
+  });
+  $$('[data-tema]', el).forEach(b => b.onclick = () => { definirTema(b.dataset.tema); $$('[data-tema]', el).forEach(x => x.classList.toggle('on', x === b)); });
+  $$('[data-ir]', el).forEach(a => a.onclick = () => $('#' + a.dataset.ir).scrollIntoView({ behavior: 'smooth', block: 'center' }));
+}
+
+/* ------------------------------------------------------------ ações globais (delegação) */
+document.addEventListener('click', e => {
+  const t = e.target;
+  const nav = t.closest('[data-nav]'); if (nav && !t.closest('[data-act]')) { e.preventDefault(); fecharPops(); navegar(nav.dataset.nav); return; }
+  const inc = t.closest('[data-inc]'); if (inc && !t.closest('[data-act]')) { abrirIncidente(inc.dataset.inc); return; }
+  const dsm = t.closest('[data-ds-mapa]'); if (dsm) { store.ui.mapa.ds = dsm.dataset.dsMapa; store.ui.mapa.camada = 'risco'; navegar('mapa'); return; }
+  const bai = t.closest('[data-bairro]'); if (bai && !t.closest('[data-act]')) { store.ui.mapa.camada = 'arbo'; navegar('mapa'); setTimeout(() => { abrirBairro(+bai.dataset.bairro); MAPAS.grande?.focar(+bai.dataset.bairro); }, 60); return; }
+  const bol = t.closest('[data-bol]'); if (bol) { store.ui.bol = { ...store.ui.bol, modo: 'editor', atual: +bol.dataset.bol }; pgBoletins($('#conteudo')); window.scrollTo(0, 0); return; }
+  const a = t.closest('[data-act]'); if (!a) return;
+  const act = a.dataset.act, alvo = a.dataset.id && store.inc.get(a.dataset.id);
+  switch (act) {
+    case 'fechar-drawer': fecharDrawer(); break;
+    case 'reconhecer': reconhecer(alvo); atualizar(); break;
+    case 'despachar': despachar(alvo, $('#drawer select[data-eq]').value); atualizar(); break;
+    case 'encerrar': modalEncerrar(alvo); break;
+    case 'nota': { const v = $('#notaInc').value.trim(); if (v) { evento(alvo, `Nota: ${v}`, 'Operador de plantão'); $('#notaInc').value = ''; renderDrawer(); } break; }
+    case 'registrar': modalRegistrar(a.dataset.bairro != null ? +a.dataset.bairro : null); break;
+    case 'focar-bairro': if (store.ui.pagina !== 'mapa') navegar('mapa'); setTimeout(() => MAPAS.grande?.focar(+a.dataset.i), 60); break;
+    case 'escala': { const eq = store.equipes.find(x => x.id === a.dataset.id); eq.status = eq.status === 'fora' ? 'disponivel' : 'fora'; eq.desde = Date.now(); store.atividade.unshift({ t: Date.now(), texto: `<b>${eq.id}</b> · ${eq.status === 'fora' ? 'saiu de serviço' : 'entrou em serviço'}`, autor: 'Operador de plantão' }); atualizar(); break; }
+    case 'exportar-distritos': baixar(`aervita-distritos-${new Date().toISOString().slice(0, 10)}.csv`, csv([['Distrito', 'Nome', 'Risco', 'Chuva 24h (mm)', 'Pop. exposta', 'Gatilho'], ...store.cen.ds.map(d => [d.code, d.nome, ROT[d.nivel], Math.round(d.chuva), d.popExp, d.gatilho])]), 'text/csv;charset=utf-8'); break;
+    case 'exportar-inc': baixar(`aervita-ocorrencias-${new Date().toISOString().slice(0, 10)}.csv`, csv([['Código', 'Severidade', 'Tipo', 'Título', 'Distrito', 'Bairro', 'Origem', 'Situação', 'Equipe', 'Aberta em'], ...[...store.inc.values()].map(i => [i.id, ROT[i.sev], i.tipo, i.titulo, i.ds, i.bairro, i.origem, ROT_STATUS[i.status], i.equipe || '', new Date(i.aberto).toLocaleString('pt-BR')])]), 'text/csv;charset=utf-8'); break;
+    case 'exportar-arbo': baixar('aervita-arboviroses-2025-por-bairro.csv', csv([['Bairro', 'Distrito', 'Dengue', 'Chikungunya', 'Zika', 'Total'], ...linhasArbo().map(l => [l.nome, l.ds, l.dengue, l.chikungunya, l.zika, l.total])]), 'text/csv;charset=utf-8'); break;
+    case 'novo-boletim': novoBoletim(); break;
+    case 'bol-voltar': store.ui.bol.modo = 'lista'; pgBoletins($('#conteudo')); break;
+    case 'bol-copiar': { const b = store.boletins[store.ui.bol.atual]; navigator.clipboard?.writeText(markdownBoletim(b)).then(() => toast('ok', 'Copiado', 'Boletim em Markdown na área de transferência.'), () => toast('moderado', 'Não foi possível copiar', 'Use Baixar Markdown.')); break; }
+    case 'bol-md': { const b = store.boletins[store.ui.bol.atual]; baixar(`${b.num}.md`, markdownBoletim(b), 'text/markdown;charset=utf-8'); break; }
+    case 'bol-imprimir': window.print(); break;
+    case 'bol-emitir': { const b = store.boletins[store.ui.bol.atual]; abrirModal({ titulo: `Emitir ${b.num}?`, texto: 'O boletim fica registrado como emitido e não pode mais ser editado. Nesta demonstração nada é enviado para fora do navegador.', confirmar: 'Emitir boletim', aoConfirmar: () => { b.status = 'Emitido'; b.t = Date.now(); store.atividade.unshift({ t: Date.now(), texto: `<b>${b.num}</b> · boletim emitido`, autor: 'Operador de plantão' }); toast('ok', `${b.num} emitido`, 'Registrado no histórico de boletins.'); pgBoletins($('#conteudo')); } }); break; }
+    case 'sim-aplicar': { const s = store.ui.sim, p = PRESETS.find(x => x.id === s.preset); if (s.preset === 'atual') { encerrarSimulacao(); break; } aplicarCenario({ chuva: s.chuva, mare: s.mare, solo: s.solo }, p ? p.nome : `Personalizado · ${fmt(s.chuva)} mm`, true); toast('ok', 'Cenário aplicado', 'Todo o console agora reflete a simulação.', () => navegar('painel')); pgSimulador($('#conteudo')); break; }
+    case 'sim-reset': Object.assign(store.ui.sim, { chuva: BASE.chuva, mare: BASE.mare, solo: BASE.solo, preset: 'atual' }); pgSimulador($('#conteudo')); break;
+    case 'encerrar-sim': encerrarSimulacao(); break;
+    case 'cfg-padrao': abrirModal({ titulo: 'Restaurar padrões?', texto: 'Limiares, cotas e SLA voltam aos valores originais.', confirmar: 'Restaurar', aoConfirmar: () => { Object.assign(cfg.limiares, CFG_PADRAO.limiares); Object.keys(cfg.cotas).forEach(k => Object.assign(cfg.cotas[k], CFG_PADRAO.cotas[k])); Object.assign(cfg.sla, CFG_PADRAO.sla); salvarCfg(); store.cen = calcularCenario(store.params); sincronizar(false); atualizar(); pgConfig($('#conteudo')); toast('ok', 'Padrões restaurados', 'Configuração original aplicada.'); } }); break;
+  }
+});
+function novoBoletim() {
+  const b = snapshotBoletim(store.params, store.simulado, store.nomeCenario, store.ui.bol.opcoes);
+  store.boletins.unshift(b);
+  store.ui.bol = { ...store.ui.bol, modo: 'editor', atual: 0 };
+  store.atividade.unshift({ t: Date.now(), texto: `<b>${b.num}</b> · rascunho de boletim criado`, autor: 'Operador de plantão' });
+  if (store.ui.pagina !== 'boletins') navegar('boletins'); else { pgBoletins($('#conteudo')); window.scrollTo(0, 0); }
+}
+function encerrarSimulacao() {
+  Object.assign(store.ui.sim, { chuva: BASE.chuva, mare: BASE.mare, solo: BASE.solo, preset: 'atual' });
+  aplicarCenario({ chuva: BASE.chuva, mare: BASE.mare, solo: BASE.solo }, 'Operação normal', false);
+  toast('ok', 'Simulação encerrada', 'Console de volta à operação normal.');
+  if (store.ui.pagina === 'simulador') pgSimulador($('#conteudo'));
+}
+function modalEncerrar(inc) {
+  abrirModal({ titulo: `Encerrar ${inc.id}`, texto: inc.titulo,
+    corpo: `<div class="campo"><label>Motivo</label><select class="select" id="mMotivo">${['Situação controlada', 'Condição normalizada', 'Falso alarme', 'Encaminhado a outro órgão'].map(m => `<option>${m}</option>`).join('')}</select></div><div class="campo"><label>Nota de encerramento <span class="faint">(opcional)</span></label><textarea class="input" id="mNota" rows="3" placeholder="O que foi feito no local"></textarea></div>`,
+    confirmar: 'Encerrar ocorrência', perigo: true,
+    aoConfirmar: m => { resolver(inc, $('#mMotivo', m).value, $('#mNota', m).value.trim()); toast('ok', `${inc.id} encerrada`, inc.titulo); atualizar(); } });
+}
+function modalRegistrar(bairroIdx) {
+  const ord = DADOS.bairros.map((b, i) => ({ b, i })).sort((x, y) => x.b.nome.localeCompare(y.b.nome, 'pt-BR'));
+  abrirModal({ titulo: 'Registrar ocorrência', texto: 'Ocorrência informada por telefone, equipe de campo ou outro órgão.',
+    corpo: `<div class="campo"><label>Tipo</label><select class="select" id="mTipo">${['Alagamento', 'Deslizamento', 'Queda de árvore', 'Vistoria de imóvel', 'Desabrigados', 'Foco de mosquito'].map(t => `<option>${t}</option>`).join('')}</select></div>
+      <div class="campo"><label>Bairro</label><select class="select" id="mBairro">${ord.map(({ b, i }) => `<option value="${i}" ${i === bairroIdx ? 'selected' : ''}>${esc(b.nome)} — ${b.ds}</option>`).join('')}</select></div>
+      <div class="campo"><label>Severidade</label><div class="seg" id="mSev">${['moderado', 'alto', 'critico'].map((n, k) => `<button type="button" data-v="${n}" class="${k === 0 ? 'on' : ''}">${ROT[n]}</button>`).join('')}</div></div>
+      <div class="campo"><label>Descrição</label><textarea class="input" id="mDesc" rows="3" placeholder="O que foi relatado"></textarea></div>`,
+    confirmar: 'Registrar',
+    aoConfirmar: m => {
+      const b = DADOS.bairros[+$('#mBairro', m).value], tipo = $('#mTipo', m).value, sev = $('#mSev .on', m).dataset.v, desc = $('#mDesc', m).value.trim() || 'Sem descrição.';
+      const inc = { id: novoCodigo(), chave: null, sev, tipo, ds: b.ds, bairro: b.nome, origem: 'Registro manual', titulo: `${tipo} em ${b.nome}`, descricao: desc, gatilho: 'Registrada pela central', status: 'aberto', aberto: Date.now(), equipe: null, eventos: [], condicaoAtiva: false };
+      evento(inc, 'Ocorrência registrada pela central', 'Operador de plantão');
+      store.inc.set(inc.id, inc);
+      notificar(sev, 'Ocorrência registrada', `${inc.id} · ${inc.titulo}`, inc.id);
+      toast(sev, `${inc.id} registrada`, inc.titulo, () => abrirIncidente(inc.id));
+      atualizar(); abrirIncidente(inc.id);
+    } });
+  $$('#mSev button').forEach(bt => bt.onclick = () => $$('#mSev button').forEach(x => x.classList.toggle('on', x === bt)));
+}
+
+/* ------------------------------------------------------------ topo: notificações, usuário, tema, busca */
+function posicionarPop(pop, btn) { const r = btn.getBoundingClientRect(); pop.style.top = (r.bottom + 8) + 'px'; pop.style.right = Math.max(12, innerWidth - r.right) + 'px'; }
+function fecharPops() { $$('.pop').forEach(p => p.classList.remove('on')); }
+$('#btnNotif').onclick = e => {
+  e.stopPropagation(); const p = $('#popNotif'), abrir = !p.classList.contains('on'); fecharPops(); if (!abrir) return;
+  p.innerHTML = `<div class="pop-h"><b>Notificações</b><a class="link" id="lerTudo">Marcar todas como lidas</a></div><ul>${store.notifs.length ? store.notifs.slice(0, 20).map(n => `<li class="${n.lida ? '' : 'nl'}" data-n="${n.id}"><span class="pt-sev ${n.nivel}"></span><div><div class="nt">${esc(n.titulo)}</div><div class="ns">${esc(n.texto)}</div><div class="nh">${tempoRel(n.t)}</div></div></li>`).join('') : `<li style="cursor:default"><div class="vazio" style="width:100%">${ic('sino', 22)}Nenhuma notificação.</div></li>`}</ul>`;
+  posicionarPop(p, $('#btnNotif')); p.classList.add('on');
+  $('#lerTudo').onclick = ev => { ev.stopPropagation(); store.notifs.forEach(n => { n.lida = true; }); atualizarMoldura(); $$('#popNotif li.nl').forEach(l => l.classList.remove('nl')); };
+  $$('#popNotif li[data-n]').forEach(li => li.onclick = () => { const n = store.notifs.find(x => x.id === li.dataset.n); n.lida = true; fecharPops(); atualizarMoldura(); if (n.inc) abrirIncidente(n.inc); });
+};
+$('#btnUser').onclick = e => {
+  e.stopPropagation(); const p = $('#popUser'), abrir = !p.classList.contains('on'); fecharPops(); if (!abrir) return;
+  p.innerHTML = `<div class="us"><b>Operador de plantão</b><span>Centro de operações · turno diurno</span></div><button data-nav="config">${ic('engrenagem')}Configurações</button><button id="mAtalhos">${ic('teclado')}Atalhos de teclado</button><button id="mTema">${ic(cfg.tema === 'escuro' ? 'sol' : 'lua')}Tema ${cfg.tema === 'escuro' ? 'claro' : 'escuro'}</button><hr><button id="mSair">${ic('sair')}Sair</button>`;
+  posicionarPop(p, $('#btnUser')); p.classList.add('on');
+  $('#mAtalhos').onclick = () => { fecharPops(); abrirModal({ titulo: 'Atalhos de teclado', corpo: `<dl class="kv">${[['Ctrl K', 'Buscar e executar comandos'], ['[', 'Recolher ou expandir o menu'], ['Esc', 'Fechar painel ou janela'], ['g + letra', 'Ir para: v visão geral, m mapa, o ocorrências, e equipes, c chuva, a arboviroses, s simulador, b boletins']].map(([k, v]) => `<dt><kbd>${k}</kbd></dt><dd>${v}</dd>`).join('')}</dl>`, confirmar: 'Entendi', aoConfirmar: () => {} }); };
+  $('#mTema').onclick = () => { fecharPops(); definirTema(cfg.tema === 'escuro' ? 'claro' : 'escuro'); };
+  $('#mSair').onclick = () => { fecharPops(); toast('ok', 'Ambiente de demonstração', 'Não há sessão real para encerrar.'); };
+};
+document.addEventListener('click', e => { if (!e.target.closest('.pop') && !e.target.closest('#btnNotif') && !e.target.closest('#btnUser')) fecharPops(); });
+
+function definirTema(t) {
+  cfg.tema = t; salvarCfg();
+  document.documentElement.dataset.theme = t;
+  $('#btnTema').innerHTML = ic(t === 'escuro' ? 'sol' : 'lua', 18);
+  $('#btnTema').title = t === 'escuro' ? 'Tema claro' : 'Tema escuro';
+}
+$('#btnTema').onclick = () => definirTema(cfg.tema === 'escuro' ? 'claro' : 'escuro');
+
+function alternarSidebar() {
+  if (innerWidth <= 900) { const ab = !$('#app').classList.contains('menu-aberto'); $('#app').classList.toggle('menu-aberto', ab); $('#veu').classList.toggle('on', ab || !!store.ui.drawer); return; }
+  store.ui.recolhida = !store.ui.recolhida; lsSet('aervita.sb', store.ui.recolhida);
+  $('#app').classList.toggle('recolhida', store.ui.recolhida);
+}
+$('#sbColapsar').onclick = alternarSidebar;
+$('#hamb').onclick = alternarSidebar;
+$('#veu').onclick = () => { if ($('#app').classList.contains('menu-aberto')) { $('#app').classList.remove('menu-aberto'); if (!store.ui.drawer) $('#veu').classList.remove('on'); } else fecharDrawer(); };
+
+/* paleta de comandos */
+function comandos() {
+  const L = [];
+  Object.entries(PAGINAS).forEach(([id, p]) => L.push({ g: 'Navegar', t: p.titulo, ic: p.icone, dica: p.grupo, f: () => navegar(id) }));
+  L.push({ g: 'Ações', t: 'Registrar ocorrência', ic: 'mais', f: () => modalRegistrar(null) });
+  L.push({ g: 'Ações', t: 'Gerar boletim agora', ic: 'doc', f: novoBoletim });
+  PRESETS.filter(p => p.id !== 'atual').forEach(p => L.push({ g: 'Ações', t: `Simular: ${p.nome}`, ic: 'ajustes', dica: `${p.chuva} mm`, f: () => { Object.assign(store.ui.sim, { chuva: p.chuva, mare: p.mare, solo: p.solo, preset: p.id }); aplicarCenario(p, p.nome, true); toast('ok', 'Cenário aplicado', p.nome); } }));
+  if (store.simulado) L.push({ g: 'Ações', t: 'Encerrar simulação', ic: 'x', f: encerrarSimulacao });
+  L.push({ g: 'Ações', t: `${timerVivo ? 'Desligar' : 'Ligar'} modo ao vivo`, ic: 'atualizar', f: () => $('#vivo').click() });
+  L.push({ g: 'Ações', t: `Tema ${cfg.tema === 'escuro' ? 'claro' : 'escuro'}`, ic: cfg.tema === 'escuro' ? 'sol' : 'lua', f: () => definirTema(cfg.tema === 'escuro' ? 'claro' : 'escuro') });
+  incAbertas().sort(ordSev).forEach(i => L.push({ g: 'Ocorrências abertas', t: `${i.id} · ${i.titulo}`, ic: 'sirene', dica: ROT[i.sev], f: () => abrirIncidente(i.id) }));
+  DADOS.bairros.map((b, i) => ({ b, i })).sort((x, y) => x.b.nome.localeCompare(y.b.nome, 'pt-BR')).forEach(({ b, i }) => L.push({ g: 'Bairros', t: b.nome, ic: 'pino', dica: b.ds, f: () => { navegar('mapa'); setTimeout(() => { abrirBairro(i); MAPAS.grande?.focar(i); }, 60); } }));
+  return L;
+}
+function abrirPaleta() {
+  fecharPops();
+  const m = $('#modal');
+  m.innerHTML = `<div class="modal paleta" role="dialog" aria-modal="true"><div class="pin">${ic('busca', 18)}<input id="palIn" placeholder="Buscar páginas, ações, ocorrências ou bairros…" autocomplete="off"><kbd>Esc</kbd></div><ul id="palLista"></ul><div class="rod"><span><kbd>↑</kbd> <kbd>↓</kbd> navegar</span><span><kbd>Enter</kbd> abrir</span></div></div>`;
+  m.classList.add('on');
+  const todos = comandos(); let vis = [], sel = 0;
+  const desenhar = () => {
+    const q = normalizar($('#palIn').value);
+    vis = todos.filter(c => !q || normalizar(c.t + ' ' + (c.dica || '')).includes(q)).slice(0, 60);
+    sel = clamp(sel, 0, Math.max(0, vis.length - 1));
+    let g = '', h = '';
+    vis.forEach((c, k) => { if (c.g !== g) { g = c.g; h += `<li class="pg">${g}</li>`; } h += `<li class="it ${k === sel ? 'on' : ''}" data-k="${k}">${ic(c.ic, 16)}<span>${esc(c.t)}</span>${c.dica ? `<span class="dica">${esc(c.dica)}</span>` : ''}</li>`; });
+    $('#palLista').innerHTML = h || '<li class="pg" style="padding:16px">Nada encontrado.</li>';
+    $('#palLista .it.on')?.scrollIntoView({ block: 'nearest' });
+  };
+  const executar = k => { const c = vis[k]; fecharModal(); c && c.f(); };
+  $('#palIn').oninput = () => { sel = 0; desenhar(); };
+  $('#palIn').onkeydown = e => {
+    if (e.key === 'ArrowDown') { sel++; desenhar(); e.preventDefault(); }
+    else if (e.key === 'ArrowUp') { sel--; desenhar(); e.preventDefault(); }
+    else if (e.key === 'Enter') executar(sel);
+  };
+  $('#palLista').onclick = e => { const it = e.target.closest('.it'); if (it) executar(+it.dataset.k); };
+  m.onclick = e => { if (e.target === m) fecharModal(); };
+  desenhar(); $('#palIn').focus();
+}
+$('#abrirBusca').onclick = abrirPaleta;
+
+let prefixoG = 0;
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); $('#modal').classList.contains('on') ? fecharModal() : abrirPaleta(); return; }
+  if (e.key === 'Escape') { if ($('#modal').classList.contains('on')) fecharModal(); else if (store.ui.drawer) fecharDrawer(); else fecharPops(); return; }
+  if (e.target.matches('input, textarea, select') || e.ctrlKey || e.metaKey || e.altKey || $('#modal').classList.contains('on')) return;
+  if (e.key === '[') { alternarSidebar(); return; }
+  if (e.key === 'g') { prefixoG = Date.now(); return; }
+  if (Date.now() - prefixoG < 1200) {
+    const dest = { v: 'painel', m: 'mapa', o: 'ocorrencias', e: 'equipes', c: 'hidro', a: 'arbo', s: 'simulador', b: 'boletins', f: 'fontes' }[e.key];
+    prefixoG = 0; if (dest) navegar(dest);
+  }
+});
+
+/* ------------------------------------------------------------ modo ao vivo e relógios */
+let timerVivo = null, baseVivo = null;
+$('#vivo').onclick = () => {
+  const ligar = !timerVivo;
+  $('#vivo').classList.toggle('on', ligar);
+  if (ligar) {
+    baseVivo = { ...store.params, t0: Date.now() / 1000 };
+    timerVivo = setInterval(tickVivo, 4000);
+    toast('ok', 'Modo ao vivo ligado', 'Novas leituras simuladas a cada 4 segundos.');
+  } else { clearInterval(timerVivo); timerVivo = null; toast('ok', 'Modo ao vivo desligado', 'Leituras congeladas.'); }
+};
+function tickVivo() {
+  const p = store.params, t = Date.now() / 1000 - baseVivo.t0;
+  const alvo = baseVivo.chuva * (1 + 0.4 * Math.sin(t / 20)); // sobe e desce em ciclos de ~2 min
+  store.params = { chuva: clamp(p.chuva + (alvo - p.chuva) * 0.3 + (Math.random() * 4 - 2), 0, 200), mare: clamp(baseVivo.mare + 0.5 * Math.sin(t / 45), 0.5, 2.9), solo: clamp(baseVivo.solo + (p.chuva - baseVivo.chuva) / 4, 0, 100) };
+  store.cen = calcularCenario(store.params);
+  sincronizar(false);
+  atualizar();
+}
+setInterval(() => {
+  $('#relogio').textContent = new Date().toLocaleTimeString('pt-BR');
+  $$('[data-sla]').forEach(el => { const i = store.inc.get(el.dataset.sla); if (!i) return; const s = slaInfo(i); el.textContent = s.txt; el.className = 'sla ' + s.cls; });
+  let mudou = false;
+  store.equipes.forEach(eq => {
+    if (eq.status === 'deslocamento' && Date.now() - eq.desde > 12000) {
+      eq.status = 'atendimento'; eq.desde = Date.now();
+      const inc = store.inc.get(eq.incidente);
+      if (inc && inc.status === 'despachado') { inc.status = 'em_atendimento'; evento(inc, `Equipe ${eq.id} chegou ao local`, eq.id); notificar(inc.sev, 'Equipe no local', `${eq.id} · ${inc.id} ${inc.bairro}`, inc.id); toast('ok', `${eq.id} chegou ao local`, `${inc.id} · ${inc.titulo}`, () => abrirIncidente(inc.id)); }
+      mudou = true;
+    }
+  });
+  if (mudou) atualizar();
+}, 1000);
+
+/* ------------------------------------------------------------ inicialização */
+$('#logoMarca').innerHTML = ic('marca', 17, 2.1);
+$('#sbColapsar .ic-wrap').outerHTML = ic('recolher', 16);
+$('#abrirBusca .ic-wrap').outerHTML = ic('busca', 15);
+$('#hamb').innerHTML = ic('menu', 18);
+montarSidebar();
+definirTema(cfg.tema);
+$('#app').classList.toggle('recolhida', store.ui.recolhida);
+store.cen = calcularCenario(store.params);
+semearHistorico();
+sincronizar(true);
+semearOperacao();
+semearBoletins();
+notificar('critico', 'Ocorrência crítica em atendimento', `${store.porChave['ds-DS VI'] || ''} · equipe DC-02 no local`, store.porChave['ds-DS VI']);
+notificar('alto', 'Ocorrência aguardando despacho', `${store.porChave['ds-DS VII'] || ''} · prazo de SLA correndo`, store.porChave['ds-DS VII']);
+atualizarMoldura();
+window.addEventListener('hashchange', montarPagina);
+montarPagina();
+</script>
+</body>
+</html>

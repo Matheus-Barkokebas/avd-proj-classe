@@ -2,7 +2,7 @@
 
 > **Projeto:** Vigidesastres — Painel Situacional para Preparação e Resposta a Emergências Climáticas (Recife/PE)
 > **Escopo:** consolidar fontes meteorológicas, hidrológicas, epidemiológicas, ambientais, assistenciais e territoriais em um único fluxo de dados, permitindo cruzamentos, indicadores situacionais, boletins automáticos e alertas preditivos.
-> **Estado atual:** existe um protótipo visual do painel ([`prototipo/v1-prototipo-aervita.html`](../prototipo/v1-prototipo-aervita.html)) com dados simulados. Este documento descreve a arquitetura-alvo para alimentá-lo com dados reais.
+> **Estado atual:** existe um protótipo do painel ([`prototipo/v3-aervita-console.html`](../prototipo/v3-aervita-console.html)) com arboviroses e território reais e o restante simulado. Este documento descreve a arquitetura-alvo para alimentá-lo com dados reais.
 
 ---
 
@@ -11,9 +11,9 @@
 O fluxo do projeto vai da **coleta nas APIs públicas** até a **entrega de indicadores e alertas** para as equipes de resposta, passando por um **lago de dados em camadas (arquitetura medallion)**.
 
 ```text
-   FONTES              API Recife (CKAN)      API ANA (HidroWeb)      Fontes complementares (roadmap)
-                              │                       │                          │
-                              └───────────────┬───────┴──────────────────────────┘
+   FONTES        API Recife (CKAN)    COP Recife (ArcGIS)    API ANA (HidroWeb)    Complementares (roadmap)
+                         │                    │                      │                      │
+                         └────────────────────┴───────────┬──────────┴──────────────────────┘
                                               ▼
    INGESTÃO                    Conectores por fonte + agendador (coleta periódica)
                                               ▼
@@ -43,8 +43,8 @@ O fluxo do projeto vai da **coleta nas APIs públicas** até a **entrega de indi
 
 | Categoria | Onde encontrar | O que se obtém |
 |---|---|---|
-| 🌧️ Meteorológicos | APAC / INMET | chuva, temperatura, umidade, vento, previsão, estações meteorológicas |
-| 🌊 Hidrológicos | APAC / ANA | nível de rios, chuva acumulada, estações fluviométricas, risco de inundação |
+| 🌧️ Meteorológicos | **COP Recife** / APAC / INMET | chuva média 1h/24h, previsão por modelo, chuva mensal vs. média histórica, pluviômetros, temperatura, vento |
+| 🌊 Hidrológicos | **COP Recife** / APAC / ANA | nível de rios com cotas oficiais, maré, áreas alagáveis, pontos de alagamento, estações fluviométricas |
 | 🦠 Epidemiológicos | Dados Abertos Recife / Secretaria de Saúde | dengue, zika, chikungunya, casos por bairro e outros indicadores |
 | 🌱 Ambientais | CPRH / MonitorAr | qualidade do ar, poluentes, qualidade da água, balneabilidade |
 | 🏥 Assistenciais | Dados Abertos Recife / DATASUS | atendimentos, solicitações, serviços, vacinação, unidades de saúde |
@@ -77,6 +77,29 @@ O fluxo do projeto vai da **coleta nas APIs públicas** até a **entrega de indi
   - inventário de estações (fluviométricas e pluviométricas);
   - séries históricas hidrológicas para modelagem.
 
+### 2.3.1 COP Recife — Centro de Operações (ArcGIS público)
+
+Fonte de **chuva e rios** em uso enquanto a ANA não tem credenciais. A prefeitura publica no ArcGIS os
+dados que alimentam o painel do COP, sem login.
+
+- **Endpoint base:** `https://esigportal2.recife.pe.gov.br/arcgis/rest/services/COP` (`MapServer/<camada>/query`).
+- **Autenticação:** não exigida. **Paginação:** `resultOffset` / `resultRecordCount` (máximo 2.000 por página).
+- **Camadas coletadas** (`conf/sources/cop_recife.yml`, uma fonte por camada no runner):
+
+| Fonte | Conteúdo | Frequência |
+|---|---|---|
+| `cop_indicadores` | chuva média 1h/24h, maior acumulado e estação, maré, estágio operacional, ocorrências, abrigos | horária |
+| `cop_rios` | nível de 5 estações (Capibaribe em Limoeiro, Paudalho e São Lourenço da Mata; Jaboatão; Duas Unas) com cotas de pré-alerta, alerta e inundação | horária |
+| `cop_previsao_chuva` | previsão hora a hora (GFS, ECMWF, ICON, WRF) | diária |
+| `cop_chuva_mensal` | chuva por mês: ano atual, ano anterior, média histórica | diária |
+| `cop_pluviometros` | histórico por pulso dos pluviômetros municipais (jul/2023 a fev/2026) | mensal |
+| `cop_areas_alagaveis` | polígonos de áreas alagáveis por distrito sanitário | mensal |
+| `cop_pontos_alagamento` | pontos de alagamento com obra de drenagem (EMLURB) | mensal |
+
+- **Limitações:** as tabelas atuais guardam só ~24h — o histórico depende de coleta horária agendada.
+  Não há chuva atual por estação (os pluviômetros pararam em fev/2026). Unidade do nível dos rios e alguns
+  campos da previsão a confirmar com o COP.
+
 ### 2.4 Fontes complementares (roadmap)
 
 APAC, INMET, CPRH, MonitorAr e DATASUS entram em fases posteriores para reforçar previsão meteorológica, qualidade ambiental e dados assistenciais federais. A arquitetura já prevê um **conector por fonte**, então a inclusão é incremental.
@@ -88,7 +111,10 @@ APAC, INMET, CPRH, MonitorAr e DATASUS entram em fases posteriores para reforça
 | API Recife — arboviroses / saúde | Epidemiológico / Assistencial | semanal (semana epidemiológica) | diária (captura incremental) |
 | API Recife — ocorrências / Defesa Civil | Territorial / Assistencial | diária / sob demanda | diária (horária em contingência) |
 | API Recife — territorial (bairros, RPA, áreas de risco) | Territorial | eventual (cadastral) | mensal |
-| API ANA — nível de rios / chuva | Hidrológico / Meteorológico | horária / sub-diária | horária |
+| COP Recife — chuva e rios (indicadores, rios) | Meteorológico / Hidrológico | horária (janela de ~24h) | horária |
+| COP Recife — previsão e chuva mensal | Meteorológico | diária | diária |
+| COP Recife — pluviômetros, áreas alagáveis, pontos de alagamento | Meteorológico / Territorial | eventual | mensal |
+| API ANA — nível de rios / chuva *(aguardando credenciais)* | Hidrológico / Meteorológico | horária / sub-diária | horária |
 | APAC / INMET *(roadmap)* | Meteorológico / Hidrológico | horária | horária |
 | CPRH / MonitorAr *(roadmap)* | Ambiental | diária | diária |
 
@@ -109,9 +135,9 @@ Responsável por buscar os dados nas APIs e gravá-los **sem transformação** n
 Agendador
    │  (dispara na frequência de cada fonte)
    ▼
-Conector Recife (CKAN)      Conector ANA (HidroWeb)      Conector <fonte futura>
-   │                            │                            │
-   └───────────────┬────────────┴────────────────────────────┘
+Conector Recife (CKAN)    Conector COP (ArcGIS)    Conector ANA (HidroWeb)    Conector <fonte futura>
+   │                          │                         │                          │
+   └──────────────────────────┴────────────┬────────────┴──────────────────────────┘
                    ▼
      RAW  —  payload original + metadados de coleta (fonte, data, parâmetros)
 ```
@@ -132,6 +158,26 @@ RAW  ──►  BRONZE  ──►  SILVER  ──►  GOLD
 (original)  (tipado)   (limpo/     (integrado /
                         padronizado) indicadores)
 ```
+
+### 4.1 Primeira release: RAW no MongoDB Atlas e camada padronizada no Neon
+
+O medalhão acima é a arquitetura-alvo. Para entregar mais rápido, a primeira release usa duas
+camadas apenas ([decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)):
+
+| Camada | Onde | Conteúdo |
+|---|---|---|
+| **RAW** | MongoDB Atlas | Conteúdo original de cada coleta no GridFS (bytes intactos, sem limite de 16 MB) e metadados em `raw_coletas`, com índice único em fonte + data de coleta + arquivo |
+| **Padronizada** | Neon (PostgreSQL) | Uma tabela por contrato de `conf/contracts/` (colunas tipadas, `NOT NULL` nos obrigatórios, `UNIQUE` na chave de negócio), `rejeitados` (quarentena com motivo), `dim_bairro` e `dim_distrito` |
+
+```text
+APIs ──► RAW (Atlas) ──► validação por contrato ──► Padronizada (Neon) ──► painel / boletim
+                                   └──► rejeitados (Neon), com o motivo
+```
+
+- A camada padronizada cumpre nesta release o papel da Bronze e de parte da Silver
+  (tipagem, chave de negócio, quarentena, vínculo bairro → distrito). Silver e Gold voltam nas fases seguintes.
+- Os dois destinos são opcionais por execução: sem configuração, a ingestão continua gravando em arquivo
+  (`data/raw` e Parquet em `data/bronze`), que é o modo usado nos testes.
 
 ---
 
@@ -211,7 +257,7 @@ Estimativa de cenário para as próximas horas/dias
 
 | Saída | Descrição |
 |---|---|
-| **Painel Situacional** | O protótipo `v1-prototipo-aervita.html` evoluído: KPIs, situação por distrito, alertas e gráficos alimentados pela camada Gold |
+| **Painel Situacional** | O protótipo `v3-aervita-console.html` evoluído: KPIs, situação por distrito, alertas e gráficos alimentados pela camada Gold |
 | **Boletim Situacional Automático** | Texto consolidado (resumo, destaques, recomendação) gerado a partir de um template + indicadores Gold |
 | **Alertas Preditivos** | Fila priorizada de alertas disparada quando indicadores/modelos cruzam limiares de risco |
 | **Exportações / API interna** | Tabelas Gold disponibilizadas para outros sistemas e para relatórios |
@@ -249,7 +295,9 @@ GOLD ─┬─► Painel Situacional ──► equipes acompanham o cenário
 
 | Etapa | Frequência | Gatilho |
 |---|---|---|
-| Coleta hidrológica/meteorológica (ANA) | horária | agendador |
+| Coleta de chuva e rios (COP Recife: `cop_recife.py --frequencia horaria`) | horária | agendador |
+| Coleta de previsão e chuva mensal (COP Recife: `--frequencia diaria`) | diária | agendador |
+| Coleta hidrológica/meteorológica (ANA, quando houver credenciais) | horária | agendador |
 | Coleta de ocorrências / Defesa Civil (Recife) | diária (horária em contingência) | agendador / evento |
 | Coleta epidemiológica (Recife) | diária | agendador |
 | Coleta territorial cadastral (Recife) | mensal | agendador |
@@ -269,7 +317,7 @@ GOLD ─┬─► Painel Situacional ──► equipes acompanham o cenário
 - **Catálogo e linhagem:** origem de cada tabela e transformações aplicadas (RAW → Gold).
 - **Versionamento:** código no Git; dados versionados por partição de data de coleta.
 - **LGPD:** uso apenas de dados públicos e agregados; sem dados pessoais identificáveis.
-- **Reprodutibilidade:** qualquer camada é reconstruível a partir da RAW.
+- **Reprodutibilidade:** qualquer camada é reconstruível a partir da RAW (na primeira release, a RAW fica no MongoDB Atlas — [decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)).
 
 ---
 
@@ -279,13 +327,16 @@ O protótipo atual usa **dados simulados**. O mapeamento abaixo indica de onde c
 
 | Elemento do painel | Indicador | Fonte primária | Camada |
 |---|---|---|---|
-| KPI *Chuva acumulada · 24h* | soma de precipitação nas últimas 24h | ANA / APAC / INMET | Gold |
+| KPI *Chuva acumulada · 24h* | soma de precipitação nas últimas 24h | COP Recife (`cop_indicadores`) · ANA / APAC / INMET | Gold (release 1: padronizada) |
 | KPI *Distritos em atenção* | contagem de distritos com risco ≥ moderado | regra de classificação de risco | Gold |
 | KPI *Alertas ativos* | alertas abertos no período | motor de alertas | Serving |
 | KPI *População em áreas de risco* | população estimada nas áreas expostas | territorial Recife (áreas de risco) + malha populacional | Gold |
 | Tabela *Situação por Distrito Sanitário* | risco, chuva, população exposta, ocorrência | cruzamento chuva × território × ocorrências | Gold |
 | Painel *Alertas Ativos* | fila de alertas priorizados | motor de alertas preditivos | Serving |
-| Gráfico *Volume de chuva diário* | série de 7 dias | ANA / APAC / INMET | Gold |
+| Gráfico *Volume de chuva diário* | série de 7 dias | COP Recife (`cop_indicadores`, coleta horária) · ANA / APAC / INMET | Gold (release 1: padronizada) |
+| Réguas de *nível dos rios* | nível vs. cotas de pré-alerta, alerta e inundação | COP Recife (`cop_rios`) | Gold (release 1: padronizada) |
+| Previsão de chuva | chuva prevista hora a hora por modelo | COP Recife (`cop_previsao_chuva`) | Gold (release 1: padronizada) |
+| Camada de *áreas alagáveis* no mapa | polígonos por distrito sanitário | COP Recife (`cop_areas_alagaveis`) | Gold (release 1: padronizada) |
 | Gráfico *Notificações de arboviroses* | casos/dia por semana epidemiológica | API Recife (epidemiologia) | Gold |
 | *Boletim Situacional Automático* | texto consolidado | template + indicadores da Gold | Serving |
 
@@ -299,6 +350,7 @@ Sugestão de tecnologias por camada (a definir na implementação):
 |---|---|
 | Ingestão | Python + biblioteca HTTP + agendador (cron / orquestrador de pipelines) |
 | Armazenamento | data lake em arquivos colunares (Parquet / Delta), organizado em RAW/Bronze/Silver/Gold |
+| Armazenamento (primeira release) | MongoDB Atlas para a RAW e Neon (PostgreSQL) para a camada padronizada — [decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md) |
 | Processamento | transformações em lote (SQL analítico ou dataframes) |
 | Modelagem | séries temporais e ML (statsmodels / Prophet / gradient boosting) |
 | Serving | aplicação web para o painel + serviço de geração de boletim e alertas |
@@ -308,7 +360,7 @@ Sugestão de tecnologias por camada (a definir na implementação):
 
 ## 13. Roadmap
 
-1. **Fase 1 — Ingestão:** conectores para API Recife (CKAN) e API ANA (HidroWeb); camadas RAW e Bronze.
+1. **Fase 1 — Ingestão:** conectores para API Recife (CKAN), COP Recife (ArcGIS) e API ANA (HidroWeb); RAW e camada padronizada ([decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)).
 2. **Fase 2 — Integração:** Silver e Gold; tabela de referência territorial; indicadores reais no painel substituindo os dados simulados.
 3. **Fase 3 — Predição:** modelos de chuva/nível/ocorrências/arboviroses; motor de classificação de risco e de alertas preditivos; boletim automático a partir da Gold.
 4. **Fase 4 — Expansão:** fontes complementares (APAC, INMET, CPRH, MonitorAr, DATASUS) e novos indicadores ambientais e assistenciais.

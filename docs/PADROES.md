@@ -12,22 +12,20 @@ Complementa: [`ARQUITETURA.md`](ARQUITETURA.md) (o *como* técnico) e
 
 ```text
 src/            código do pipeline (um subdir por etapa do fluxo de dados)
-  ingestao/       conectores + coleta por fonte           → RAW, Bronze
-  processamento/  limpeza, padronização, integração       → Silver, Gold
-  indicadores/    indicadores situacionais e risco        → Gold
-  predicao/       modelos preditivos e motor de alertas    → Gold
-  serving/        boletim, exportações, API interna        → entrega
-conf/           configuração declarativa (YAML/CSV), sem lógica
+  ingestao/       conectores, coleta e camada padronizada  → RAW (Atlas/arquivo), padronizada (Neon/Parquet)
+  serving/        exportações para o painel                → entrega
+conf/           configuração declarativa (YAML), sem lógica
   sources/        1 arquivo por fonte (endpoint, colunas, frequência)
-  contracts/      schema esperado por fonte (validação de entrada)
-  territorio/     referências fixas de território
-data/           lago de dados — IGNORADO pelo Git (regenerável)
-  raw/ bronze/ silver/ gold/
-notebooks/      exploração de dados (rascunho, não produção)
+  contracts/      schema esperado por fonte (validação de entrada e tabelas do Neon)
+data/           RAW e Bronze locais (modo arquivo) — IGNORADO pelo Git (regenerável)
+  raw/ bronze/
 tests/          testes automatizados — espelha src/
-docs/           planejamento, arquitetura, histórias, padrões
-prototipo/      protótipo visual do painel
+docs/           planejamento, arquitetura, histórias, padrões, decisões
+prototipo/      console do painel (v3) e dados gerados pelo pipeline
 ```
+
+Nas fases seguintes entram `src/processamento/` (Silver/Gold), `src/indicadores/`, `src/predicao/`,
+`conf/territorio/` e `data/silver/` e `data/gold/`, cada um criado junto com a primeira história que o usa.
 
 Regras:
 
@@ -87,7 +85,7 @@ Arquitetura medallion — ver [`ARQUITETURA §4`](ARQUITETURA.md#4-camadas-de-ar
 data/<camada>/<fonte>/AAAA/MM/DD/<arquivo>
 ```
 
-- `<camada>` ∈ `raw | bronze | silver | gold`; `<fonte>` = nome em `conf/sources/` (ex.: `epidemiologia`, `ocorrencias`, `ana_chuva`, `ana_nivel`, `territorio`).
+- `<camada>` ∈ `raw | bronze | silver | gold`; `<fonte>` = nome em `conf/sources/` (ex.: `epidemiologia`, `ocorrencias`, `ana_chuva`, `ana_nivel`, `territorio`, `cop_indicadores`, `cop_rios`).
 - `AAAA/MM/DD` = **data da coleta** (para RAW/Bronze) ou **data de referência do dado** (para Gold), documentado por tabela.
 - Ex.: `data/raw/epidemiologia/2026/09/06/datastore_search.json`.
 
@@ -97,6 +95,14 @@ data/<camada>/<fonte>/AAAA/MM/DD/<arquivo>
 **Versionamento:** `data/` inteira está no `.gitignore`. Só são versionados os `.gitkeep` e os `README.md`.
 Nunca commitar dado real. Qualquer camada é reconstruível a partir da RAW.
 
+**Primeira release ([decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)):** a RAW pode ir para o
+MongoDB Atlas (`--armazenamento mongo`) e os dados validados para o Neon (`--padronizada neon`), em vez de
+`data/`. No Atlas, a chave de cada coleta é `fonte + data_coleta + arquivo` — a mesma partição de cima.
+No Neon, cada tabela tem o nome do contrato (`epidemiologia`, `ocorrencias`, `ana_chuva`, `ana_nivel`,
+`cop_indicadores`, `cop_rios`, `cop_previsao_chuva`, `cop_chuva_mensal`, `cop_pluviometros`,
+`cop_areas_alagaveis`, `cop_pontos_alagamento`) e as
+colunas de controle `data_coleta` e `carregado_em`.
+
 ---
 
 ## 5. Configuração e segredos
@@ -105,6 +111,9 @@ Nunca commitar dado real. Qualquer camada é reconstruível a partir da RAW.
 - **Segredos (tokens, senhas) nunca no repositório.** A config referencia o *nome* de uma variável
   de ambiente (`segredo_env: ANA_TOKEN`); o valor vem do ambiente / de um `.env` local.
 - Manter `.env.example` com as chaves em branco. `.env` está no `.gitignore`.
+- Bancos da primeira release: `MONGODB_URI`, `MONGODB_DB`, `NEON_DATABASE_URL`, e os seletores
+  `AERVITA_ARMAZENAMENTO` / `AERVITA_PADRONIZADA` (`arquivo` por padrão). Lidos por `src/ingestao/ambiente.py`;
+  logs mostram a URI com a senha mascarada.
 - Parâmetros de modelo/regra (limiares de risco, janelas) ficam em YAML (`conf/risco/`, `conf/alertas/`),
   não *hard-coded* no `.py`.
 

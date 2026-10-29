@@ -3,9 +3,33 @@
 Um arquivo YAML por **fonte de dados**. Descreve como coletá-la — sem lógica.
 
 Arquivos previstos (issues `ING-*`): `epidemiologia.yml`, `ocorrencias.yml`, `territorio.yml`,
-`ana_estacoes.yml`.
+`ana_estacoes.yml`. Adicionado depois: `cop_recife.yml` (chuva e rios do COP Recife).
 
 ## Fontes configuradas
+
+### `cop_recife.yml`
+
+Dados públicos do **Centro de Operações do Recife (COP)**, no servidor ArcGIS da prefeitura
+(`esigportal2.recife.pe.gov.br/arcgis/rest/services/COP`), sem login. É a fonte de **chuva e rios**
+enquanto a ANA não tem credenciais. Cada camada vira uma fonte do runner, com contrato próprio em
+`conf/contracts/cop_*.yml`:
+
+| Fonte | O que é | Frequência |
+|---|---|---|
+| `cop_indicadores` | Chuva média 1h/24h da cidade, maior acumulado e estação, maré, estágio operacional, ocorrências | horária (a fonte guarda ~24h) |
+| `cop_rios` | Nível dos rios com cotas oficiais de pré-alerta, alerta e inundação | horária (a fonte guarda ~24h) |
+| `cop_previsao_chuva` | Previsão de chuva hora a hora dos modelos GFS, ECMWF, ICON e WRF | diária |
+| `cop_chuva_mensal` | Chuva por mês: ano atual, ano anterior e média histórica | diária |
+| `cop_pluviometros` | Histórico de chuva por pulso dos pluviômetros municipais (jul/2023 a fev/2026, parado desde então) | mensal |
+| `cop_areas_alagaveis` | Polígonos de áreas alagáveis por distrito sanitário | mensal |
+| `cop_pontos_alagamento` | Pontos de alagamento com obra de drenagem (EMLURB) | mensal |
+
+O YAML declara, para cada campo, a origem e a conversão. As datas do COP seguem convenções diferentes
+por tabela (UTC verdadeiro, horário local gravado como UTC, ou texto) — conferidas contra os textos da
+própria fonte e documentadas no arquivo.
+
+**A confirmar com o COP:** unidade do nível dos rios (os valores sugerem cm), significado dos campos
+`P_GFS`/`P_ECMWF`/`P_ICON`/`P_WRF` da previsão e da tabela "estação geotécnica" (não coletada).
 
 ### `epidemiologia.yml` (ING-02)
 

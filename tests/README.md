@@ -1,7 +1,8 @@
 # `tests/`
 
 Testes automatizados. **Espelha a estrutura de [`src/`](../src/)**:
-`tests/ingestao/`, `tests/processamento/`, `tests/indicadores/`, `tests/predicao/`, `tests/serving/`.
+`tests/ingestao/` e `tests/serving/`, mais `tests/integracao/` (rede, opcional). As pastas das próximas
+fases entram junto com o código que testam.
 
 ## Regras
 
@@ -36,5 +37,8 @@ somente a biblioteca padrão. Não há notebooks envolvidos nesta entrega.
 - `tests/integracao/` — testes contra as **APIs reais** (rede). Ficam fora do `pytest`
   padrão e do CI; rodar explicitamente com `pytest -m integracao`. Falha pontual pode ser
   instabilidade da API pública — reexecutar antes de investigar.
+  Inclui `test_cop_real.py` (ArcGIS do COP Recife: confere que as camadas ainda passam no contrato),
+  `test_mongo_real.py` e `test_neon_real.py` (Atlas e Neon, em banco/schema descartável `aervita_teste`;
+  pulam sozinhos sem `MONGODB_URI` / `NEON_DATABASE_URL`).
 - CI: `.github/workflows/testes.yml` roda `pytest` (sem rede) a cada push/PR em
   `develop` e `main`.

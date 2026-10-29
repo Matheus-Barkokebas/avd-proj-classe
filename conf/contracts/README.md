@@ -12,6 +12,16 @@ validar cada lote na entrada e **falhar cedo** se a fonte mudar (issue FND-02).
 | `ana_nivel.yml` | `ana_nivel` | `[codigo_estacao, data_hora_medicao]` | `data_hora_medicao` | Cota e nível de rios / canais - API ANA / HidroWeb |
 | `ana_chuva.yml` | `ana_chuva` | `[codigo_estacao, data_hora_medicao]` | `data_hora_medicao` | Pluviometria e chuva acumulada - API ANA / HidroWeb |
 | `territorio.yml` | `territorio` | `[codigo_bairro]` | `data_atualizacao` | Cadastro de bairros, RPA e Distritos Sanitários - Recife |
+| `cop_indicadores.yml` | `cop_indicadores` | `[data_hora]` | `data_hora` | Chuva média 1h/24h, maré, estágio - COP Recife |
+| `cop_rios.yml` | `cop_rios` | `[codigo_estacao, data_hora]` | `data_hora` | Nível dos rios com cotas oficiais - COP Recife |
+| `cop_previsao_chuva.yml` | `cop_previsao_chuva` | `[data_hora_prevista]` | `data_hora_prevista` | Previsão de chuva por modelo - COP Recife |
+| `cop_chuva_mensal.yml` | `cop_chuva_mensal` | `[ano_referencia, mes]` | — | Chuva mensal vs. média histórica - COP Recife |
+| `cop_pluviometros.yml` | `cop_pluviometros` | `[id_leitura]` | `data_hora` | Histórico por pulso dos pluviômetros municipais - COP Recife |
+| `cop_areas_alagaveis.yml` | `cop_areas_alagaveis` | `[id_area]` | — | Polígonos de áreas alagáveis por distrito - COP Recife |
+| `cop_pontos_alagamento.yml` | `cop_pontos_alagamento` | `[id_ponto]` | — | Pontos de alagamento com obra de drenagem (EMLURB) - COP Recife |
+
+Na [decisão 0001](../../docs/decisoes/0001-raw-mongodb-padronizada-neon.md), cada contrato também gera a tabela
+correspondente no Neon: colunas tipadas, `NOT NULL` nos obrigatórios e `UNIQUE` na chave de negócio.
 
 ## Estrutura do Contrato
 

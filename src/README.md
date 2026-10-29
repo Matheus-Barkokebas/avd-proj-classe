@@ -5,11 +5,10 @@ Código-fonte do AerVita, organizado pelas etapas do fluxo de dados descrito em
 
 | Pasta | Papel | Camadas que produz |
 |---|---|---|
-| [`ingestao/`](ingestao/) | conectores e coleta por fonte | RAW → Bronze |
-| [`processamento/`](processamento/) | limpeza, padronização e integração | Bronze → Silver → Gold |
-| [`indicadores/`](indicadores/) | cálculo de indicadores e classificação de risco | Gold |
-| [`predicao/`](predicao/) | modelos preditivos e motor de alertas | Gold |
-| [`serving/`](serving/) | geração de boletim, exportações e API interna | entrega |
+| [`ingestao/`](ingestao/) | conectores, coleta por fonte e camada padronizada | RAW (Atlas) → padronizada (Neon) |
+| [`serving/`](serving/) | exportações para o painel | entrega |
+
+As pastas `processamento/`, `indicadores/` e `predicao/` são criadas quando as Fases 2 e 3 começarem.
 
 ## Convenções
 

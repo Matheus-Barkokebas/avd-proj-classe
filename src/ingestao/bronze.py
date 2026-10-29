@@ -9,6 +9,9 @@ bairro bloqueavam as outras 11.931. Agora:
   é gravada com as linhas válidas;
 - se TODAS as linhas forem rejeitadas -> aborta (provável mudança de formato,
   não dado ruim pontual).
+
+O destino das linhas é Parquet local (padrão) ou a camada padronizada no Neon
+(decisão 0001); a regra de validação e quarentena é a mesma nos dois.
 """
 
 from datetime import date
@@ -34,18 +37,12 @@ def caminho_quarentena(diretorio_dados: Path, fonte: str, data_coleta: date) -> 
     return _particao(diretorio_dados, f"{fonte}_rejeitados", data_coleta) / f"{fonte}_rejeitados.json"
 
 
-def gravar_validado(
-    lote: list[dict[str, Any]],
-    nome_contrato: str,
-    fonte: str,
-    data_coleta: date,
-    diretorio_dados: Path,
-) -> Path:
-    """Valida o lote contra o contrato e grava Bronze (válidas) + quarentena (rejeitadas).
+def separar(
+    lote: list[dict[str, Any]], nome_contrato: str
+) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+    """Valida o lote e devolve (contrato, válidas, rejeitadas com motivo).
 
-    Devolve o caminho do Parquet da Bronze. Idempotente: a partição da Bronze é
-    substituída atomicamente e uma quarentena antiga da mesma data é removida
-    quando a reexecução não rejeita nada.
+    Levanta ValueError se houver violação de lote ou se todas as linhas forem rejeitadas.
     """
     contrato = contratos.carregar_contrato(nome_contrato)
     violacoes = contratos.validar(lote, contrato)
@@ -72,6 +69,27 @@ def gravar_validado(
             f"Violações do contrato de {nome_contrato}: todas as {len(lote)} linhas rejeitadas "
             f"(provável mudança de formato da fonte) — ex.: {resumo}"
         )
+    return contrato, validas, rejeitadas
+
+
+def gravar_validado(
+    lote: list[dict[str, Any]],
+    nome_contrato: str,
+    fonte: str,
+    data_coleta: date,
+    diretorio_dados: Path,
+    destino: Any = None,
+) -> Path | str:
+    """Valida o lote contra o contrato e grava as válidas + a quarentena das rejeitadas.
+
+    Sem `destino`: Parquet da Bronze local (devolve o caminho). Idempotente: a
+    partição é substituída atomicamente e uma quarentena antiga da mesma data é
+    removida quando a reexecução não rejeita nada.
+    Com `destino` (padronizada.DestinoNeon): grava no Neon e devolve um resumo.
+    """
+    contrato, validas, rejeitadas = separar(lote, nome_contrato)
+    if destino is not None:
+        return destino.gravar(contrato, fonte, data_coleta, validas, rejeitadas)
 
     buffer = io.BytesIO()
     pq.write_table(pa.Table.from_pylist(validas), buffer)
@@ -91,8 +109,10 @@ def gravar_validado(
     return caminho_bronze
 
 
-def contar_rejeitados(diretorio_dados: Path, fonte: str, data_coleta: date) -> int:
+def contar_rejeitados(diretorio_dados: Path, fonte: str, data_coleta: date, destino: Any = None) -> int:
     """Quantas linhas foram para a quarentena na partição (0 se não houver)."""
+    if destino is not None:
+        return destino.contar_rejeitados(fonte, data_coleta)
     quarentena = caminho_quarentena(diretorio_dados, fonte, data_coleta)
     if not quarentena.is_file():
         return 0

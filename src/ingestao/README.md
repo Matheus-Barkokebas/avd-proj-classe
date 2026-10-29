@@ -25,6 +25,29 @@ data/raw/<fonte>/AAAA/MM/DD/…      # original
 data/bronze/<fonte>/               # Parquet tipado
 ```
 
+## Armazenamento: arquivo, MongoDB Atlas e Neon
+
+Primeira release — [decisão 0001](../../docs/decisoes/0001-raw-mongodb-padronizada-neon.md). Cada coletor aceita duas opções, e o padrão
+continua sendo arquivo local (é o que os testes usam, sem rede):
+
+| Opção | Valores | O que muda |
+|---|---|---|
+| `--armazenamento` (ou `AERVITA_ARMAZENAMENTO`) | `arquivo` · `mongo` | Onde a RAW é gravada e relida (`armazenamento.py`) |
+| `--padronizada` (ou `AERVITA_PADRONIZADA`) | `arquivo` · `neon` | Onde vão as linhas validadas e a quarentena (`padronizada.py`) |
+
+```bash
+python src/ingestao/epidemiologia.py --armazenamento mongo --padronizada neon
+python src/ingestao/territorio.py --armazenamento mongo --padronizada neon   # grava dim_bairro e dim_distrito
+```
+
+- **RAW no Atlas:** conteúdo no GridFS (`raw_conteudo`), metadados em `raw_coletas` (índice único em
+  fonte + data + arquivo, com `sha256`) e execuções em `execucoes`. Regravar o mesmo conteúdo não duplica nada.
+- **Neon:** tabelas geradas a partir dos contratos; carga em uma transação, com `COPY` para uma tabela temporária
+  e `INSERT … ON CONFLICT` na chave de negócio. As rejeitadas vão para `rejeitados`.
+- **Credenciais:** só no `.env` (copie de `.env.example`); `ambiente.py` lê e falha com mensagem clara se faltar.
+- **Testes:** os unitários usam dublês; os testes contra Atlas e Neon ficam em `tests/integracao/`
+  (`pytest -m integracao`) e trabalham em banco/schema descartável (`aervita_teste`).
+
 ## Runner (FND-03)
 
 Python 3.12+, sem dependências de execução externas. Da raiz:
@@ -255,6 +278,23 @@ python src/ingestao/ana_hidroweb.py --serie nivel --data 2026-09-24
 python src/ingestao/runner.py ana_chuva
 python src/ingestao/runner.py ana_nivel --data 2026-09-24
 ```
+
+## Coleta do COP Recife — chuva, rios, previsão e alagamento
+
+Fonte: [`conf/sources/cop_recife.yml`](../../conf/sources/README.md). Cliente genérico de ArcGIS em
+`arcgis.py` (paginação por `resultOffset`, retry com backoff); transformação declarativa em `cop_recife.py`.
+
+```bash
+python src/ingestao/cop_recife.py --armazenamento mongo --padronizada neon                      # todas as camadas
+python src/ingestao/cop_recife.py --frequencia horaria --armazenamento mongo --padronizada neon  # para o agendador
+python src/ingestao/cop_recife.py --fonte cop_rios
+```
+
+- As tabelas atuais do COP (`cop_indicadores`, `cop_rios`) guardam só ~24h. **O histórico só existe se a
+  coleta rodar de hora em hora**: cada execução faz upsert pela chave de negócio e a tabela no Neon acumula.
+- A RAW do dia é substituída a cada coleta (a chave é fonte + data + arquivo); cada coleta já contém a
+  janela das últimas ~24h.
+- Teste contra o ArcGIS real: `pytest -m integracao tests/integracao/test_cop_real.py`.
 
 ## Coleta de Território — Bases Cadastrais (ING-05)
 
