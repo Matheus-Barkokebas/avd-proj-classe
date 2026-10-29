@@ -1,7 +1,7 @@
 # `src/ingestao/`
 
 Coleta os dados nas APIs / fontes públicas e grava **sem transformação** na camada RAW,
-depois materializa a camada Bronze (tipada). Ver [`ARQUITETURA §3`](../../docs/ARQUITETURA.md#3-camada-de-ingestão-coleta).
+depois materializa a camada Bronze (tipada). Ver [`ARQUITETURA §3`](../../../docs/ARQUITETURA.md#3-camada-de-ingestão-coleta).
 
 ## O que vive aqui
 
@@ -27,7 +27,7 @@ data/bronze/<fonte>/               # Parquet tipado
 
 ## Armazenamento: arquivo, MongoDB Atlas e Neon
 
-Primeira release — [decisão 0001](../../docs/decisoes/0001-raw-mongodb-padronizada-neon.md). Cada coletor aceita duas opções, e o padrão
+Primeira release — [decisão 0001](../../../docs/decisoes/0001-raw-mongodb-padronizada-neon.md). Cada coletor aceita duas opções, e o padrão
 continua sendo arquivo local (é o que os testes usam, sem rede):
 
 | Opção | Valores | O que muda |

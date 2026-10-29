@@ -1,6 +1,6 @@
 """Exporta os dados reais do painel a partir do pipeline (decisão 0001, etapa F).
 
-Gera prototipo/dados/recife-real.js — o mesmo formato que o console v3 já lê —
+Gera frontend/prototipo/dados/recife-real.js — o mesmo formato que o console v3 já lê —
 com origem no pipeline, não mais direto do portal:
 
 - arboviroses: tabela `epidemiologia` da camada padronizada no Neon (só linhas
@@ -32,7 +32,8 @@ from src.ingestao import runner
 from src.ingestao.territorio import chave_bairro
 
 RAIZ_PROJETO = Path(__file__).resolve().parents[2]
-SAIDA_PADRAO = RAIZ_PROJETO / "prototipo" / "dados" / "recife-real.js"
+# o protótipo mora no módulo de front-end, ao lado do pipeline no monorepo
+SAIDA_PADRAO = RAIZ_PROJETO.parent / "frontend" / "prototipo" / "dados" / "recife-real.js"
 AGRAVOS = ("dengue", "zika", "chikungunya")
 CLASSIFICACAO_DESCARTADO = "5"
 TOLERANCIA_GRAUS = 0.00012  # ~13 m: suficiente para o mapa da cidade inteira

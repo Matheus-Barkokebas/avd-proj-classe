@@ -1,7 +1,7 @@
 # `src/` — código do pipeline
 
 Código-fonte do AerVita, organizado pelas etapas do fluxo de dados descrito em
-[`docs/ARQUITETURA.md`](../docs/ARQUITETURA.md).
+[`docs/ARQUITETURA.md`](../../docs/ARQUITETURA.md).
 
 | Pasta | Papel | Camadas que produz |
 |---|---|---|
@@ -16,4 +16,4 @@ As pastas `processamento/`, `indicadores/` e `predicao/` são criadas quando as 
 - Identificadores em **português sem acento** (`resolver_territorio`, `classificar_risco`).
 - Sem lógica de negócio em `conf/` — configuração é declarativa (YAML); regra fica no código.
 - Cada módulo com teste correspondente em [`tests/`](../tests/), espelhando a estrutura desta pasta.
-- Ver [`docs/PADROES.md`](../docs/PADROES.md) para nomes, datas, particionamento e Git.
+- Ver [`docs/PADROES.md`](../../docs/PADROES.md) para nomes, datas, particionamento e Git.

@@ -711,7 +711,7 @@ Como Analista da Vigilância,
 quero que o painel mostre os KPIs e a tabela de distritos com dados reais da camada Gold em vez dos valores simulados,
 para usar a ferramenta na rotina.
 
-**Contexto** — [ARQUITETURA §7](ARQUITETURA.md#7-camada-de-entrega-serving) e [§11](ARQUITETURA.md#11-relação-com-o-protótipo). Protótipo: [`prototipo/v3-aervita-console.html`](../prototipo/v3-aervita-console.html) (a v1 original saiu do repositório; está no histórico do Git).
+**Contexto** — [ARQUITETURA §7](ARQUITETURA.md#7-camada-de-entrega-serving) e [§11](ARQUITETURA.md#11-relação-com-o-protótipo). Protótipo: [`prototipo/v3-aervita-console.html`](../frontend/prototipo/v3-aervita-console.html) (a v1 original saiu do repositório; está no histórico do Git).
 
 **Escopo**
 - Endpoint/arquivo de dados que o painel consome (ex.: `serving/` gera um JSON por atualização a partir do Gold).

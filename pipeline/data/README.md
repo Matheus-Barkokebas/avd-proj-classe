@@ -11,7 +11,7 @@ e está no `.gitignore` — só a estrutura de pastas (`.gitkeep`) e este README
 
 `silver/` e `gold/` voltam quando a integração (Fase 2) começar; nesta release a camada padronizada fica no Neon.
 
-> **Primeira release ([decisão 0001](../docs/decisoes/0001-raw-mongodb-padronizada-neon.md)):** com `--armazenamento mongo` a RAW vai para o
+> **Primeira release ([decisão 0001](../../docs/decisoes/0001-raw-mongodb-padronizada-neon.md)):** com `--armazenamento mongo` a RAW vai para o
 > MongoDB Atlas, e com `--padronizada neon` os dados validados vão para o Neon. Nesses modos nada é gravado
 > aqui; sem as opções, esta pasta continua sendo o destino padrão.
 
@@ -22,7 +22,7 @@ data/<camada>/<fonte>/AAAA/MM/DD/<arquivo>
 ```
 
 Exemplo: `data/raw/epidemiologia/2026/09/06/datastore_search.json`.
-Detalhes e demais convenções em [`docs/PADROES.md`](../docs/PADROES.md).
+Detalhes e demais convenções em [`docs/PADROES.md`](../../docs/PADROES.md).
 
 ## Como (re)gerar
 

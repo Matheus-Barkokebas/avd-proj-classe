@@ -19,7 +19,7 @@ A equipe também precisa de um banco de consulta simples para o painel e para o 
 ## Decisão
 
 1. **RAW** em **MongoDB Atlas**: um documento por coleta, com o payload original da API, a fonte, a data de coleta e um hash do conteúdo. Nada é transformado nessa etapa.
-2. **Camada padronizada** em **Neon (PostgreSQL)**: tabelas tipadas, validadas pelos contratos de [`conf/contracts/`](../../conf/contracts/). Linhas rejeitadas vão para a tabela `rejeitados`, com o motivo registrado.
+2. **Camada padronizada** em **Neon (PostgreSQL)**: tabelas tipadas, validadas pelos contratos de [`conf/contracts/`](../../pipeline/conf/contracts/). Linhas rejeitadas vão para a tabela `rejeitados`, com o motivo registrado.
 3. **Sem Silver e Gold nesta release.** O painel e o boletim leem a camada padronizada.
 4. **Biblioteca de acesso:** `pymongo` para o RAW e `psycopg` (versão 3) para o Neon. O `pyarrow` sai das dependências de execução.
 

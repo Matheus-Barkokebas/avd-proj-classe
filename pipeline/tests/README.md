@@ -28,7 +28,7 @@ PyYAML é usado apenas nos testes para validar a configuração YAML; o runner u
 somente a biblioteca padrão. Não há notebooks envolvidos nesta entrega.
 
 - Cobertura mínima esperada por história: os casos listados em **Critérios de aceitação**
-  da issue correspondente em [`docs/HISTORIAS.md`](../docs/HISTORIAS.md).
+  da issue correspondente em [`docs/HISTORIAS.md`](../../docs/HISTORIAS.md).
 
 ## Amostras reais, integração e CI (QA-01)
 

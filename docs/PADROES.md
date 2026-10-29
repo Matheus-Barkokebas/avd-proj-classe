@@ -10,22 +10,30 @@ Complementa: [`ARQUITETURA.md`](ARQUITETURA.md) (o *como* técnico) e
 
 ## 1. Estrutura de pastas
 
+Monorepo com um módulo por pasta. Cada módulo tem dependências, testes e README próprios.
+
 ```text
-src/            código do pipeline (um subdir por etapa do fluxo de dados)
-  ingestao/       conectores, coleta e camada padronizada  → RAW (Atlas/arquivo), padronizada (Neon/Parquet)
-  serving/        exportações para o painel                → entrega
-conf/           configuração declarativa (YAML), sem lógica
-  sources/        1 arquivo por fonte (endpoint, colunas, frequência)
-  contracts/      schema esperado por fonte (validação de entrada e tabelas do Neon)
-data/           RAW e Bronze locais (modo arquivo) — IGNORADO pelo Git (regenerável)
-  raw/ bronze/
-tests/          testes automatizados — espelha src/
-docs/           planejamento, arquitetura, histórias, padrões, decisões
-prototipo/      console do painel (v3) e dados gerados pelo pipeline
+pipeline/         coleta e padronização (Python) — comandos rodam daqui
+  src/
+    ingestao/       conectores, coleta e camada padronizada  → RAW (Atlas/arquivo), padronizada (Neon/Parquet)
+    serving/        exportações para o painel                → entrega
+  conf/             configuração declarativa (YAML), sem lógica
+    sources/          1 arquivo por fonte (endpoint, colunas, frequência)
+    contracts/        schema esperado por fonte (validação de entrada e tabelas do Neon)
+  data/             RAW e Bronze locais (modo arquivo) — IGNORADO pelo Git (regenerável)
+  tests/            testes automatizados — espelha src/
+  requirements.txt · requirements-dev.txt · pytest.ini · .env.example
+api/              API FastAPI sobre o Neon (em construção)
+frontend/         painel React + TypeScript (em construção); protótipo v3 em frontend/prototipo/
+docs/             planejamento, arquitetura, histórias, padrões, decisões — comum aos módulos
+ai-rules/         regras para assistentes de IA
+.github/          CI (um job por módulo, disparado pela pasta) e CODEOWNERS
 ```
 
-Nas fases seguintes entram `src/processamento/` (Silver/Gold), `src/indicadores/`, `src/predicao/`,
-`conf/territorio/` e `data/silver/` e `data/gold/`, cada um criado junto com a primeira história que o usa.
+- **Fronteiras:** a API não importa código do pipeline; o contrato entre os dois é o esquema das tabelas
+  no Neon. O front só fala com a API — nunca com o banco.
+- Nas fases seguintes entram `pipeline/src/processamento/` (Silver/Gold), `indicadores/`, `predicao/`,
+  `pipeline/conf/territorio/` e `pipeline/data/silver/` e `gold/`, cada um junto com a primeira história que o usa.
 
 Regras:
 
@@ -121,7 +129,7 @@ colunas de controle `data_coleta` e `carregado_em`.
 
 ## 6. Testes
 
-- Framework: **pytest**. Rodar da raiz: `pytest`.
+- Framework: **pytest**. Rodar de dentro de `pipeline/`: `cd pipeline && pytest`.
 - `tests/` espelha `src/`. Arquivo `test_<modulo>.py`.
 - **Sem rede:** toda resposta de API é mockada; amostras de dados em `tests/fixtures/`.
 - Cada história entrega, no mínimo, os casos listados nos **Critérios de aceitação** da sua issue.

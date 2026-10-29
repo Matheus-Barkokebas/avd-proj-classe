@@ -20,7 +20,7 @@ validar cada lote na entrada e **falhar cedo** se a fonte mudar (issue FND-02).
 | `cop_areas_alagaveis.yml` | `cop_areas_alagaveis` | `[id_area]` | — | Polígonos de áreas alagáveis por distrito - COP Recife |
 | `cop_pontos_alagamento.yml` | `cop_pontos_alagamento` | `[id_ponto]` | — | Pontos de alagamento com obra de drenagem (EMLURB) - COP Recife |
 
-Na [decisão 0001](../../docs/decisoes/0001-raw-mongodb-padronizada-neon.md), cada contrato também gera a tabela
+Na [decisão 0001](../../../docs/decisoes/0001-raw-mongodb-padronizada-neon.md), cada contrato também gera a tabela
 correspondente no Neon: colunas tipadas, `NOT NULL` nos obrigatórios e `UNIQUE` na chave de negócio.
 
 ## Estrutura do Contrato

@@ -26,4 +26,4 @@ python src/serving/exporta_painel.py --armazenamento mongo
 ```
 
 Lê o Neon e a RAW do território no Atlas e regrava `dados/recife-real.js` (só contagens agregadas,
-sem dado pessoal). Ver [`src/serving/README.md`](../src/serving/README.md).
+sem dado pessoal). Ver [`src/serving/README.md`](../../pipeline/src/serving/README.md).

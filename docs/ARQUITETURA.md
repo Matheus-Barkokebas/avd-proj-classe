@@ -2,7 +2,7 @@
 
 > **Projeto:** Vigidesastres — Painel Situacional para Preparação e Resposta a Emergências Climáticas (Recife/PE)
 > **Escopo:** consolidar fontes meteorológicas, hidrológicas, epidemiológicas, ambientais, assistenciais e territoriais em um único fluxo de dados, permitindo cruzamentos, indicadores situacionais, boletins automáticos e alertas preditivos.
-> **Estado atual:** existe um protótipo do painel ([`prototipo/v3-aervita-console.html`](../prototipo/v3-aervita-console.html)) com arboviroses e território reais e o restante simulado. Este documento descreve a arquitetura-alvo para alimentá-lo com dados reais.
+> **Estado atual:** existe um protótipo do painel ([`prototipo/v3-aervita-console.html`](../frontend/prototipo/v3-aervita-console.html)) com arboviroses e território reais e o restante simulado. Este documento descreve a arquitetura-alvo para alimentá-lo com dados reais.
 
 ---
 
