@@ -223,10 +223,10 @@ __marimo__/
 # Sao regeneraveis pelos pipelines - nunca versionar o conteudo.
 # Versiona apenas a estrutura de pastas (.gitkeep) e a documentacao (README.md).
 # ---------------------------------------------------------------------------
-data/**
-!data/**/
-!data/**/.gitkeep
-!data/**/README.md
+pipeline/data/**
+!pipeline/data/**/
+!pipeline/data/**/.gitkeep
+!pipeline/data/**/README.md
 
 # Modelos treinados (regeneraveis - ver PRD-*)
 models/
@@ -235,3 +235,8 @@ models/
 .env
 *.env
 !.env.example
+
+# Front-end (Vite / npm) — dependências e configuração local
+node_modules/
+.env.local
+.env.*.local

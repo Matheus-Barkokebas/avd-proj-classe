@@ -2,7 +2,7 @@
 
 > **Projeto:** Vigidesastres — Painel Situacional para Preparação e Resposta a Emergências Climáticas (Recife/PE)
 > **Escopo:** consolidar fontes meteorológicas, hidrológicas, epidemiológicas, ambientais, assistenciais e territoriais em um único fluxo de dados, permitindo cruzamentos, indicadores situacionais, boletins automáticos e alertas preditivos.
-> **Estado atual:** existe um protótipo do painel ([`prototipo/v3-aervita-console.html`](../prototipo/v3-aervita-console.html)) com arboviroses e território reais e o restante simulado. Este documento descreve a arquitetura-alvo para alimentá-lo com dados reais.
+> **Estado atual:** existe um protótipo do painel ([`prototipo/v3-aervita-console.html`](../frontend/prototipo/v3-aervita-console.html)) com arboviroses e território reais e o restante simulado. Este documento descreve a arquitetura-alvo para alimentá-lo com dados reais.
 
 ---
 
@@ -270,6 +270,16 @@ GOLD ─┬─► Painel Situacional ──► equipes acompanham o cenário
                     │
                     ▼
         Priorização e alocação de equipes
+```
+
+### 7.1 Release 2: API e front-end
+
+A entrega passa por uma **API em FastAPI** (`api/`) que lê a camada padronizada no Neon com um usuário só de
+leitura e serve JSON ao **front-end em React + TypeScript** (`frontend/`). O navegador nunca acessa o banco.
+Ver [decisão 0002](decisoes/0002-api-fastapi-e-front-react.md) e as rotas em [`api/README.md`](../api/README.md).
+
+```text
+Neon (padronizada) ──► API FastAPI /v1 (só leitura, cache, CORS) ──► Front React + TypeScript
 ```
 
 ---
