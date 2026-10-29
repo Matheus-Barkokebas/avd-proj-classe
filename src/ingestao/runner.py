@@ -3,12 +3,10 @@
 import argparse
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime
 import json
-import os
 from pathlib import Path
 import re
-import tempfile
 from uuid import uuid4
 import sys
 
@@ -19,9 +17,11 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 
+from src.ingestao import armazenamento as armaz
+# Reexportados: bronze.py e territorio.py usam runner.gravar_atomico.
+from src.ingestao.armazenamento import FUSO_RECIFE, gravar_atomico  # noqa: F401
+
 RAIZ_PROJETO = Path(__file__).resolve().parents[2]
-# America/Recife é UTC-03, sem horário de verão (PADROES §3).
-FUSO_RECIFE = timezone(timedelta(hours=-3), name="America/Recife")
 
 
 @dataclass(frozen=True)
@@ -110,6 +110,30 @@ def contar_territorio(conteudo: bytes) -> int:
     return territorio.contar_registros(conteudo)
 
 
+def _coletor_cop(fonte: str) -> Coletor:
+    """Uma camada do COP Recife (conf/sources/cop_recife.yml) como fonte do runner."""
+
+    def coletar(data_coleta: date) -> bytes:
+        from src.ingestao import cop_recife
+
+        return cop_recife.coletar_dados(fonte, data_coleta)
+
+    def contar(conteudo: bytes) -> int:
+        from src.ingestao import cop_recife
+
+        return cop_recife.contar_registros(conteudo)
+
+    # O ArcGIS do COP só devolve o estado atual (sem consulta por data).
+    return Coletor(coletar, contar, "arcgis.json", suporta_historico=False)
+
+
+# Mantida igual às camadas de conf/sources/cop_recife.yml (há teste que confere).
+FONTES_COP = (
+    "cop_indicadores", "cop_rios", "cop_previsao_chuva", "cop_chuva_mensal",
+    "cop_pluviometros", "cop_areas_alagaveis", "cop_pontos_alagamento",
+)
+
+
 # Epidemiologia, ocorrências e território sempre devolvem o estado atual da
 # fonte; só a ANA consulta séries por data (suporta_historico padrão).
 COLETORES = {
@@ -121,23 +145,8 @@ COLETORES = {
     "ana_chuva": Coletor(coletar_ana_chuva, contar_ana_hidroweb, "hidroweb.json"),
     "ana_nivel": Coletor(coletar_ana_nivel, contar_ana_hidroweb, "hidroweb.json"),
     "territorio": Coletor(coletar_territorio, contar_territorio, "territorio.json", suporta_historico=False),
+    **{fonte: _coletor_cop(fonte) for fonte in FONTES_COP},
 }
-
-
-def gravar_atomico(caminho: Path, conteudo: bytes) -> None:
-    """Publica somente o arquivo completo; preserva o anterior se a escrita falhar."""
-    caminho.parent.mkdir(parents=True, exist_ok=True)
-    temporario = None
-    try:
-        with tempfile.NamedTemporaryFile(dir=caminho.parent, delete=False) as arquivo:
-            temporario = Path(arquivo.name)
-            arquivo.write(conteudo)
-            arquivo.flush()
-            os.fsync(arquivo.fileno())
-        os.replace(temporario, caminho)
-    finally:
-        if temporario is not None:
-            temporario.unlink(missing_ok=True)
 
 
 def executar(
@@ -146,12 +155,17 @@ def executar(
     *,
     diretorio_dados: Path = RAIZ_PROJETO / "data",
     coletores: Mapping[str, Coletor] | None = None,
+    armazenamento: armaz.ArmazenamentoRaw | None = None,
 ) -> dict:
     """Relê a RAW para data explícita, ou coleta; registra sucesso e falha.
 
     Novas fontes devem registrar seu Coletor no mapa, sem importações dinâmicas.
     Falhas no armazenamento do próprio registro são propagadas ao chamador.
+    Sem `armazenamento`, grava em arquivo sob `diretorio_dados` (nunca consulta
+    o ambiente aqui: os testes não podem cair no MongoDB por causa de um .env).
     """
+    if armazenamento is None:
+        armazenamento = armaz.ArmazenamentoArquivo(diretorio_dados)
     inicio = datetime.now(FUSO_RECIFE)
     data_particao = data_coleta if data_coleta is not None else inicio.date()
     identificador = uuid4().hex
@@ -174,39 +188,36 @@ def executar(
         coletor = catalogo[fonte]
         if not re.fullmatch(r"[a-z0-9_]+\.(json|csv)", coletor.nome_arquivo):
             raise ValueError("Arquivo RAW deve ter nome simples e extensao json ou csv")
-        caminho = (
-            Path(diretorio_dados) / "raw" / fonte
-            / f"{data_particao.year:04d}" / f"{data_particao.month:02d}"
-            / f"{data_particao.day:02d}" / coletor.nome_arquivo
-        )
-        reutilizar = data_coleta is not None and caminho.is_file()
+        existente = (armazenamento.ler(fonte, data_particao, coletor.nome_arquivo)
+                     if data_coleta is not None else None)
+        reutilizar = existente is not None
         if (not reutilizar and not coletor.suporta_historico
                 and data_coleta is not None and data_coleta != _hoje()):
             raise ValueError(
                 f"Fonte '{fonte}' não tem histórico por data: com --data só é possível "
-                f"reler uma RAW já gravada, e {caminho} não existe. Para coletar o estado "
-                f"atual, rode sem --data."
+                f"reler uma RAW já gravada, e "
+                f"{armazenamento.descrever(fonte, data_particao, coletor.nome_arquivo)} não existe. "
+                f"Para coletar o estado atual, rode sem --data."
             )
-        conteudo = caminho.read_bytes() if reutilizar else coletor.coletar(data_particao)
+        conteudo = existente if reutilizar else coletor.coletar(data_particao)
         if not isinstance(conteudo, bytes):
             raise TypeError("Coletor deve devolver bytes originais")
         quantidade = coletor.contar_registros(conteudo)
         if type(quantidade) is not int or quantidade < 0:
             raise ValueError("Contagem de registros deve ser inteiro nao negativo")
-        if not reutilizar:
-            gravar_atomico(caminho, conteudo)
+        alterou = False if reutilizar else armazenamento.gravar(
+            fonte, data_particao, coletor.nome_arquivo, conteudo)
         registro.update(
             numero_registros=quantidade,
             status="ok",
-            mensagem="RAW existente relida" if reutilizar else "Coleta concluida",
+            mensagem=("RAW existente relida" if reutilizar
+                      else "Coleta concluida" if alterou
+                      else "Coleta concluida; conteudo identico ao ja gravado"),
         )
     except Exception as erro:
         registro["mensagem"] = f"{type(erro).__name__}: {erro}"
     registro["fim"] = datetime.now(FUSO_RECIFE).strftime("%Y-%m-%d %H:%M:%S")
-    gravar_atomico(
-        Path(diretorio_dados) / "_runs" / f"{identificador}.json",
-        json.dumps(registro, ensure_ascii=False, indent=2).encode("utf-8"),
-    )
+    armazenamento.registrar_execucao(registro)
     return registro
 
 
@@ -232,9 +243,16 @@ def main() -> int:
         "--diretorio-dados", type=Path, default=RAIZ_PROJETO / "data",
         help="Raiz de armazenamento; padrao: data/ do projeto",
     )
+    argumentos.add_argument(
+        "--armazenamento", choices=armaz.TIPOS, default=None,
+        help="Onde gravar a RAW; padrao: AERVITA_ARMAZENAMENTO ou arquivo",
+    )
     opcoes = argumentos.parse_args()
     try:
-        registro = executar(**vars(opcoes))
+        registro = executar(
+            opcoes.fonte, opcoes.data_coleta, diretorio_dados=opcoes.diretorio_dados,
+            armazenamento=armaz.criar(opcoes.armazenamento, opcoes.diretorio_dados),
+        )
     except OSError as erro:
         argumentos.exit(1, f"Falha ao persistir registro de execucao: {erro}\n")
     print(json.dumps(registro, ensure_ascii=False))

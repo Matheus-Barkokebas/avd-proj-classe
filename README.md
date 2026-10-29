@@ -29,8 +29,8 @@ num único fluxo — entregando indicadores situacionais, boletins automáticos 
 
 <div align="center">
 
-**▶ Protótipo do painel situacional:** [`prototipo/v1-prototipo-aervita.html`](prototipo/v1-prototipo-aervita.html) — abra no navegador
-<br><sub>mockup visual com <b>dados simulados</b> para demonstração</sub>
+**▶ Protótipo do painel situacional:** [`prototipo/v3-aervita-console.html`](prototipo/v3-aervita-console.html) — abra no navegador
+<br><sub>arboviroses, bairros e distritos reais (gerados pelo pipeline); chuva, rios e ocorrências ainda simulados na tela</sub>
 
 </div>
 
@@ -71,9 +71,9 @@ Um pipeline que coleta essas fontes automaticamente, padroniza tempo e territór
 ## 🗺️ Como funciona
 
 ```text
-   FONTES          API Dados Abertos Recife (CKAN)      API ANA (HidroWeb)      Fontes complementares (roadmap)
-                              │                                │                           │
-                              └────────────────┬───────────────┴───────────────────────────┘
+   FONTES     API Dados Abertos Recife (CKAN)   COP Recife (ArcGIS)   API ANA (HidroWeb)   Complementares (roadmap)
+                              │                         │                     │                     │
+                              └─────────────────────────┴──────────┬──────────┴─────────────────────┘
                                                ▼
    INGESTÃO             Conectores por fonte + agendador (coleta periódica)
                                                ▼
@@ -91,21 +91,28 @@ Um pipeline que coleta essas fontes automaticamente, padroniza tempo e territór
 Arquitetura medallion (RAW → Bronze → Silver → Gold): cada camada preserva a anterior e eleva a qualidade
 do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 
+> **Primeira release ([decisão 0001](docs/decisoes/0001-raw-mongodb-padronizada-neon.md)):** a RAW fica no **MongoDB Atlas** e os dados validados
+> vão para uma **camada padronizada no Neon (PostgreSQL)** — sem Silver e Gold por enquanto. Hoje o pipeline
+> já carrega no Neon: arboviroses 2025, bairros e distritos sanitários, e **chuva, rios, previsão e áreas
+> alagáveis do COP Recife**.
+
 ---
 
 ## 🔌 Fontes de dados
 
 | Domínio | Fonte | Exemplos de dados |
 |---|---|---|
-| 🌧️ Meteorológico | APAC / INMET | chuva, temperatura, umidade, vento, previsão |
-| 🌊 Hidrológico | **API ANA (HidroWeb)** · APAC | nível e vazão de rios, chuva acumulada, cotas de alerta |
+| 🌧️ Meteorológico | **COP Recife (ArcGIS)** · APAC / INMET | chuva média 1h/24h, previsão por modelo (GFS, ECMWF, ICON, WRF), chuva mensal vs. média histórica, histórico dos pluviômetros |
+| 🌊 Hidrológico | **COP Recife (ArcGIS)** · API ANA (HidroWeb) · APAC | nível dos rios com cotas oficiais, maré, áreas alagáveis, pontos de alagamento |
 | 🦠 Epidemiológico | **API Dados Abertos Recife** · Sec. de Saúde | dengue, zika, chikungunya por bairro e semana epidemiológica |
 | 🌱 Ambiental | CPRH / MonitorAr | qualidade do ar e da água, balneabilidade |
 | 🏥 Assistencial | **API Dados Abertos Recife** · DATASUS | atendimentos, solicitações, unidades de saúde |
 | 🗺️ Territorial | **API Dados Abertos Recife** · COP Recife | bairros, RPA, áreas de risco, ocorrências georreferenciadas |
 
-**APIs da 1ª fase:**
-`dados.recife.pe.gov.br/pt_BR/api/action/datastore_search` · `www.ana.gov.br/hidrowebservice/`
+**APIs em uso:**
+`dados.recife.pe.gov.br/pt_BR/api/action/datastore_search` ·
+`esigportal2.recife.pe.gov.br/arcgis/rest/services/COP` (chuva e rios, sem login) ·
+`www.ana.gov.br/hidrowebservice/` (conector pronto, aguardando credenciais)
 
 ---
 
@@ -118,6 +125,7 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 | [`docs/HISTORIAS.md`](docs/HISTORIAS.md) | 21 histórias de usuário detalhadas — escopo, critérios de aceitação e notas para IA |
 | [`docs/PLANO-DE-ACAO.md`](docs/PLANO-DE-ACAO.md) | Porta de entrada: ordem das issues, caminho crítico e significado das siglas dos épicos |
 | [`docs/PADROES.md`](docs/PADROES.md) | Convenções do repositório — nomes, datas, particionamento de dados, testes e fluxo Git |
+| [`docs/decisoes/0001-raw-mongodb-padronizada-neon.md`](docs/decisoes/0001-raw-mongodb-padronizada-neon.md) | Decisão 0001: RAW no MongoDB Atlas, camada padronizada no Neon e a fonte COP Recife |
 
 **Gestão do trabalho:** [Issues #5–#31](https://github.com/Matheus-Barkokebas/avd-proj-classe/issues) ·
 [Project **AerVita**](https://github.com/users/Matheus-Barkokebas/projects/1)
@@ -128,7 +136,7 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 
 | Fase | Objetivo | Épicos |
 |:---:|---|---|
-| **1** | Fundação (estrutura, contratos, orquestração) + ingestão dos conectores Recife e ANA (RAW/Bronze) | `FND` · `ING` |
+| **1** | Fundação (estrutura, contratos, orquestração) + ingestão dos conectores Recife, COP Recife e ANA (RAW + camada padronizada) | `FND` · `ING` |
 | **2** | Integração Silver/Gold, indicadores base e painel com dados reais | `INT` · `IND` · `PNL` |
 | **3** | Classificação de risco, modelos preditivos, alertas e boletim automático | `IND` · `PRD` · `PNL` |
 | **4** | Fontes complementares (APAC, INMET, CPRH, MonitorAr, DATASUS) | _roadmap_ |
@@ -138,16 +146,15 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 ## 🗂️ Estrutura do repositório
 
 ```text
-docs/                       planejamento, arquitetura, histórias e padrões
-prototipo/                  protótipo visual do painel situacional
-src/                        código do pipeline (ingestao, processamento, indicadores, predicao, serving)
-conf/                       configuração declarativa por fonte (sources, contracts, territorio)
-data/                       camadas RAW/Bronze/Silver/Gold  ·  ignorada pelo Git
-notebooks/                  exploração de dados (Data Understanding)
+docs/                       planejamento, arquitetura, histórias, padrões e decisões
+prototipo/                  console do painel (v3) e o arquivo de dados que o pipeline gera para ele
+src/                        código do pipeline (ingestao, serving)
+conf/                       configuração declarativa por fonte (sources, contracts)
+data/                       RAW e Bronze locais (modo arquivo)  ·  ignorada pelo Git
 tests/                      testes automatizados            ·  espelha src/
 ```
 
-> Convenções de código, dados e Git em [`docs/PADROES.md`](docs/PADROES.md).
+> Convenções de código, dados e Git em [`docs/PADROES.md`](docs/PADROES.md). As pastas `processamento/`, `indicadores/` e `predicao/` são criadas quando as Fases 2 e 3 começarem.
 
 ---
 
@@ -161,7 +168,9 @@ python -m venv .venv
 # Linux/macOS:  source .venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 
-python src/ingestao/epidemiologia.py   # coleta + Bronze de uma fonte (ver src/ingestao/README.md)
+cp .env.example .env                    # preencha MONGODB_URI e NEON_DATABASE_URL (só no .env)
+python src/ingestao/epidemiologia.py --armazenamento mongo --padronizada neon   # ver src/ingestao/README.md
+python src/ingestao/cop_recife.py --armazenamento mongo --padronizada neon     # chuva e rios do COP
 pytest                                  # testes sem rede; `pytest -m integracao` usa as APIs reais
 ```
 

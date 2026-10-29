@@ -20,7 +20,9 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.ingestao import comum
+from src.ingestao import armazenamento as armaz
 from src.ingestao import bronze
+from src.ingestao import padronizada
 from src.ingestao import recife_ckan
 from src.ingestao import runner
 
@@ -123,21 +125,19 @@ def materializar_bronze(
     data_coleta: date,
     diretorio_dados: Path = RAIZ_PROJETO / "data",
     caminho_config: Path | None = None,
-) -> Path:
+    armazenamento: armaz.ArmazenamentoRaw | None = None,
+    destino: padronizada.DestinoNeon | None = None,
+) -> Path | str:
     """Lê a RAW já persistida pelo runner, valida contra o contrato e grava Parquet.
 
     Se houver violações de contrato, lança exceção e NÃO grava Bronze parcial.
     Idempotência garantida pela substituição atômica da partição da data.
+    A RAW pode vir do arquivo local ou do MongoDB (decisão 0001); a Bronze
+    continua local até a camada padronizada no Neon (etapa D).
     """
-    caminho_raw = (
-        Path(diretorio_dados) / "raw" / "epidemiologia"
-        / f"{data_coleta.year:04d}" / f"{data_coleta.month:02d}"
-        / f"{data_coleta.day:02d}" / "datastore_search.json"
-    )
-    if not caminho_raw.is_file():
-        raise FileNotFoundError(f"Arquivo RAW não encontrado para a data {data_coleta}: {caminho_raw}")
-
-    conteudo_raw = json.loads(caminho_raw.read_text(encoding="utf-8"))
+    if armazenamento is None:
+        armazenamento = armaz.ArmazenamentoArquivo(diretorio_dados)
+    conteudo_raw = armaz.ler_json(armazenamento, "epidemiologia", data_coleta, "datastore_search.json")
     config = carregar_configuracao_fonte(caminho_config)
     mapeamento = config.get("mapeamento_colunas", {})
 
@@ -158,19 +158,24 @@ def materializar_bronze(
     # Validação do lote contra o contrato FND-02
     # Linhas inválidas vão para a quarentena; violação de lote ou todas as
     # linhas rejeitadas abortam sem gravar (BUG-06).
-    return bronze.gravar_validado(lote_bronze, "epidemiologia", "epidemiologia", data_coleta, diretorio_dados)
+    return bronze.gravar_validado(lote_bronze, "epidemiologia", "epidemiologia", data_coleta, diretorio_dados, destino=destino)
 
 
 def coletar_e_materializar(
     data_coleta: date | None = None,
     diretorio_dados: Path = RAIZ_PROJETO / "data",
     caminho_config: Path | None = None,
+    armazenamento: armaz.ArmazenamentoRaw | None = None,
+    destino: padronizada.DestinoNeon | None = None,
 ) -> dict[str, Any]:
     """Fluxo completo de ponta a ponta: coleta RAW via runner e materializa Bronze."""
+    if armazenamento is None:
+        armazenamento = armaz.ArmazenamentoArquivo(diretorio_dados)
     registro = runner.executar(
         "epidemiologia",
         data_coleta=data_coleta,
         diretorio_dados=diretorio_dados,
+        armazenamento=armazenamento,
     )
 
     if registro.get("status") != "ok":
@@ -182,11 +187,13 @@ def coletar_e_materializar(
             data_particao,
             diretorio_dados=diretorio_dados,
             caminho_config=caminho_config,
+            armazenamento=armazenamento,
+            destino=destino,
         )
         return {
             "execucao": registro,
             "bronze": str(caminho_bronze),
-            "rejeitados": bronze.contar_rejeitados(diretorio_dados, "epidemiologia", data_particao),
+            "rejeitados": bronze.contar_rejeitados(diretorio_dados, "epidemiologia", data_particao, destino),
         }
     except Exception as erro:
         registro["status"] = "erro"
@@ -205,11 +212,21 @@ def main() -> int:
         "--diretorio-dados", type=Path, default=RAIZ_PROJETO / "data",
         help="Diretório raiz de dados; padrão: data/ do projeto",
     )
+    parser.add_argument(
+        "--armazenamento", choices=armaz.TIPOS, default=None,
+        help="Onde fica a RAW; padrão: AERVITA_ARMAZENAMENTO ou arquivo",
+    )
+    parser.add_argument(
+        "--padronizada", choices=["arquivo", "neon"], default=None,
+        help="Onde gravar os dados validados; padrão: AERVITA_PADRONIZADA ou arquivo (Parquet)",
+    )
     opcoes = parser.parse_args()
 
     resultado = coletar_e_materializar(
         data_coleta=opcoes.data_coleta,
         diretorio_dados=opcoes.diretorio_dados,
+        armazenamento=armaz.criar(opcoes.armazenamento, opcoes.diretorio_dados),
+        destino=padronizada.criar(opcoes.padronizada),
     )
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
     return 0 if resultado["execucao"].get("status") == "ok" and resultado.get("bronze") else 1

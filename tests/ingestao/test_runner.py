@@ -10,6 +10,7 @@ from unittest.mock import Mock
 import pytest
 import yaml
 
+from src.ingestao import armazenamento
 from src.ingestao import runner
 
 
@@ -67,14 +68,14 @@ def test_falha_na_publicacao_preserva_raw_anterior(tmp_path, monkeypatch):
     runner.executar("dummy", diretorio_dados=tmp_path)
     caminho = next((tmp_path / "raw").rglob("*.json"))
     original = caminho.read_bytes()
-    substituir = runner.os.replace
+    substituir = armazenamento.os.replace
 
     def falhar_raw(origem, destino):
         if "raw" in Path(destino).parts:
             raise OSError("disco indisponivel")
         substituir(origem, destino)
 
-    monkeypatch.setattr(runner.os, "replace", falhar_raw)
+    monkeypatch.setattr(armazenamento.os, "replace", falhar_raw)
     registro = runner.executar("dummy", diretorio_dados=tmp_path)
     assert registro["status"] == "erro"
     assert "disco indisponivel" in registro["mensagem"]

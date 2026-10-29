@@ -48,7 +48,8 @@ A base central é o recurso de **Solicitações de Atendimento**, complementado 
 |---|---|---|
 | **Solicitações / Ouvidoria** | Dados Abertos Recife (`solicitacoes-de-atendimento-2026`, CSV com delimitador `;`) | Base principal: grupo/serviço, status, datas de abertura e conclusão, bairro, RPA, coordenadas |
 | **Territorial** | Dados Abertos Recife / IBGE | Malha de bairros e RPAs, população por bairro para normalizar o volume per capita |
-| **Climático** (complementar) | APAC / INMET | Explicar sazonalidade de serviços sensíveis a chuva (alagamento, deslizamento, queda de árvore) |
+| **Climático** (complementar) | **COP Recife** (chuva 1h/24h, rios com cotas, previsão, chuva mensal, pluviômetros 2023–2026) · APAC / INMET | Explicar sazonalidade de serviços sensíveis a chuva (alagamento, deslizamento, queda de árvore) e cruzar chuva × arboviroses (os pluviômetros cobrem 2025) |
+| **Risco territorial** | **COP Recife** (áreas alagáveis por distrito, pontos de alagamento da EMLURB) | Localizar áreas de risco de alagamento por distrito sanitário |
 | **Calendário** (derivado) | Gerado no pipeline | Ano, mês, semana, dia da semana, feriados, marcação de período chuvoso |
 
 ### Atributos esperados no recurso principal

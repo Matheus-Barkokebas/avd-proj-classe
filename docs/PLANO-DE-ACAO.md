@@ -53,6 +53,7 @@ Ondas sucessivas; dentro de uma onda, as issues podem correr em paralelo (respei
 4. **#8 · ING-01** Conector genérico CKAN Recife → base de ING-02/03/05
 5. Em paralelo depois de #8: **#9 · ING-02** (epidemiologia), **#10 · ING-03** (ocorrências), **#12 · ING-05** (território)
 6. **#11 · ING-04** Conector ANA HidroWeb → independente dos anteriores, pode andar em paralelo com #8
+   *(sem credenciais até agora; chuva e rios vêm do COP Recife — `conf/sources/cop_recife.yml`)*
 
 ### Onda 2 — Integração  *(Fase 2)*
 7. **#13 · INT-01** Calendário e padronização temporal
@@ -73,6 +74,7 @@ Ondas sucessivas; dentro de uma onda, as issues podem correr em paralelo (respei
 
 ### Fase 4 — Roadmap
 Fontes complementares (APAC, INMET, CPRH, MonitorAr, DATASUS) e novos indicadores. Ainda sem issues.
+O COP Recife, que estava implícito aqui, foi antecipado para a Fase 1 como fonte de chuva e rios.
 
 ---
 

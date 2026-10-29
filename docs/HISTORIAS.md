@@ -210,6 +210,11 @@ para que as coletas sejam agendáveis, observáveis e reprocessáveis.
 
 # ÉPICO: Ingestão
 
+> **Fonte adicionada fora do plano original:** o **COP Recife** (ArcGIS público da prefeitura) passou a ser a
+> fonte de chuva e rios — indicadores horários, nível dos rios com cotas oficiais, previsão, chuva mensal,
+> histórico dos pluviômetros e áreas alagáveis. Ver `conf/sources/cop_recife.yml` e
+> [decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md). Sem issue própria ainda.
+
 ### ING-01 · Conector genérico da API Dados Abertos Recife (CKAN)
 
 **Épico:** Ingestão · **Depende de:** FND-01, FND-03 · **Tamanho:** M · **Labels:** `epic:ingestao`, `tipo:historia`, `fase:1`
@@ -306,6 +311,9 @@ para que a situação por distrito possa cruzar chuva com ocorrências reais.
 
 ### ING-04 · Conector API ANA (HidroWeb) — chuva e nível de rios
 
+> **Situação (2026-10):** conector pronto e testado, mas sem credenciais nem códigos de estação. Enquanto isso,
+> chuva e nível de rios vêm do **COP Recife** (`cop_indicadores`, `cop_rios`), que já traz as cotas oficiais.
+
 **Épico:** Ingestão · **Depende de:** FND-01, FND-02, FND-03 · **Tamanho:** G · **Labels:** `epic:ingestao`, `tipo:historia`, `fase:1`
 
 **História**
@@ -369,6 +377,12 @@ para que exista uma referência única para georreferenciar e agregar todos os o
 ---
 
 # ÉPICO: Integração
+
+> **Primeira release ([decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)):** sem Silver e Gold.
+> A camada padronizada no Neon já cobre parte do escopo deste épico — tipagem e chave de negócio dos fatos
+> (INT-03) e o vínculo bairro → RPA → distrito em `dim_bairro` / `dim_distrito` (INT-02, sem geometria nem
+> áreas de risco). Calendário (INT-01), deduplicação entre fontes e a tabela distrito × dia (INT-04)
+> continuam pendentes para as fases seguintes.
 
 ### INT-01 · Camada de calendário e padronização temporal
 
@@ -497,6 +511,9 @@ para que o painel, os indicadores e os modelos consumam uma base única e pronta
 # ÉPICO: Indicadores & Risco
 
 ### IND-01 · Indicadores meteo-hidrológicos
+
+> **Dados disponíveis no Neon (2026-10):** chuva 24h em `cop_indicadores`, média histórica do mês em
+> `cop_chuva_mensal` e nível vs. cotas em `cop_rios` — o suficiente para este indicador sem a ANA.
 
 **Épico:** Indicadores · **Depende de:** INT-04 · **Tamanho:** M · **Labels:** `epic:indicadores`, `tipo:historia`, `fase:2`
 
@@ -680,6 +697,11 @@ para agir antes do evento se agravar.
 
 # ÉPICO: Painel & Boletim
 
+> **Primeira release ([decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)):** como ainda não há Gold,
+> `src/serving/exporta_painel.py` lê da camada padronizada no Neon (arboviroses e bairro → distrito) e da RAW
+> do território (malha) e gera `prototipo/dados/recife-real.js`, o arquivo que o console já consome. Os KPIs
+> de chuva, rios e risco seguem simulados até haver dado real de chuva e nível.
+
 ### PNL-01 · Ligar o painel aos dados reais (KPIs e situação por distrito)
 
 **Épico:** Painel · **Depende de:** INT-04, IND-01, IND-03 · **Tamanho:** G · **Labels:** `epic:painel`, `tipo:historia`, `fase:2`
@@ -689,7 +711,7 @@ Como Analista da Vigilância,
 quero que o painel mostre os KPIs e a tabela de distritos com dados reais da camada Gold em vez dos valores simulados,
 para usar a ferramenta na rotina.
 
-**Contexto** — [ARQUITETURA §7](ARQUITETURA.md#7-camada-de-entrega-serving) e [§11](ARQUITETURA.md#11-relação-com-o-protótipo). Protótipo: [`prototipo/v1-prototipo-aervita.html`](../prototipo/v1-prototipo-aervita.html).
+**Contexto** — [ARQUITETURA §7](ARQUITETURA.md#7-camada-de-entrega-serving) e [§11](ARQUITETURA.md#11-relação-com-o-protótipo). Protótipo: [`prototipo/v3-aervita-console.html`](../prototipo/v3-aervita-console.html) (a v1 original saiu do repositório; está no histórico do Git).
 
 **Escopo**
 - Endpoint/arquivo de dados que o painel consome (ex.: `serving/` gera um JSON por atualização a partir do Gold).

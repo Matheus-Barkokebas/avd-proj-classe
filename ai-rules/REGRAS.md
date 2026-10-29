@@ -42,7 +42,7 @@
 ## 4. Código e arquitetura
 
 **4.1** Siga [`docs/PADROES.md`](../docs/PADROES.md): `snake_case` sem acento, identificadores e comentários em português, data `YYYY-MM-DD HH:MM:SS` no fuso America/Recife.
-**4.2** Respeite as camadas ([`ARQUITETURA §3–§7`](../docs/ARQUITETURA.md)): ingestão **não** transforma; limpeza e integração ficam em `processamento/`; **só a camada Gold** é consumida por `indicadores/`, `predicao/` e `serving/`.
+**4.2** Respeite as camadas ([`ARQUITETURA §3–§7`](../docs/ARQUITETURA.md)): ingestão **não** transforma; limpeza e integração ficam em `processamento/`; **só a camada Gold** é consumida por `indicadores/`, `predicao/` e `serving/`. Na primeira release, sem Silver e Gold, quem faz esse papel é a **camada padronizada no Neon** ([decisão 0001](../docs/decisoes/0001-raw-mongodb-padronizada-neon.md)): `serving/` lê de lá, nunca da RAW.
 **4.3** Configuração declarativa em `conf/`; regra de negócio em `src/`. **Nenhum limiar ou parâmetro hard-coded** no `.py` — vai para YAML.
 **4.4** Um módulo por fonte ou por etapa. Funções puras onde der.
 **4.5** O código deve ler como o código ao redor: mesmo estilo, mesma densidade de comentário.
