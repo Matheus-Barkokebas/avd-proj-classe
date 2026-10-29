@@ -34,8 +34,8 @@ O repositório já é um monorepo com `pipeline/`, `api/` e `frontend/`.
 ### Front-end — React + TypeScript (Vite) (`frontend/`)
 
 - Componentes para as peças do protótipo; tipos gerados do OpenAPI da API.
-- Bibliotecas previstas: MapLibre GL ou Leaflet (mapa), TanStack Query (atualização periódica), Recharts ou
-  ECharts (séries).
+- Bibliotecas: MapLibre GL (mapa), TanStack Query (cache e atualização periódica), Recharts (séries),
+  React Router (rotas), Vitest + Testing Library (testes).
 
 ## Alternativas consideradas
 
@@ -60,7 +60,10 @@ O repositório já é um monorepo com `pipeline/`, `api/` e `frontend/`.
 
 | Item | Situação |
 |---|---|
-| API: `/saude`, `/v1/atualizacao`, chuva (atual, série, previsão, mensal), rios (+ série por estação), arboviroses (semanas, bairros), território (bairros, distritos, áreas alagáveis, pontos de alagamento) | Feita: 34 testes sem rede e 15 de integração contra o Neon real |
+| API: `/saude`, `/v1/atualizacao`, chuva (atual, série, previsão, mensal), rios (+ série por estação), arboviroses (semanas, bairros), território (bairros, distritos, malha dos bairros, áreas alagáveis, pontos de alagamento) | Feita: 43 testes sem rede e 16 de integração contra o Neon real |
 | Job de CI da API | Feito (`.github/workflows/api.yml`, roda só quando `api/` muda) |
-| Front-end React | A fazer |
+| Malha dos bairros no Neon (`geo_bairro`) para o mapa | Feita: carregada pelo pipeline junto com `dim_bairro` e `dim_distrito` |
+| Front-end React: Visão geral, Mapa, Chuva e rios, Arboviroses | Feito: 17 testes; telas sem dado real aparecem como "em breve" |
+| Job de CI do front | Feito (`.github/workflows/frontend.yml`: tipos, lint, testes e build) |
+| Coleta horária do COP agendada | A fazer: sem ela, chuva e rios ficam desatualizados e o painel avisa |
 | Deploy da API | A definir |

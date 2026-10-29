@@ -155,17 +155,30 @@ class DestinoNeon:
             return int(cur.fetchone()[0])
 
     def gravar_tabela(self, nome: str, ddl: str, colunas_tabela: list[str], linhas: list[dict[str, Any]]) -> str:
-        """Substitui por completo uma tabela de referência (ex.: dimensões do território)."""
-        nome = _ident(nome)
-        cols = [_ident(c) for c in colunas_tabela]
-        with self._conectar() as conexao, conexao.cursor() as cur:
-            cur.execute(ddl)
-            cur.execute(f"DELETE FROM {nome}")
-            with cur.copy(f"COPY {nome} ({', '.join(cols)}) FROM STDIN") as dados:
-                for linha in linhas:
-                    dados.write_row([linha.get(c) for c in cols])
-        return f"neon:{nome} ({len(linhas)} linhas)"
+        """Substitui por completo uma tabela de referência."""
+        return self.gravar_tabelas([(nome, ddl, colunas_tabela, linhas)])[nome]
 
+    def gravar_tabelas(self, tabelas: list[tuple[str, str, list[str], list[dict[str, Any]]]]) -> dict[str, str]:
+        """Substitui várias tabelas de referência numa transação só.
+
+        `tabelas` vem na ordem de dependência (mãe antes da filha, ex.: dim_distrito,
+        dim_bairro): apaga da filha para a mãe e insere da mãe para a filha, para a
+        chave estrangeira nunca ficar órfã. Se algo falhar, nada muda.
+        """
+        resumo = {}
+        with self._conectar() as conexao, conexao.cursor() as cur:
+            for nome, ddl, _, _ in tabelas:
+                _ident(nome)
+                cur.execute(ddl)
+            for nome, _, _, _ in reversed(tabelas):
+                cur.execute(f"DELETE FROM {_ident(nome)}")
+            for nome, _, colunas_tabela, linhas in tabelas:
+                cols = [_ident(c) for c in colunas_tabela]
+                with cur.copy(f"COPY {_ident(nome)} ({', '.join(cols)}) FROM STDIN") as dados:
+                    for linha in linhas:
+                        dados.write_row([linha.get(c) for c in cols])
+                resumo[nome] = f"neon:{nome} ({len(linhas)} linhas)"
+        return resumo
 
 def criar(tipo: str | None = None) -> DestinoNeon | None:
     """Destino da camada padronizada: 'neon' ou 'arquivo' (None = Parquet local, comportamento antigo)."""

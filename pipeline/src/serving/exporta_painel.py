@@ -18,7 +18,6 @@ import base64
 from collections import Counter, defaultdict
 from datetime import date
 import json
-import math
 from pathlib import Path
 import sys
 from typing import Any
@@ -27,6 +26,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.ingestao import armazenamento as armaz
+from src.ingestao.geometria import APELIDOS_MALHA, poligonos_simplificados
 from src.ingestao import padronizada
 from src.ingestao import runner
 from src.ingestao.territorio import chave_bairro
@@ -36,35 +36,6 @@ RAIZ_PROJETO = Path(__file__).resolve().parents[2]
 SAIDA_PADRAO = RAIZ_PROJETO.parent / "frontend" / "prototipo" / "dados" / "recife-real.js"
 AGRAVOS = ("dengue", "zika", "chikungunya")
 CLASSIFICACAO_DESCARTADO = "5"
-TOLERANCIA_GRAUS = 0.00012  # ~13 m: suficiente para o mapa da cidade inteira
-
-# A malha publica alguns nomes compostos que a tabela de distritos registra
-# pelo nome curto. Mapeamento explícito, conferido em 2026-10 nos 94 bairros.
-APELIDOS_MALHA = {"SITIO DOS PINTOS - SAO BRAS": "SITIO DOS PINTOS", "COHAB - IBURA DE CIMA": "COHAB"}
-
-
-# ------------------------------------------------------------------ geometria
-def douglas_peucker(pontos: list[list[float]], tol: float) -> list[list[float]]:
-    if len(pontos) < 4:
-        return pontos
-    (ax, ay), (bx, by) = pontos[0], pontos[-1]
-    dx, dy = bx - ax, by - ay
-    comprimento = math.hypot(dx, dy) or 1e-12
-    indice, maior = 0, 0.0
-    for i in range(1, len(pontos) - 1):
-        px, py = pontos[i]
-        d = abs(dy * (px - ax) - dx * (py - ay)) / comprimento
-        if d > maior:
-            indice, maior = i, d
-    if maior <= tol:
-        return [pontos[0], pontos[-1]]
-    return douglas_peucker(pontos[: indice + 1], tol)[:-1] + douglas_peucker(pontos[indice:], tol)
-
-
-def simplificar_anel(anel: list[list[float]], tol: float = TOLERANCIA_GRAUS) -> list[list[float]]:
-    meio = len(anel) // 2  # anel fechado: simplifica as duas metades
-    pontos = douglas_peucker(anel[: meio + 1], tol)[:-1] + douglas_peucker(anel[meio:], tol)
-    return [[round(x, 5), round(y, 5)] for x, y in pontos]
 
 
 # ------------------------------------------------------------------ leitura
@@ -129,11 +100,10 @@ def bairros_da_malha(geojson: dict[str, Any], bairro_para_ds: dict[str, str]) ->
         p, geom = feicao["properties"], feicao["geometry"]
         nome = p["EBAIRRNOMEOF"]
         chave = APELIDOS_MALHA.get(chave_bairro(nome), chave_bairro(nome))
-        poligonos = geom["coordinates"] if geom["type"] == "MultiPolygon" else [geom["coordinates"]]
         bairros.append({
             "nome": nome, "chave": chave, "ds": bairro_para_ds.get(chave), "rpa": p.get("CRPAAACODI"),
             "area_km2": round(p.get("DB2GSE.ST_Area(SHAPE)", 0) / 1e6, 2),
-            "poligonos": [a for a in (simplificar_anel(pol[0]) for pol in poligonos) if len(a) >= 4],
+            "poligonos": poligonos_simplificados(geom),
         })
     return bairros
 

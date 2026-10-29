@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 
 RAIZ_API = Path(__file__).resolve().parents[1]
+ORIGEM_DEV_PADRAO = "http://localhost:5173"
 
 
 def carregar_env(caminho: Path | None = None) -> None:
@@ -38,7 +39,9 @@ def carregar(caminho_env: Path | None = None) -> Configuracao:
     url = os.environ.get("NEON_DATABASE_URL", "").strip()
     if not url:
         raise RuntimeError("NEON_DATABASE_URL não definida. Copie api/.env.example para api/.env e preencha.")
-    origens = tuple(o.strip() for o in os.environ.get("API_ORIGENS_CORS", "").split(",") if o.strip())
+    # Sem a variável: libera o front local (Vite). Definida vazia: nenhuma origem (produção sem navegador).
+    origens_txt = os.environ.get("API_ORIGENS_CORS", ORIGEM_DEV_PADRAO)
+    origens = tuple(o.strip() for o in origens_txt.split(",") if o.strip())
     cache = int(os.environ.get("API_CACHE_SEGUNDOS", "300") or 300)
     return Configuracao(neon_url=url, origens_cors=origens, cache_segundos=cache)
 

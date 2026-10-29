@@ -27,7 +27,7 @@ def cliente():
     "/saude", "/v1/atualizacao", "/v1/chuva/atual", "/v1/chuva/serie?horas=720", "/v1/chuva/mensal",
     "/v1/chuva/previsao", "/v1/rios", "/v1/arboviroses/semanas", "/v1/arboviroses/bairros",
     "/v1/territorio/bairros", "/v1/territorio/distritos", "/v1/territorio/areas-alagaveis",
-    "/v1/territorio/pontos-alagamento",
+    "/v1/territorio/pontos-alagamento", "/v1/territorio/bairros-geo",
 ])
 def test_rota_responde_com_dado_real(cliente, rota):
     r = cliente.get(rota)
@@ -41,6 +41,7 @@ def test_numeros_batem_com_o_pipeline(cliente):
     assert len(bairros["bairros"]) == 94
     assert len(cliente.get("/v1/territorio/distritos").json()) == 8
     assert len(cliente.get("/v1/rios").json()) == 5
+    assert len(cliente.get("/v1/territorio/bairros-geo").json()["features"]) == 94
 
 
 def test_api_nao_consegue_escrever(cliente):

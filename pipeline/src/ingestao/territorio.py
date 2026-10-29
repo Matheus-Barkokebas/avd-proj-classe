@@ -41,6 +41,7 @@ if __package__ in (None, ""):
     sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 from src.ingestao import armazenamento as armaz
+from src.ingestao import geometria
 from src.ingestao import padronizada
 from src.ingestao import recife_ckan
 from src.ingestao import runner
@@ -191,6 +192,15 @@ CREATE TABLE IF NOT EXISTS dim_bairro (
 )"""
 
 
+DDL_GEO_BAIRRO = """
+CREATE TABLE IF NOT EXISTS geo_bairro (
+    chave_bairro text PRIMARY KEY,
+    nome_bairro_malha text NOT NULL,
+    area_km2 double precision,
+    geometria_geojson text NOT NULL
+)"""
+
+
 def chave_bairro(nome: Any) -> str:
     """Nome de bairro normalizado para cruzar bases: sem acento, maiúsculo, espaço único."""
     texto = unicodedata.normalize("NFKD", str(nome or "")).encode("ascii", "ignore").decode()
@@ -239,17 +249,54 @@ def dimensoes(conteudo_raw: dict[str, Any], config: dict[str, Any]) -> dict[str,
     }
 
 
+def geometrias_bairros(conteudo_raw: dict[str, Any]) -> list[dict[str, Any]]:
+    """Malha oficial de bairros (base bairros_geo da RAW) simplificada para o mapa.
+
+    A chave segue a mesma normalização de dim_bairro (com os apelidos de nomes
+    compostos), para o front cruzar geometria, distrito e indicadores.
+    """
+    bloco = conteudo_raw.get("bairros_geo")
+    if not isinstance(bloco, dict) or bloco.get("tipo") != "arquivo":
+        return []
+    if not bloco.get("conteudo_base64"):
+        return []
+    malha = json.loads(base64.b64decode(bloco["conteudo_base64"]))
+    linhas = []
+    for feicao in malha.get("features", []):
+        props = feicao.get("properties") or {}
+        nome = props.get("EBAIRRNOMEOF") or props.get("EBAIRRNOME")
+        if not nome or not feicao.get("geometry"):
+            continue
+        chave = geometria.APELIDOS_MALHA.get(chave_bairro(nome), chave_bairro(nome))
+        aneis = geometria.poligonos_simplificados(feicao["geometry"])
+        area = props.get("DB2GSE.ST_Area(SHAPE)")
+        linhas.append({
+            "chave_bairro": chave, "nome_bairro_malha": nome,
+            "area_km2": round(area / 1e6, 3) if area else None,
+            "geometria_geojson": json.dumps(geometria.multipoligono(aneis), separators=(",", ":")),
+        })
+    return linhas
+
+
 def gravar_dimensoes(conteudo_raw: dict[str, Any], destino: padronizada.DestinoNeon,
                      caminho_config: Path | None = None) -> dict[str, Any]:
-    """Grava dim_distrito e dim_bairro no Neon, substituindo as anteriores."""
+    """Grava dim_distrito, dim_bairro e geo_bairro no Neon numa transação só, substituindo as anteriores."""
     dims = dimensoes(conteudo_raw, carregar_configuracao_fonte(caminho_config))
-    return {
-        "dim_distrito": destino.gravar_tabela(
-            "dim_distrito", DDL_DIM_DISTRITO, ["distrito_sanitario", "descricao_distrito"], dims["dim_distrito"]),
-        "dim_bairro": destino.gravar_tabela(
-            "dim_bairro", DDL_DIM_BAIRRO, ["chave_bairro", "nome_bairro", "rpa", "distrito_sanitario"], dims["dim_bairro"]),
-        "sem_correspondencia": dims["sem_correspondencia"],
-    }
+    geos = geometrias_bairros(conteudo_raw)
+    tabelas = [
+        ("dim_distrito", DDL_DIM_DISTRITO, ["distrito_sanitario", "descricao_distrito"], dims["dim_distrito"]),
+        ("dim_bairro", DDL_DIM_BAIRRO, ["chave_bairro", "nome_bairro", "rpa", "distrito_sanitario"], dims["dim_bairro"]),
+    ]
+    if geos:
+        tabelas.append(("geo_bairro", DDL_GEO_BAIRRO,
+                        ["chave_bairro", "nome_bairro_malha", "area_km2", "geometria_geojson"], geos))
+    resultado = {**destino.gravar_tabelas(tabelas), "sem_correspondencia": dims["sem_correspondencia"]}
+    if geos:
+        chaves_dim = {b["chave_bairro"] for b in dims["dim_bairro"]}
+        # bairro com desenho mas sem cadastro (ou o contrário): registrado, não descartado
+        resultado["malha_sem_cadastro"] = sorted({g["chave_bairro"] for g in geos} - chaves_dim)
+        resultado["cadastro_sem_malha"] = sorted(chaves_dim - {g["chave_bairro"] for g in geos})
+    return resultado
 
 
 def materializar_bronze(

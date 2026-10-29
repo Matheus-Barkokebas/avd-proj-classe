@@ -93,6 +93,14 @@ class RepositorioNeon:
             "FROM dim_bairro b LEFT JOIN dim_distrito d USING (distrito_sanitario) ORDER BY b.nome_bairro"
         )
 
+    def bairros_geo(self) -> list[dict[str, Any]]:
+        return self._q(
+            "SELECT g.chave_bairro, b.nome_bairro, b.rpa, b.distrito_sanitario, d.descricao_distrito, "
+            "g.area_km2, g.geometria_geojson "
+            "FROM geo_bairro g LEFT JOIN dim_bairro b USING (chave_bairro) "
+            "LEFT JOIN dim_distrito d USING (distrito_sanitario) ORDER BY g.chave_bairro"
+        )
+
     def distritos(self) -> list[dict[str, Any]]:
         return self._q(
             "SELECT d.distrito_sanitario, d.descricao_distrito, count(b.chave_bairro) AS bairros "

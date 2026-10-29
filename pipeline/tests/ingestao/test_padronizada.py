@@ -194,3 +194,52 @@ def test_gravar_dimensoes_substitui_as_tabelas():
     r = territorio.gravar_dimensoes(raw, padronizada.DestinoNeon(lambda: conexao))
     assert r["dim_distrito"] == "neon:dim_distrito (1 linhas)" and r["dim_bairro"] == "neon:dim_bairro (1 linhas)"
     assert "DELETE FROM dim_bairro" in sqls(conexao)
+
+
+def _raw_com_malha():
+    import base64
+
+    quadrado = [[-34.90, -8.05], [-34.89, -8.05], [-34.89, -8.04], [-34.90, -8.04], [-34.90, -8.05]]
+    malha = {"type": "FeatureCollection", "features": [
+        {"properties": {"EBAIRRNOMEOF": "Pina", "DB2GSE.ST_Area(SHAPE)": 2_000_000},
+         "geometry": {"type": "Polygon", "coordinates": [quadrado]}},
+        {"properties": {"EBAIRRNOMEOF": "Sítio dos Pintos - São Brás"},
+         "geometry": {"type": "MultiPolygon", "coordinates": [[quadrado]]}},
+    ]}
+    raw = _raw_territorio([{"Bairro": "Pina", "rpa": 6}], [{"bairro": "Pina", "distrito_sanitario": 6, "descricao_distrito": "DS VI"}])
+    raw["bairros_geo"]["conteudo_base64"] = base64.b64encode(json.dumps(malha).encode()).decode()
+    return raw
+
+
+def test_geometrias_usam_a_mesma_chave_de_dim_bairro():
+    geos = territorio.geometrias_bairros(_raw_com_malha())
+    assert [g["chave_bairro"] for g in geos] == ["PINA", "SITIO DOS PINTOS"]  # apelido aplicado
+    assert geos[0]["area_km2"] == 2.0 and geos[1]["area_km2"] is None
+    geometria = json.loads(geos[0]["geometria_geojson"])
+    assert geometria["type"] == "MultiPolygon" and len(geometria["coordinates"][0][0]) >= 4
+
+
+def test_gravar_dimensoes_inclui_a_malha_e_relata_divergencias():
+    conexao = ConexaoFalsa()
+    r = territorio.gravar_dimensoes(_raw_com_malha(), padronizada.DestinoNeon(lambda: conexao))
+    assert r["geo_bairro"] == "neon:geo_bairro (2 linhas)"
+    assert r["malha_sem_cadastro"] == ["SITIO DOS PINTOS"] and r["cadastro_sem_malha"] == []
+    assert "DELETE FROM geo_bairro" in sqls(conexao)
+
+
+def test_raw_sem_malha_nao_grava_geo_bairro():
+    conexao = ConexaoFalsa()
+    raw = _raw_territorio([{"Bairro": "Pina", "rpa": 6}], [{"bairro": "Pina", "distrito_sanitario": 6, "descricao_distrito": "DS VI"}])
+    del raw["bairros_geo"]
+    assert "geo_bairro" not in territorio.gravar_dimensoes(raw, padronizada.DestinoNeon(lambda: conexao))
+
+
+def test_gravar_tabelas_apaga_filha_antes_da_mae_e_insere_mae_antes():
+    conexao = ConexaoFalsa()
+    destino = padronizada.DestinoNeon(lambda: conexao)
+    destino.gravar_tabelas([("dim_distrito", "CREATE TABLE IF NOT EXISTS dim_distrito (x int)", ["x"], [{"x": 1}]),
+                            ("dim_bairro", "CREATE TABLE IF NOT EXISTS dim_bairro (y int)", ["y"], [{"y": 2}])])
+    deletes = [s for s in sqls(conexao) if s.startswith("DELETE")]
+    assert deletes == ["DELETE FROM dim_bairro", "DELETE FROM dim_distrito"]
+    assert [sql for sql, _ in conexao.copias] == ["COPY dim_distrito (x) FROM STDIN", "COPY dim_bairro (y) FROM STDIN"]
+    assert conexao.commits == 1  # uma transação para todas

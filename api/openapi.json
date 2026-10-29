@@ -1,0 +1,1814 @@
+{
+  "components": {
+    "schemas": {
+      "ArbovirosesBairro": {
+        "properties": {
+          "chave_bairro": {
+            "title": "Chave Bairro",
+            "type": "string"
+          },
+          "chikungunya": {
+            "title": "Chikungunya",
+            "type": "integer"
+          },
+          "dengue": {
+            "title": "Dengue",
+            "type": "integer"
+          },
+          "descricao_distrito": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descricao Distrito"
+          },
+          "distrito_sanitario": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distrito Sanitario"
+          },
+          "nome_bairro": {
+            "title": "Nome Bairro",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "zika": {
+            "title": "Zika",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chave_bairro",
+          "nome_bairro",
+          "distrito_sanitario",
+          "descricao_distrito",
+          "dengue",
+          "chikungunya",
+          "zika",
+          "total"
+        ],
+        "title": "ArbovirosesBairro",
+        "type": "object"
+      },
+      "ArbovirosesPorBairro": {
+        "properties": {
+          "bairros": {
+            "items": {
+              "$ref": "#/components/schemas/ArbovirosesBairro"
+            },
+            "title": "Bairros",
+            "type": "array"
+          },
+          "grafias_nao_reconhecidas": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Grafias Nao Reconhecidas",
+            "type": "array"
+          },
+          "nao_georreferenciadas": {
+            "description": "Notificações cujo bairro não casou com a tabela oficial",
+            "title": "Nao Georreferenciadas",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bairros",
+          "nao_georreferenciadas",
+          "grafias_nao_reconhecidas"
+        ],
+        "title": "ArbovirosesPorBairro",
+        "type": "object"
+      },
+      "ArbovirosesSemana": {
+        "properties": {
+          "agravo": {
+            "title": "Agravo",
+            "type": "string"
+          },
+          "nao_descartadas": {
+            "title": "Nao Descartadas",
+            "type": "integer"
+          },
+          "notificacoes": {
+            "title": "Notificacoes",
+            "type": "integer"
+          },
+          "semana": {
+            "description": "Semana epidemiológica, ex.: 202533",
+            "title": "Semana",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "semana",
+          "agravo",
+          "notificacoes",
+          "nao_descartadas"
+        ],
+        "title": "ArbovirosesSemana",
+        "type": "object"
+      },
+      "Atualizacao": {
+        "properties": {
+          "gerado_em": {
+            "format": "date-time",
+            "title": "Gerado Em",
+            "type": "string"
+          },
+          "hoje": {
+            "format": "date",
+            "title": "Hoje",
+            "type": "string"
+          },
+          "tabelas": {
+            "items": {
+              "$ref": "#/components/schemas/CargaTabela"
+            },
+            "title": "Tabelas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "gerado_em",
+          "tabelas",
+          "hoje"
+        ],
+        "title": "Atualizacao",
+        "type": "object"
+      },
+      "Bairro": {
+        "properties": {
+          "chave_bairro": {
+            "title": "Chave Bairro",
+            "type": "string"
+          },
+          "descricao_distrito": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descricao Distrito"
+          },
+          "distrito_sanitario": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Distrito Sanitario"
+          },
+          "nome_bairro": {
+            "title": "Nome Bairro",
+            "type": "string"
+          },
+          "rpa": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rpa"
+          }
+        },
+        "required": [
+          "chave_bairro",
+          "nome_bairro",
+          "rpa",
+          "distrito_sanitario",
+          "descricao_distrito"
+        ],
+        "title": "Bairro",
+        "type": "object"
+      },
+      "CargaTabela": {
+        "properties": {
+          "carregado_em": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Carregado Em"
+          },
+          "linhas": {
+            "title": "Linhas",
+            "type": "integer"
+          },
+          "tabela": {
+            "title": "Tabela",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tabela",
+          "carregado_em",
+          "linhas"
+        ],
+        "title": "CargaTabela",
+        "type": "object"
+      },
+      "ChuvaAtual": {
+        "properties": {
+          "abrigos": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Abrigos"
+          },
+          "alagamentos": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alagamentos"
+          },
+          "chuva_max_1h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Max 1H Mm"
+          },
+          "chuva_max_24h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Max 24H Mm"
+          },
+          "chuva_media_1h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Media 1H Mm"
+          },
+          "chuva_media_24h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Media 24H Mm"
+          },
+          "data_hora": {
+            "format": "date-time",
+            "title": "Data Hora",
+            "type": "string"
+          },
+          "estacao_max_1h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estacao Max 1H"
+          },
+          "estacao_max_24h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estacao Max 24H"
+          },
+          "estagio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estagio"
+          },
+          "mare_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mare M"
+          },
+          "mes": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ComparacaoMensal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "ocorrencias": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocorrencias"
+          },
+          "sentido_mare": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sentido Mare"
+          }
+        },
+        "required": [
+          "data_hora",
+          "estagio",
+          "chuva_media_1h_mm",
+          "chuva_max_1h_mm",
+          "estacao_max_1h",
+          "chuva_media_24h_mm",
+          "chuva_max_24h_mm",
+          "estacao_max_24h",
+          "mare_m",
+          "sentido_mare",
+          "ocorrencias",
+          "alagamentos",
+          "abrigos",
+          "mes"
+        ],
+        "title": "ChuvaAtual",
+        "type": "object"
+      },
+      "ChuvaMensal": {
+        "properties": {
+          "ano": {
+            "title": "Ano",
+            "type": "integer"
+          },
+          "meses": {
+            "items": {
+              "$ref": "#/components/schemas/ChuvaMes"
+            },
+            "title": "Meses",
+            "type": "array"
+          }
+        },
+        "required": [
+          "ano",
+          "meses"
+        ],
+        "title": "ChuvaMensal",
+        "type": "object"
+      },
+      "ChuvaMes": {
+        "properties": {
+          "chuva_ano_anterior_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Ano Anterior Mm"
+          },
+          "chuva_ano_atual_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Ano Atual Mm"
+          },
+          "media_historica_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Historica Mm"
+          },
+          "mes": {
+            "title": "Mes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mes",
+          "chuva_ano_atual_mm",
+          "chuva_ano_anterior_mm",
+          "media_historica_mm"
+        ],
+        "title": "ChuvaMes",
+        "type": "object"
+      },
+      "ComparacaoMensal": {
+        "properties": {
+          "ano": {
+            "title": "Ano",
+            "type": "integer"
+          },
+          "chuva_acumulada_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Chuva acumulada no mês até agora",
+            "title": "Chuva Acumulada Mm"
+          },
+          "media_historica_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Historica Mm"
+          },
+          "mes": {
+            "title": "Mes",
+            "type": "integer"
+          },
+          "percentual_da_media": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Acumulado do mês em % da média histórica do mês",
+            "title": "Percentual Da Media"
+          }
+        },
+        "required": [
+          "mes",
+          "ano",
+          "chuva_acumulada_mm",
+          "media_historica_mm",
+          "percentual_da_media"
+        ],
+        "title": "ComparacaoMensal",
+        "type": "object"
+      },
+      "Distrito": {
+        "properties": {
+          "bairros": {
+            "title": "Bairros",
+            "type": "integer"
+          },
+          "descricao_distrito": {
+            "title": "Descricao Distrito",
+            "type": "string"
+          },
+          "distrito_sanitario": {
+            "title": "Distrito Sanitario",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "distrito_sanitario",
+          "descricao_distrito",
+          "bairros"
+        ],
+        "title": "Distrito",
+        "type": "object"
+      },
+      "Erro": {
+        "properties": {
+          "detalhe": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detalhe"
+          },
+          "erro": {
+            "description": "Código curto do erro, estável para o front tratar",
+            "title": "Erro",
+            "type": "string"
+          }
+        },
+        "required": [
+          "erro"
+        ],
+        "title": "Erro",
+        "type": "object"
+      },
+      "FeatureCollection": {
+        "properties": {
+          "features": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "type": {
+            "const": "FeatureCollection",
+            "default": "FeatureCollection",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "features"
+        ],
+        "title": "FeatureCollection",
+        "type": "object"
+      },
+      "PontoSerieChuva": {
+        "properties": {
+          "chuva_max_1h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Max 1H Mm"
+          },
+          "chuva_max_24h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Max 24H Mm"
+          },
+          "chuva_media_1h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Media 1H Mm"
+          },
+          "chuva_media_24h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chuva Media 24H Mm"
+          },
+          "data_hora": {
+            "format": "date-time",
+            "title": "Data Hora",
+            "type": "string"
+          },
+          "mare_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mare M"
+          }
+        },
+        "required": [
+          "data_hora",
+          "chuva_media_1h_mm",
+          "chuva_max_1h_mm",
+          "chuva_media_24h_mm",
+          "chuva_max_24h_mm",
+          "mare_m"
+        ],
+        "title": "PontoSerieChuva",
+        "type": "object"
+      },
+      "PontoSerieRio": {
+        "properties": {
+          "data_hora": {
+            "format": "date-time",
+            "title": "Data Hora",
+            "type": "string"
+          },
+          "nivel": {
+            "title": "Nivel",
+            "type": "number"
+          }
+        },
+        "required": [
+          "data_hora",
+          "nivel"
+        ],
+        "title": "PontoSerieRio",
+        "type": "object"
+      },
+      "PrevisaoHora": {
+        "properties": {
+          "data_hora_prevista": {
+            "format": "date-time",
+            "title": "Data Hora Prevista",
+            "type": "string"
+          },
+          "ecmwf_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ecmwf Mm"
+          },
+          "gfs_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gfs Mm"
+          },
+          "icon_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Icon Mm"
+          },
+          "media_modelos_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Média dos modelos com valor",
+            "title": "Media Modelos Mm"
+          },
+          "wrf_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wrf Mm"
+          }
+        },
+        "required": [
+          "data_hora_prevista",
+          "gfs_mm",
+          "ecmwf_mm",
+          "icon_mm",
+          "wrf_mm",
+          "media_modelos_mm"
+        ],
+        "title": "PrevisaoHora",
+        "type": "object"
+      },
+      "Rio": {
+        "properties": {
+          "codigo_estacao": {
+            "title": "Codigo Estacao",
+            "type": "string"
+          },
+          "cota_alerta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cota Alerta"
+          },
+          "cota_inundacao": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cota Inundacao"
+          },
+          "cota_pre_alerta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cota Pre Alerta"
+          },
+          "data_hora": {
+            "format": "date-time",
+            "title": "Data Hora",
+            "type": "string"
+          },
+          "estacao": {
+            "title": "Estacao",
+            "type": "string"
+          },
+          "nivel": {
+            "description": "Na unidade da fonte (a confirmar com o COP; valores sugerem cm)",
+            "title": "Nivel",
+            "type": "number"
+          },
+          "percentual_da_cota_alerta": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentual Da Cota Alerta"
+          },
+          "rio": {
+            "title": "Rio",
+            "type": "string"
+          },
+          "situacao": {
+            "description": "Calculada pelo nível contra as cotas oficiais",
+            "enum": [
+              "normal",
+              "pre_alerta",
+              "alerta",
+              "inundacao",
+              "sem_cota"
+            ],
+            "title": "Situacao",
+            "type": "string"
+          },
+          "situacao_fonte": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Situação informada pelo COP",
+            "title": "Situacao Fonte"
+          }
+        },
+        "required": [
+          "codigo_estacao",
+          "estacao",
+          "rio",
+          "data_hora",
+          "nivel",
+          "cota_pre_alerta",
+          "cota_alerta",
+          "cota_inundacao",
+          "situacao",
+          "situacao_fonte",
+          "percentual_da_cota_alerta"
+        ],
+        "title": "Rio",
+        "type": "object"
+      },
+      "Saude": {
+        "properties": {
+          "banco": {
+            "enum": [
+              "ok",
+              "indisponivel"
+            ],
+            "title": "Banco",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "ok",
+              "indisponivel"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "banco"
+        ],
+        "title": "Saude",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Dados de chuva, rios, arboviroses e território do Recife, lidos da camada padronizada (Neon). Só leitura. Datas no horário do Recife (-03:00).",
+    "title": "AerVita API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/saude": {
+      "get": {
+        "operationId": "saude_saude_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Saude"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Verifica a API e a conexão com o banco",
+        "tags": [
+          "operacao"
+        ]
+      }
+    },
+    "/v1/arboviroses/bairros": {
+      "get": {
+        "operationId": "por_bairro_v1_arboviroses_bairros_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArbovirosesPorBairro"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Notificações por bairro e distrito",
+        "tags": [
+          "arboviroses"
+        ]
+      }
+    },
+    "/v1/arboviroses/semanas": {
+      "get": {
+        "operationId": "por_semana_v1_arboviroses_semanas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "agravo",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "dengue",
+                    "chikungunya",
+                    "zika"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Agravo"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ArbovirosesSemana"
+                  },
+                  "title": "Response Por Semana V1 Arboviroses Semanas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Notificações por semana epidemiológica",
+        "tags": [
+          "arboviroses"
+        ]
+      }
+    },
+    "/v1/atualizacao": {
+      "get": {
+        "operationId": "atualizacao_v1_atualizacao_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Atualizacao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Quando cada tabela foi carregada pela última vez",
+        "tags": [
+          "operacao"
+        ]
+      }
+    },
+    "/v1/chuva/atual": {
+      "get": {
+        "operationId": "chuva_atual_v1_chuva_atual_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChuvaAtual"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Leitura mais recente de chuva, maré e estágio",
+        "tags": [
+          "chuva"
+        ]
+      }
+    },
+    "/v1/chuva/mensal": {
+      "get": {
+        "operationId": "chuva_mensal_v1_chuva_mensal_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "ano",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 2100,
+                  "minimum": 2000,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Ano"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChuvaMensal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Chuva por mês contra a média histórica",
+        "tags": [
+          "chuva"
+        ]
+      }
+    },
+    "/v1/chuva/previsao": {
+      "get": {
+        "operationId": "chuva_previsao_v1_chuva_previsao_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PrevisaoHora"
+                  },
+                  "title": "Response Chuva Previsao V1 Chuva Previsao Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Previsão hora a hora por modelo",
+        "tags": [
+          "chuva"
+        ]
+      }
+    },
+    "/v1/chuva/serie": {
+      "get": {
+        "operationId": "chuva_serie_v1_chuva_serie_get",
+        "parameters": [
+          {
+            "description": "Janela, em horas, até agora",
+            "in": "query",
+            "name": "horas",
+            "required": false,
+            "schema": {
+              "default": 72,
+              "description": "Janela, em horas, até agora",
+              "maximum": 744,
+              "minimum": 1,
+              "title": "Horas",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PontoSerieChuva"
+                  },
+                  "title": "Response Chuva Serie V1 Chuva Serie Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Série horária de chuva e maré",
+        "tags": [
+          "chuva"
+        ]
+      }
+    },
+    "/v1/rios": {
+      "get": {
+        "operationId": "rios_v1_rios_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Rio"
+                  },
+                  "title": "Response Rios V1 Rios Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Última leitura de cada estação, com situação",
+        "tags": [
+          "rios"
+        ]
+      }
+    },
+    "/v1/rios/{codigo_estacao}/serie": {
+      "get": {
+        "operationId": "serie_rio_v1_rios__codigo_estacao__serie_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "codigo_estacao",
+            "required": true,
+            "schema": {
+              "title": "Codigo Estacao",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "horas",
+            "required": false,
+            "schema": {
+              "default": 72,
+              "maximum": 744,
+              "minimum": 1,
+              "title": "Horas",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PontoSerieRio"
+                  },
+                  "title": "Response Serie Rio V1 Rios  Codigo Estacao  Serie Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Série do nível de uma estação",
+        "tags": [
+          "rios"
+        ]
+      }
+    },
+    "/v1/territorio/areas-alagaveis": {
+      "get": {
+        "operationId": "areas_alagaveis_v1_territorio_areas_alagaveis_get",
+        "parameters": [
+          {
+            "description": "Filtra por distrito sanitário",
+            "in": "query",
+            "name": "distrito",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 8,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtra por distrito sanitário",
+              "title": "Distrito"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Áreas alagáveis em GeoJSON (WGS84)",
+        "tags": [
+          "territorio"
+        ]
+      }
+    },
+    "/v1/territorio/bairros": {
+      "get": {
+        "operationId": "bairros_v1_territorio_bairros_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Bairro"
+                  },
+                  "title": "Response Bairros V1 Territorio Bairros Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Bairros com RPA e distrito sanitário",
+        "tags": [
+          "territorio"
+        ]
+      }
+    },
+    "/v1/territorio/bairros-geo": {
+      "get": {
+        "operationId": "bairros_geo_v1_territorio_bairros_geo_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Malha dos 94 bairros em GeoJSON (WGS84), com distrito e RPA",
+        "tags": [
+          "territorio"
+        ]
+      }
+    },
+    "/v1/territorio/distritos": {
+      "get": {
+        "operationId": "distritos_v1_territorio_distritos_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Distrito"
+                  },
+                  "title": "Response Distritos V1 Territorio Distritos Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Distritos sanitários",
+        "tags": [
+          "territorio"
+        ]
+      }
+    },
+    "/v1/territorio/pontos-alagamento": {
+      "get": {
+        "operationId": "pontos_alagamento_v1_territorio_pontos_alagamento_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Pontos de alagamento com obra de drenagem (EMLURB), em GeoJSON",
+        "tags": [
+          "territorio"
+        ]
+      }
+    }
+  }
+}
