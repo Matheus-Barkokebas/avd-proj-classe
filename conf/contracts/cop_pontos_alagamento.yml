@@ -1,0 +1,58 @@
+# Contrato de dados: Pontos de alagamento com intervenção de drenagem (EMLURB), publicados pelo COP
+# Fonte: conf/sources/cop_recife.yml / decisão 0001
+tabela: cop_pontos_alagamento
+chave_negocio:
+  - id_ponto
+campos:
+  - nome: id_ponto
+    tipo: string
+    obrigatorio: true
+    descricao: "Identificador do ponto na fonte"
+  - nome: bairro
+    tipo: string
+    obrigatorio: true
+    descricao: "Bairro (texto de origem)"
+  - nome: rpa
+    tipo: int
+    obrigatorio: false
+    descricao: "Região Político-Administrativa"
+  - nome: logradouro
+    tipo: string
+    obrigatorio: false
+    descricao: "Logradouro"
+  - nome: trecho
+    tipo: string
+    obrigatorio: false
+    descricao: "Trecho afetado"
+  - nome: status
+    tipo: string
+    obrigatorio: false
+    descricao: "Situação da intervenção (ex.: CONCLUÍDO)"
+  - nome: classificacao
+    tipo: string
+    obrigatorio: false
+    descricao: "Classificação (ex.: RESOLVIDO, GRANDES OBRAS)"
+  - nome: percentual_concluido
+    tipo: float
+    obrigatorio: false
+    descricao: "Fração concluída da intervenção (0 a 1)"
+  - nome: custo_real
+    tipo: float
+    obrigatorio: false
+    descricao: "Custo da intervenção (R$)"
+  - nome: inicio_intervencao
+    tipo: date
+    obrigatorio: false
+    descricao: "Início da intervenção"
+  - nome: termino_intervencao
+    tipo: date
+    obrigatorio: false
+    descricao: "Término da intervenção"
+  - nome: longitude
+    tipo: float
+    obrigatorio: false
+    descricao: "Longitude do ponto"
+  - nome: latitude
+    tipo: float
+    obrigatorio: false
+    descricao: "Latitude do ponto"

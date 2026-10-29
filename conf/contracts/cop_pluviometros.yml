@@ -1,0 +1,39 @@
+# Contrato de dados: Histórico de chuva por pulso nos pluviômetros do município (COP Recife)
+# Fonte: conf/sources/cop_recife.yml / decisão 0001
+tabela: cop_pluviometros
+chave_negocio:
+  - id_leitura
+campo_data_referencia: data_hora
+campos:
+  - nome: id_leitura
+    tipo: string
+    obrigatorio: true
+    descricao: "Identificador da leitura na fonte (cada linha é um pulso)"
+  - nome: codigo_estacao
+    tipo: string
+    obrigatorio: true
+    descricao: "Código do pluviômetro"
+  - nome: estacao
+    tipo: string
+    obrigatorio: false
+    descricao: "Nome ou endereço do pluviômetro"
+  - nome: tipo
+    tipo: string
+    obrigatorio: false
+    descricao: "Tipo do equipamento (Estação, Rua)"
+  - nome: data_hora
+    tipo: datetime
+    obrigatorio: true
+    descricao: "Momento do pulso (America/Recife)"
+  - nome: chuva_mm
+    tipo: float
+    obrigatorio: true
+    descricao: "Chuva do pulso (mm)"
+  - nome: latitude
+    tipo: float
+    obrigatorio: false
+    descricao: "Latitude do pluviômetro"
+  - nome: longitude
+    tipo: float
+    obrigatorio: false
+    descricao: "Longitude do pluviômetro"

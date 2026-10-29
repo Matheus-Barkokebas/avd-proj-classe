@@ -1,0 +1,67 @@
+# Contrato de dados: Indicadores da cidade publicados pelo COP Recife, a cada hora
+# Fonte: conf/sources/cop_recife.yml / decisão 0001
+tabela: cop_indicadores
+chave_negocio:
+  - data_hora
+campo_data_referencia: data_hora
+campos:
+  - nome: data_hora
+    tipo: datetime
+    obrigatorio: true
+    descricao: "Momento da leitura (America/Recife)"
+  - nome: estagio
+    tipo: string
+    obrigatorio: false
+    descricao: "Estágio operacional do COP (ex.: NORMALIDADE)"
+  - nome: chuva_media_1h_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Chuva média da cidade na última hora (mm)"
+  - nome: chuva_max_1h_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Maior chuva entre as estações na última hora (mm)"
+  - nome: estacao_max_1h
+    tipo: string
+    obrigatorio: false
+    descricao: "Estação com a maior chuva na última hora"
+  - nome: chuva_media_24h_mm
+    tipo: float
+    obrigatorio: true
+    descricao: "Chuva média da cidade nas últimas 24h (mm)"
+  - nome: chuva_max_24h_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Maior chuva entre as estações nas últimas 24h (mm)"
+  - nome: estacao_max_24h
+    tipo: string
+    obrigatorio: false
+    descricao: "Estação com a maior chuva nas últimas 24h"
+  - nome: mare_m
+    tipo: float
+    obrigatorio: false
+    descricao: "Altura da maré no momento (m)"
+  - nome: sentido_mare
+    tipo: string
+    obrigatorio: false
+    descricao: "Maré subindo ou descendo"
+  - nome: alagamentos
+    tipo: int
+    obrigatorio: false
+    descricao: "Alagamentos registrados"
+  - nome: ocorrencias
+    tipo: int
+    obrigatorio: false
+    descricao: "Ocorrências registradas no dia"
+  - nome: ocorrencias_1h
+    tipo: int
+    obrigatorio: false
+    descricao: "Ocorrências na última hora"
+  - nome: abrigos
+    tipo: int
+    obrigatorio: false
+    descricao: "Abrigos ativos"
+  - nome: abrigados
+    tipo: int
+    obrigatorio: false
+    descricao: "Pessoas abrigadas"

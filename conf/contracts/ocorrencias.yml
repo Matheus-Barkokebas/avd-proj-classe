@@ -1,0 +1,44 @@
+# Contrato de dados: Ocorrências e chamados da Defesa Civil (SEDEC / Recife)
+# FND-02 / ING-03 / ARQUITETURA §2.1, §10
+tabela: ocorrencias
+chave_negocio:
+  - protocolo
+campo_data_referencia: data_ocorrencia
+campos:
+  - nome: protocolo
+    tipo: string
+    obrigatorio: true
+    descricao: Número ou código identificador único do chamado/ocorrência
+  - nome: data_ocorrencia
+    tipo: datetime
+    obrigatorio: true
+    descricao: Data e hora do chamado ou abertura da ocorrência
+  - nome: tipo_ocorrencia
+    tipo: string
+    obrigatorio: true
+    descricao: Tipologia da ocorrência (ex. deslizamento, alagamento, vistoria, queda_arvore)
+  - nome: bairro
+    tipo: string
+    obrigatorio: true
+    descricao: Nome do bairro onde ocorreu o evento
+  - nome: latitude
+    tipo: float
+    obrigatorio: false
+    descricao: Latitude geográfica (opcional, registros sem coordenada são mantidos e sinalizados)
+  - nome: longitude
+    tipo: float
+    obrigatorio: false
+    descricao: Longitude geográfica (opcional, registros sem coordenada são mantidos e sinalizados)
+  - nome: status
+    tipo: string
+    obrigatorio: true
+    descricao: Situação do chamado ou desfecho do atendimento
+    valores_permitidos:
+      - aberta
+      - em_atendimento
+      - concluida
+      - cancelada
+  - nome: descricao
+    tipo: string
+    obrigatorio: false
+    descricao: Detalhamento descritivo da solicitação ou atendimento

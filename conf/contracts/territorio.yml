@@ -1,0 +1,35 @@
+# Contrato de dados: Base cadastral territorial do Recife
+# FND-02 / ING-05 / INT-02 / ARQUITETURA §2.1, §5.2, §10
+tabela: territorio
+chave_negocio:
+  - codigo_bairro
+campo_data_referencia: data_atualizacao
+campos:
+  - nome: codigo_bairro
+    tipo: int
+    obrigatorio: true
+    descricao: Código numérico identificador oficial do bairro
+  - nome: nome_bairro
+    tipo: string
+    obrigatorio: true
+    descricao: Nome oficial do bairro do Recife
+  - nome: rpa
+    tipo: int
+    obrigatorio: true
+    descricao: Número da Região Político-Administrativa (1 a 6)
+  - nome: distrito_sanitario
+    tipo: int
+    obrigatorio: true
+    descricao: Número do Distrito Sanitário correspondente (1 a 8)
+  - nome: populacao
+    tipo: int
+    obrigatorio: false
+    descricao: População estimada do bairro
+  - nome: area_km2
+    tipo: float
+    obrigatorio: false
+    descricao: Área territorial aproximada do bairro em km2
+  - nome: data_atualizacao
+    tipo: date
+    obrigatorio: true
+    descricao: Data de atualização cadastral dos dados territoriais

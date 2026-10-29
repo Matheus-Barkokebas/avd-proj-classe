@@ -1,1 +1,188 @@
-# avd-proj-vivasaude
+<div align="center">
+
+# 🌧️ AerVita
+
+### Vigilância e predição de desastres para o Recife/PE
+
+Consolida dados **meteorológicos, hidrológicos, epidemiológicos, ambientais, assistenciais e territoriais**
+num único fluxo — entregando indicadores situacionais, boletins automáticos e alertas preditivos.
+
+<br>
+
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-f0ad4e?style=flat-square)
+![Python](https://img.shields.io/badge/Python-3.12+-3776AB?style=flat-square&logo=python&logoColor=white)
+![Metodologia](https://img.shields.io/badge/metodologia-CRISP--DM-1351b4?style=flat-square)
+![Fontes](https://img.shields.io/badge/dados-Recife%20CKAN%20%2B%20ANA-0e8a16?style=flat-square)
+![CESAR School](https://img.shields.io/badge/CESAR%20School-Projeto%205-071d41?style=flat-square)
+
+<br>
+
+[**Documentação**](#-documentação) ·
+[**Arquitetura**](docs/ARQUITETURA.md) ·
+[**Plano de ação**](docs/PLANO-DE-ACAO.md) ·
+[**Issues**](https://github.com/Matheus-Barkokebas/avd-proj-classe/issues) ·
+[**Project**](https://github.com/users/Matheus-Barkokebas/projects/1)
+
+</div>
+
+---
+
+<div align="center">
+
+**▶ Protótipo do painel situacional:** [`prototipo/v3-aervita-console.html`](prototipo/v3-aervita-console.html) — abra no navegador
+<br><sub>arboviroses, bairros e distritos reais (gerados pelo pipeline); chuva, rios e ocorrências ainda simulados na tela</sub>
+
+</div>
+
+---
+
+## Índice
+
+- [O problema](#-o-problema)
+- [A solução](#-a-solução)
+- [Como funciona](#️-como-funciona)
+- [Fontes de dados](#-fontes-de-dados)
+- [Documentação](#-documentação)
+- [Roadmap](#-roadmap)
+- [Estrutura do repositório](#️-estrutura-do-repositório)
+- [Desenvolvimento](#-desenvolvimento)
+- [Contexto](#-contexto)
+
+---
+
+## 🎯 O problema
+
+As informações que descrevem uma emergência climática no Recife estão **espalhadas** por dezenas de fontes
+e sistemas. Consolidar chuva, nível de rios, ocorrências da Defesa Civil, casos de arboviroses e dados de
+território é hoje um trabalho **manual, lento e sujeito a retrabalho** — o que atrasa boletins, dificulta
+identificar as áreas prioritárias e mantém a resposta reativa.
+
+## 💡 A solução
+
+Um pipeline que coleta essas fontes automaticamente, padroniza tempo e território, cruza os domínios numa
+**base única** (situação por distrito e por dia) e entrega três produtos:
+
+| 📊 Painel situacional | 📄 Boletim automático | 🚨 Alertas preditivos |
+|---|---|---|
+| KPIs, risco por distrito, ocorrências e séries em tempo quase real | Texto consolidado (resumo, destaques, recomendação) pronto para distribuição | Disparados quando o risco **atual ou previsto** cruza um limiar |
+
+---
+
+## 🗺️ Como funciona
+
+```text
+   FONTES     API Dados Abertos Recife (CKAN)   COP Recife (ArcGIS)   API ANA (HidroWeb)   Complementares (roadmap)
+                              │                         │                     │                     │
+                              └─────────────────────────┴──────────┬──────────┴─────────────────────┘
+                                               ▼
+   INGESTÃO             Conectores por fonte + agendador (coleta periódica)
+                                               ▼
+   LAGO DE DADOS        RAW  ─►  BRONZE  ─►  SILVER  ─►  GOLD
+                        original   tipado     limpo /     integrado
+                                              padronizado  (distrito × dia)
+                                               ▼
+   ANÁLISE & MODELOS    Indicadores · classificação de risco · previsão de chuva / nível / arboviroses
+                                               ▼
+   ENTREGA             Painel situacional  ·  Boletim automático  ·  Alertas preditivos
+                                               ▼
+                                Priorização e alocação de equipes
+```
+
+Arquitetura medallion (RAW → Bronze → Silver → Gold): cada camada preserva a anterior e eleva a qualidade
+do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
+
+> **Primeira release ([decisão 0001](docs/decisoes/0001-raw-mongodb-padronizada-neon.md)):** a RAW fica no **MongoDB Atlas** e os dados validados
+> vão para uma **camada padronizada no Neon (PostgreSQL)** — sem Silver e Gold por enquanto. Hoje o pipeline
+> já carrega no Neon: arboviroses 2025, bairros e distritos sanitários, e **chuva, rios, previsão e áreas
+> alagáveis do COP Recife**.
+
+---
+
+## 🔌 Fontes de dados
+
+| Domínio | Fonte | Exemplos de dados |
+|---|---|---|
+| 🌧️ Meteorológico | **COP Recife (ArcGIS)** · APAC / INMET | chuva média 1h/24h, previsão por modelo (GFS, ECMWF, ICON, WRF), chuva mensal vs. média histórica, histórico dos pluviômetros |
+| 🌊 Hidrológico | **COP Recife (ArcGIS)** · API ANA (HidroWeb) · APAC | nível dos rios com cotas oficiais, maré, áreas alagáveis, pontos de alagamento |
+| 🦠 Epidemiológico | **API Dados Abertos Recife** · Sec. de Saúde | dengue, zika, chikungunya por bairro e semana epidemiológica |
+| 🌱 Ambiental | CPRH / MonitorAr | qualidade do ar e da água, balneabilidade |
+| 🏥 Assistencial | **API Dados Abertos Recife** · DATASUS | atendimentos, solicitações, unidades de saúde |
+| 🗺️ Territorial | **API Dados Abertos Recife** · COP Recife | bairros, RPA, áreas de risco, ocorrências georreferenciadas |
+
+**APIs em uso:**
+`dados.recife.pe.gov.br/pt_BR/api/action/datastore_search` ·
+`esigportal2.recife.pe.gov.br/arcgis/rest/services/COP` (chuva e rios, sem login) ·
+`www.ana.gov.br/hidrowebservice/` (conector pronto, aguardando credenciais)
+
+---
+
+## 📚 Documentação
+
+| Documento | Conteúdo |
+|---|---|
+| [`docs/CRISP-DM.md`](docs/CRISP-DM.md) | Planejamento pela metodologia CRISP-DM — negócio, dados, preparação, modelagem, avaliação, implantação |
+| [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md) | Arquitetura-alvo: fontes, ingestão, camadas medallion, indicadores e entrega |
+| [`docs/HISTORIAS.md`](docs/HISTORIAS.md) | 21 histórias de usuário detalhadas — escopo, critérios de aceitação e notas para IA |
+| [`docs/PLANO-DE-ACAO.md`](docs/PLANO-DE-ACAO.md) | Porta de entrada: ordem das issues, caminho crítico e significado das siglas dos épicos |
+| [`docs/PADROES.md`](docs/PADROES.md) | Convenções do repositório — nomes, datas, particionamento de dados, testes e fluxo Git |
+| [`docs/decisoes/0001-raw-mongodb-padronizada-neon.md`](docs/decisoes/0001-raw-mongodb-padronizada-neon.md) | Decisão 0001: RAW no MongoDB Atlas, camada padronizada no Neon e a fonte COP Recife |
+
+**Gestão do trabalho:** [Issues #5–#31](https://github.com/Matheus-Barkokebas/avd-proj-classe/issues) ·
+[Project **AerVita**](https://github.com/users/Matheus-Barkokebas/projects/1)
+
+---
+
+## 🧭 Roadmap
+
+| Fase | Objetivo | Épicos |
+|:---:|---|---|
+| **1** | Fundação (estrutura, contratos, orquestração) + ingestão dos conectores Recife, COP Recife e ANA (RAW + camada padronizada) | `FND` · `ING` |
+| **2** | Integração Silver/Gold, indicadores base e painel com dados reais | `INT` · `IND` · `PNL` |
+| **3** | Classificação de risco, modelos preditivos, alertas e boletim automático | `IND` · `PRD` · `PNL` |
+| **4** | Fontes complementares (APAC, INMET, CPRH, MonitorAr, DATASUS) | _roadmap_ |
+
+---
+
+## 🗂️ Estrutura do repositório
+
+```text
+docs/                       planejamento, arquitetura, histórias, padrões e decisões
+prototipo/                  console do painel (v3) e o arquivo de dados que o pipeline gera para ele
+src/                        código do pipeline (ingestao, serving)
+conf/                       configuração declarativa por fonte (sources, contracts)
+data/                       RAW e Bronze locais (modo arquivo)  ·  ignorada pelo Git
+tests/                      testes automatizados            ·  espelha src/
+```
+
+> Convenções de código, dados e Git em [`docs/PADROES.md`](docs/PADROES.md). As pastas `processamento/`, `indicadores/` e `predicao/` são criadas quando as Fases 2 e 3 começarem.
+
+---
+
+## 🚀 Desenvolvimento
+
+**Pré-requisitos:** Python 3.12+
+
+```bash
+python -m venv .venv
+# Windows:  .venv\Scripts\activate
+# Linux/macOS:  source .venv/bin/activate
+pip install -r requirements.txt -r requirements-dev.txt
+
+cp .env.example .env                    # preencha MONGODB_URI e NEON_DATABASE_URL (só no .env)
+python src/ingestao/epidemiologia.py --armazenamento mongo --padronizada neon   # ver src/ingestao/README.md
+python src/ingestao/cop_recife.py --armazenamento mongo --padronizada neon     # chuva e rios do COP
+pytest                                  # testes sem rede; `pytest -m integracao` usa as APIs reais
+```
+
+**Fluxo de contribuição:** 1 issue → 1 branch `feature/<id>-AAAA.MM.DD` → 1 PR contra `develop`.
+Consulte **[`docs/PLANO-DE-ACAO.md`](docs/PLANO-DE-ACAO.md)** para saber qual issue pegar primeiro
+(começa em **#5 · FND-01**).
+
+---
+
+## 👥 Contexto
+
+Projeto acadêmico da disciplina de **Análise e Visualização de Dados** — **CESAR School** (Projeto 5).
+Todos os dados utilizados são **públicos** e provenientes de fontes oficiais.
+
+<div align="center"><sub>Feito com 🌧️ para o Recife</sub></div>

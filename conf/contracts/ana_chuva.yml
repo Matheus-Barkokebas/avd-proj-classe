@@ -1,0 +1,28 @@
+# Contrato de dados: Pluviometria e chuva acumulada - API ANA / HidroWeb
+# FND-02 / ING-04 / ARQUITETURA §2.3, §10
+tabela: ana_chuva
+chave_negocio:
+  - codigo_estacao
+  - data_hora_medicao
+campo_data_referencia: data_hora_medicao
+campos:
+  - nome: codigo_estacao
+    tipo: string
+    obrigatorio: true
+    descricao: Código identificador da estação pluviométrica na ANA
+  - nome: data_hora_medicao
+    tipo: datetime
+    obrigatorio: true
+    descricao: Data e hora do registro da medição (fuso America/Recife)
+  - nome: chuva_mm
+    tipo: float
+    obrigatorio: true
+    descricao: Precipitação pluviométrica acumulada em milímetros (mm)
+  - nome: status_leitura
+    tipo: string
+    obrigatorio: false
+    descricao: Consistência do dado medido
+    valores_permitidos:
+      - bruto
+      - consistido
+      - estimado

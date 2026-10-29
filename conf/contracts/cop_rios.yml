@@ -1,0 +1,44 @@
+# Contrato de dados: Nível dos rios monitorados pelo COP Recife, com cotas oficiais
+# Fonte: conf/sources/cop_recife.yml / decisão 0001
+tabela: cop_rios
+chave_negocio:
+  - codigo_estacao
+  - data_hora
+campo_data_referencia: data_hora
+campos:
+  - nome: codigo_estacao
+    tipo: string
+    obrigatorio: true
+    descricao: "Código da estação (ANA/CEMADEN)"
+  - nome: estacao
+    tipo: string
+    obrigatorio: true
+    descricao: "Nome da estação"
+  - nome: rio
+    tipo: string
+    obrigatorio: true
+    descricao: "Rio monitorado"
+  - nome: data_hora
+    tipo: datetime
+    obrigatorio: true
+    descricao: "Momento da leitura (America/Recife)"
+  - nome: nivel
+    tipo: float
+    obrigatorio: true
+    descricao: "Nível atual, na unidade da fonte (a confirmar com o COP; valores sugerem cm)"
+  - nome: cota_pre_alerta
+    tipo: float
+    obrigatorio: false
+    descricao: "Cota de pré-alerta, mesma unidade do nível"
+  - nome: cota_alerta
+    tipo: float
+    obrigatorio: false
+    descricao: "Cota de alerta, mesma unidade do nível"
+  - nome: cota_inundacao
+    tipo: float
+    obrigatorio: false
+    descricao: "Cota de inundação, mesma unidade do nível"
+  - nome: situacao
+    tipo: string
+    obrigatorio: false
+    descricao: "Situação informada pela fonte (ex.: Normal)"

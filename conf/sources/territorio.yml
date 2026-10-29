@@ -1,0 +1,53 @@
+# Configuração da fonte de dados: Território (bases cadastrais do Recife)
+# ING-05 / ARQUITETURA §2.1, §5.2 / PADROES §5
+nome: territorio
+descricao: Bases cadastrais territoriais do Recife (bairros, RPA, distritos sanitários, geometrias)
+api: recife_ckan
+frequencia: mensal          # dado cadastral (ver conf/schedule.yml)
+
+# Cada base é coletada e materializada SEPARADAMENTE na Bronze (uma tabela por
+# base — critério de aceitação da ING-05). Nenhuma é cruzada com outra aqui:
+# montar a correspondência bairro ↔ RPA ↔ Distrito Sanitário é escopo da INT-02.
+#
+# Bases tabulares (datastore_search — verificadas ao vivo em 2026-09):
+bases_tabulares:
+  bairros_rpa:
+    resource_id: "a378d50a-5e55-4956-a28c-13305acfc2b3"   # "Bairros e RPAs do Recife" (CSV)
+    mapeamento_colunas:
+      Bairro: nome_bairro
+      rpa: rpa
+  distritos_sanitarios:
+    resource_id: "d8d649d6-5bf7-44af-9686-436162766037"   # "Distritos Sanitários - descrição dos bairros" (CSV)
+    mapeamento_colunas:
+      bairro: nome_bairro
+      distrito_sanitario: distrito_sanitario   # vem como número (1..8); texto "Distrito Sanitário N" também é aceito
+      descricao_distrito: descricao_distrito
+
+# Bases geométricas — arquivo baixado e preservado no formato de origem
+# (GeoJSON), sem conversão para Parquet (critério de aceitação: "geometrias
+# preservadas e legíveis"). A URL de download é resolvida pelo próprio CKAN
+# (resource_show) a partir do resource_id — nunca montada à mão (BUG-04:
+# uma URL com id de dataset errado dava 404). `url:` explícita só para
+# fontes fora do CKAN.
+bases_geometricas:
+  bairros_geo:
+    resource_id: "5c67ce14-1799-40c4-a37c-9daa04d1761c"   # "Bairros do Recife" (GeoJSON)
+    formato: geojson
+  rpa_geo:
+    resource_id: "8636edce-be7c-464e-991d-0fb33d7938af"   # "Região Política Administrativa do Recife" (GeoJSON)
+    formato: geojson
+
+# Falha em uma base não impede as demais: o erro fica registrado na RAW e em
+# `bases_com_erro` no resultado (a CLI sai com código 1 para o agendador ver).
+
+# PENDÊNCIAS — não encontradas no catálogo público durante esta issue; não
+# inventamos dado nem URL (ai-rules 5.3). Documentado aqui como próximo passo,
+# não como "concluído":
+#   - Áreas de risco (polígonos cadastrais): não localizamos um dataset
+#     territorial de áreas de risco no CKAN do Recife — só dados operacionais
+#     de atendimento da Defesa Civil (já cobertos pela ING-03). Se existir uma
+#     base cadastral (ex. Defesa Civil / COP Recife) fora do CKAN público,
+#     precisa ser adicionada aqui pelo time.
+#   - População por bairro: não localizada nas bases exploradas (Recife nem
+#     IBGE). Campo `populacao` já é opcional no contrato de território; sem
+#     impacto bloqueante, mas fica como pendência de fonte.

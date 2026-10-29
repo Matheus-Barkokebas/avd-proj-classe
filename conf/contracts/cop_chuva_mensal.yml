@@ -1,0 +1,27 @@
+# Contrato de dados: Chuva acumulada por mês no Recife, publicada pelo COP
+# Fonte: conf/sources/cop_recife.yml / decisão 0001
+tabela: cop_chuva_mensal
+chave_negocio:
+  - ano_referencia
+  - mes
+campos:
+  - nome: ano_referencia
+    tipo: int
+    obrigatorio: true
+    descricao: "Ano da coleta (a fonte não informa o ano)"
+  - nome: mes
+    tipo: int
+    obrigatorio: true
+    descricao: "Mês (1 a 12)"
+  - nome: chuva_ano_atual_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Chuva acumulada no mês, ano atual (mm)"
+  - nome: chuva_ano_anterior_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Chuva acumulada no mês, ano anterior (mm)"
+  - nome: media_historica_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Média histórica do mês (mm)"

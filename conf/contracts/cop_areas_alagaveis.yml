@@ -1,0 +1,30 @@
+# Contrato de dados: Áreas alagáveis do Recife (polígonos), publicadas pelo COP
+# Fonte: conf/sources/cop_recife.yml / decisão 0001
+tabela: cop_areas_alagaveis
+chave_negocio:
+  - id_area
+campos:
+  - nome: id_area
+    tipo: string
+    obrigatorio: true
+    descricao: "Identificador da área na fonte"
+  - nome: codigo
+    tipo: int
+    obrigatorio: false
+    descricao: "Código da área"
+  - nome: distrito_sanitario
+    tipo: int
+    obrigatorio: true
+    descricao: "Distrito sanitário (1 a 8)"
+  - nome: lote
+    tipo: int
+    obrigatorio: false
+    descricao: "Lote do levantamento"
+  - nome: area_m2
+    tipo: float
+    obrigatorio: false
+    descricao: "Área do polígono (m²)"
+  - nome: geometria_geojson
+    tipo: string
+    obrigatorio: true
+    descricao: "Polígono em GeoJSON (WGS84)"

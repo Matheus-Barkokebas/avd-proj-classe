@@ -1,0 +1,381 @@
+"""Coleta de bases cadastrais territoriais do Recife (ING-05).
+
+Coleta, para cada base configurada em conf/sources/territorio.yml:
+- bases TABULARES via recife_ckan.coletar_todos (datastore_search do CKAN);
+- bases GEOMÉTRICAS via download direto do arquivo (GeoJSON, preservado no
+  formato de origem — não convertido para Parquet).
+
+RAW combina todas as bases num único payload (a fonte "territorio" é uma só,
+conforme conf/schedule.yml). Bronze materializa UMA TABELA POR BASE — nenhuma
+é cruzada com outra aqui: montar a correspondência bairro ↔ RPA ↔ Distrito
+Sanitário é escopo da INT-02 (Silver), não desta issue.
+
+Nota de escopo: diferente de epidemiologia.py/ocorrencias.py, este módulo
+NÃO valida contra conf/contracts/territorio.yml via contratos.validar(). Esse
+contrato descreve a tabela já RESOLVIDA (com distrito_sanitario obrigatório
+por bairro), que só existe depois do cruzamento feito pela INT-02 — exigir
+isso aqui contradiria o "Fora de escopo" desta história. Cada base é
+materializada tal como a fonte publica.
+"""
+
+import argparse
+import base64
+from datetime import date
+import io
+import json
+from pathlib import Path
+import re
+import time
+from typing import Any
+import unicodedata
+import pyarrow as pa
+import pyarrow.parquet as pq
+import requests
+import yaml
+import sys
+
+# Executado como script (`python src/ingestao/<modulo>.py`), o Python põe
+# src/ingestao/ no sys.path em vez da raiz do projeto — sem isto os imports
+# `src.*` falham com ModuleNotFoundError (BUG-02).
+if __package__ in (None, ""):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
+from src.ingestao import armazenamento as armaz
+from src.ingestao import padronizada
+from src.ingestao import recife_ckan
+from src.ingestao import runner
+
+
+RAIZ_PROJETO = Path(__file__).resolve().parents[2]
+CAMINHO_CONFIG_PADRAO = RAIZ_PROJETO / "conf" / "sources" / "territorio.yml"
+
+DEFAULT_MAX_RETRIES = 3
+DEFAULT_BACKOFF = 2  # segundos, dobrando a cada nova tentativa (2, 4, 8…); 0 desliga.
+#                      Sem espera, as tentativas saíam em sequência e uma instabilidade
+#                      de poucos segundos da API derrubava a coleta (BUG-10).
+
+
+def carregar_configuracao_fonte(caminho_config: Path | None = None) -> dict[str, Any]:
+    """Carrega o arquivo de configuração conf/sources/territorio.yml."""
+    caminho = caminho_config if caminho_config is not None else CAMINHO_CONFIG_PADRAO
+    if not caminho.is_file():
+        raise FileNotFoundError(f"Configuração de fonte não encontrada: {caminho}")
+    with caminho.open(encoding="utf-8") as arquivo:
+        config = yaml.safe_load(arquivo)
+    if not isinstance(config, dict):
+        raise ValueError(f"Conteúdo inválido na configuração de fonte: {caminho}")
+    return config
+
+
+def _baixar_arquivo(url: str, max_retries: int = DEFAULT_MAX_RETRIES, backoff: int = DEFAULT_BACKOFF) -> bytes:
+    """Baixa um arquivo (ex.: GeoJSON) tal como publicado, com retry."""
+    tentativa = 0
+    while True:
+        try:
+            resposta = requests.get(url, timeout=60)
+            resposta.raise_for_status()
+            return resposta.content
+        except requests.exceptions.RequestException as exc:
+            tentativa += 1
+            if tentativa > max_retries:
+                raise RuntimeError(f"Falha ao baixar arquivo ({url}) após {max_retries} tentativas: {exc}")
+            if backoff:
+                time.sleep(backoff * 2 ** (tentativa - 1))
+
+
+def _coletar_tabular(cfg_base: dict[str, Any]) -> dict[str, Any]:
+    registros, metadados = recife_ckan.coletar_todos(cfg_base["resource_id"])
+    return {"tipo": "tabular", "records": registros, "total": metadados.get("total", len(registros))}
+
+
+def _coletar_geometrica(cfg_base: dict[str, Any]) -> dict[str, Any]:
+    # URL resolvida pelo CKAN a partir do resource_id; `url` explícita só
+    # como alternativa para fontes fora do CKAN.
+    url = cfg_base.get("url") or recife_ckan.obter_url_download(cfg_base["resource_id"])
+    conteudo = _baixar_arquivo(url)
+    return {
+        "tipo": "arquivo",
+        "formato": cfg_base.get("formato", "geojson"),
+        "conteudo_base64": base64.b64encode(conteudo).decode("ascii"),
+    }
+
+
+def coletar_dados(data_coleta: date, caminho_config: Path | None = None) -> bytes:
+    """Compatível com runner.Coletor.coletar — coleta as bases tabulares e
+    geométricas configuradas e devolve o payload combinado, sem gravar nada.
+
+    Falha em uma base NÃO interrompe as demais: o erro fica registrado no
+    bloco daquela base (BUG-04). Só levanta erro se TODAS falharem.
+    """
+    config = carregar_configuracao_fonte(caminho_config)
+    bases = [(nome, cfg, _coletar_tabular) for nome, cfg in config.get("bases_tabulares", {}).items()]
+    bases += [(nome, cfg, _coletar_geometrica) for nome, cfg in config.get("bases_geometricas", {}).items()]
+    if not bases:
+        raise ValueError("Nenhuma base configurada em territorio.yml")
+
+    payload: dict[str, Any] = {}
+    for nome_base, cfg_base, coletar_base in bases:
+        try:
+            payload[nome_base] = coletar_base(cfg_base)
+        except Exception as erro:
+            payload[nome_base] = {"erro": f"{type(erro).__name__}: {erro}"}
+
+    if all("erro" in bloco for bloco in payload.values()):
+        erros = "; ".join(f"{nome}: {bloco['erro']}" for nome, bloco in payload.items())
+        raise RuntimeError(f"Todas as bases territoriais falharam — {erros}")
+
+    return json.dumps(payload, ensure_ascii=False).encode("utf-8")
+
+
+def bases_com_erro(conteudo_raw: dict[str, Any]) -> dict[str, str]:
+    """Bases que falharam na coleta registrada na RAW: {nome_base: erro}."""
+    return {nome: bloco["erro"] for nome, bloco in conteudo_raw.items()
+            if isinstance(bloco, dict) and "erro" in bloco}
+
+
+def contar_registros(conteudo: bytes) -> int:
+    """Compatível com runner.Coletor.contar_registros.
+
+    Soma linhas das bases tabulares; cada base geométrica conta como 1
+    (é um arquivo, não uma coleção de registros)."""
+    dados = json.loads(conteudo)
+    total = 0
+    for bloco in dados.values():
+        if not isinstance(bloco, dict):
+            continue
+        if bloco.get("tipo") == "tabular":
+            total += len(bloco.get("records", []))
+        elif bloco.get("tipo") == "arquivo":
+            total += 1
+    return total
+
+
+def _extrair_numero_distrito(valor: Any) -> int | None:
+    """Extrai o número de textos como 'Distrito Sanitário 3' -> 3."""
+    if valor is None:
+        return None
+    match = re.search(r"(\d+)", str(valor))
+    return int(match.group(1)) if match else None
+
+
+def _transformar_tabular(registros_raw: list[dict[str, Any]], mapeamento: dict[str, str]) -> list[dict[str, Any]]:
+    """Aplica o de/para de colunas de uma base tabular, sem cruzar com outra base."""
+    linhas: list[dict[str, Any]] = []
+    for reg in registros_raw:
+        linha: dict[str, Any] = {}
+        for origem, destino in mapeamento.items():
+            valor = reg.get(origem)
+            if destino == "distrito_sanitario":
+                linha[destino] = _extrair_numero_distrito(valor)
+            elif destino == "rpa" and valor is not None:
+                linha[destino] = int(valor)
+            elif valor is not None:
+                linha[destino] = str(valor).strip()
+            else:
+                linha[destino] = None
+        linhas.append(linha)
+    return linhas
+
+
+DDL_DIM_DISTRITO = """
+CREATE TABLE IF NOT EXISTS dim_distrito (
+    distrito_sanitario integer PRIMARY KEY,
+    descricao_distrito text NOT NULL
+)"""
+DDL_DIM_BAIRRO = """
+CREATE TABLE IF NOT EXISTS dim_bairro (
+    chave_bairro text PRIMARY KEY,
+    nome_bairro text NOT NULL,
+    rpa integer,
+    distrito_sanitario integer REFERENCES dim_distrito (distrito_sanitario)
+)"""
+
+
+def chave_bairro(nome: Any) -> str:
+    """Nome de bairro normalizado para cruzar bases: sem acento, maiúsculo, espaço único."""
+    texto = unicodedata.normalize("NFKD", str(nome or "")).encode("ascii", "ignore").decode()
+    return " ".join(texto.upper().split())
+
+
+def dimensoes(conteudo_raw: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    """Monta dim_distrito e dim_bairro (decisão 0001) a partir das bases tabulares da RAW.
+
+    Cruza "Bairros e RPAs" com "Distritos Sanitários" pelo nome normalizado do
+    bairro. Bairros que existem numa base e não na outra são devolvidos em
+    `sem_correspondencia` em vez de descartados em silêncio (ai-rules 5.5).
+    """
+    tabulares = config.get("bases_tabulares", {})
+
+    def linhas(base: str) -> list[dict[str, Any]]:
+        bloco = conteudo_raw.get(base)
+        if not isinstance(bloco, dict) or bloco.get("tipo") != "tabular":
+            raise ValueError(f"Base '{base}' ausente ou com erro na RAW do território")
+        return _transformar_tabular(bloco.get("records", []), tabulares.get(base, {}).get("mapeamento_colunas", {}))
+
+    rpa_por_bairro = {chave_bairro(l["nome_bairro"]): l for l in linhas("bairros_rpa") if l.get("nome_bairro")}
+    ds_por_bairro = {chave_bairro(l["nome_bairro"]): l for l in linhas("distritos_sanitarios") if l.get("nome_bairro")}
+
+    distritos: dict[int, str] = {}
+    for l in ds_por_bairro.values():
+        if l.get("distrito_sanitario") is not None:
+            distritos[l["distrito_sanitario"]] = l.get("descricao_distrito") or f"DS {l['distrito_sanitario']}"
+
+    bairros = []
+    for chave in sorted(set(rpa_por_bairro) | set(ds_por_bairro)):
+        rpa, ds = rpa_por_bairro.get(chave, {}), ds_por_bairro.get(chave, {})
+        bairros.append({
+            "chave_bairro": chave,
+            "nome_bairro": ds.get("nome_bairro") or rpa.get("nome_bairro"),
+            "rpa": rpa.get("rpa"),
+            "distrito_sanitario": ds.get("distrito_sanitario"),
+        })
+    return {
+        "dim_distrito": [{"distrito_sanitario": n, "descricao_distrito": d} for n, d in sorted(distritos.items())],
+        "dim_bairro": bairros,
+        "sem_correspondencia": {
+            "so_em_bairros_rpa": sorted(set(rpa_por_bairro) - set(ds_por_bairro)),
+            "so_em_distritos": sorted(set(ds_por_bairro) - set(rpa_por_bairro)),
+        },
+    }
+
+
+def gravar_dimensoes(conteudo_raw: dict[str, Any], destino: padronizada.DestinoNeon,
+                     caminho_config: Path | None = None) -> dict[str, Any]:
+    """Grava dim_distrito e dim_bairro no Neon, substituindo as anteriores."""
+    dims = dimensoes(conteudo_raw, carregar_configuracao_fonte(caminho_config))
+    return {
+        "dim_distrito": destino.gravar_tabela(
+            "dim_distrito", DDL_DIM_DISTRITO, ["distrito_sanitario", "descricao_distrito"], dims["dim_distrito"]),
+        "dim_bairro": destino.gravar_tabela(
+            "dim_bairro", DDL_DIM_BAIRRO, ["chave_bairro", "nome_bairro", "rpa", "distrito_sanitario"], dims["dim_bairro"]),
+        "sem_correspondencia": dims["sem_correspondencia"],
+    }
+
+
+def materializar_bronze(
+    data_coleta: date,
+    diretorio_dados: Path = RAIZ_PROJETO / "data",
+    caminho_config: Path | None = None,
+    armazenamento: armaz.ArmazenamentoRaw | None = None,
+) -> dict[str, Path]:
+    """Lê a RAW já persistida pelo runner e materializa UMA saída por base:
+    Parquet para bases tabulares, arquivo preservado (ex. GeoJSON) para
+    bases geométricas. Sem validação contra conf/contracts/territorio.yml
+    (ver nota de escopo no topo do módulo) e sem cruzar bases entre si.
+
+    Idempotência garantida pela substituição atômica de cada partição.
+    Devolve {nome_base: caminho_gravado}.
+    """
+    if armazenamento is None:
+        armazenamento = armaz.ArmazenamentoArquivo(diretorio_dados)
+    conteudo_raw = armaz.ler_json(armazenamento, "territorio", data_coleta, "territorio.json")
+    config = carregar_configuracao_fonte(caminho_config)
+    bases_tabulares = config.get("bases_tabulares", {})
+
+    caminhos_gravados: dict[str, Path] = {}
+    particao = f"{data_coleta.year:04d}/{data_coleta.month:02d}/{data_coleta.day:02d}"
+
+    for nome_base, bloco in conteudo_raw.items():
+        if not isinstance(bloco, dict):
+            continue
+
+        if bloco.get("tipo") == "tabular":
+            mapeamento = bases_tabulares.get(nome_base, {}).get("mapeamento_colunas", {})
+            linhas = _transformar_tabular(bloco.get("records", []), mapeamento)
+            tabela_pa = pa.Table.from_pylist(linhas)
+            buffer = io.BytesIO()
+            pq.write_table(tabela_pa, buffer)
+            caminho = (
+                Path(diretorio_dados) / "bronze" / f"territorio_{nome_base}"
+                / particao / f"territorio_{nome_base}.parquet"
+            )
+            runner.gravar_atomico(caminho, buffer.getvalue())
+            caminhos_gravados[nome_base] = caminho
+
+        elif bloco.get("tipo") == "arquivo":
+            formato = bloco.get("formato", "geojson")
+            conteudo_bytes = base64.b64decode(bloco["conteudo_base64"])
+            caminho = (
+                Path(diretorio_dados) / "bronze" / f"territorio_{nome_base}"
+                / particao / f"territorio_{nome_base}.{formato}"
+            )
+            runner.gravar_atomico(caminho, conteudo_bytes)
+            caminhos_gravados[nome_base] = caminho
+
+    return caminhos_gravados
+
+
+def coletar_e_materializar(
+    data_coleta: date | None = None,
+    diretorio_dados: Path = RAIZ_PROJETO / "data",
+    caminho_config: Path | None = None,
+    armazenamento: armaz.ArmazenamentoRaw | None = None,
+    destino: padronizada.DestinoNeon | None = None,
+) -> dict[str, Any]:
+    """Fluxo completo de ponta a ponta: coleta RAW via runner e materializa Bronze.
+
+    Com `destino` (Neon), em vez da Bronze local grava as dimensões de bairro e
+    distrito na camada padronizada (decisão 0001); as malhas ficam só na RAW.
+    """
+    if armazenamento is None:
+        armazenamento = armaz.ArmazenamentoArquivo(diretorio_dados)
+    registro = runner.executar("territorio", data_coleta=data_coleta, diretorio_dados=diretorio_dados,
+                               armazenamento=armazenamento)
+
+    if registro.get("status") != "ok":
+        return {"execucao": registro, "bronze": None}
+
+    data_particao = date.fromisoformat(registro["data_coleta"])
+    try:
+        conteudo_raw = armaz.ler_json(armazenamento, "territorio", data_particao, "territorio.json")
+        falhas = bases_com_erro(conteudo_raw)
+        if destino is not None:
+            return {"execucao": registro, "padronizada": gravar_dimensoes(conteudo_raw, destino, caminho_config),
+                    "bronze": None, "bases_com_erro": falhas}
+        caminhos = materializar_bronze(data_particao, diretorio_dados=diretorio_dados,
+                                       caminho_config=caminho_config, armazenamento=armazenamento)
+        return {
+            "execucao": registro,
+            "bronze": {k: str(v) for k, v in caminhos.items()},
+            "bases_com_erro": falhas,
+        }
+    except Exception as erro:
+        registro["status"] = "erro"
+        registro["mensagem"] = f"Erro ao materializar Bronze: {type(erro).__name__}: {erro}"
+        return {"execucao": registro, "bronze": None}
+
+
+def main() -> int:
+    # Saída redirecionada no Windows usa cp1252 e quebra com caracteres fora
+    # dessa tabela (ex.: "↔" nas docstrings) — forçar UTF-8 (BUG-02).
+    sys.stdout.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8")
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data", type=runner.interpretar_data, dest="data_coleta")
+    parser.add_argument(
+        "--diretorio-dados", type=Path, default=RAIZ_PROJETO / "data",
+        help="Diretório raiz de dados; padrão: data/ do projeto",
+    )
+    parser.add_argument(
+        "--armazenamento", choices=armaz.TIPOS, default=None,
+        help="Onde fica a RAW; padrão: AERVITA_ARMAZENAMENTO ou arquivo",
+    )
+    parser.add_argument(
+        "--padronizada", choices=["arquivo", "neon"], default=None,
+        help="Onde gravar os dados padronizados; padrão: AERVITA_PADRONIZADA ou arquivo (Parquet)",
+    )
+    opcoes = parser.parse_args()
+
+    resultado = coletar_e_materializar(
+        data_coleta=opcoes.data_coleta, diretorio_dados=opcoes.diretorio_dados,
+        armazenamento=armaz.criar(opcoes.armazenamento, opcoes.diretorio_dados),
+        destino=padronizada.criar(opcoes.padronizada),
+    )
+    print(json.dumps(resultado, ensure_ascii=False, indent=2))
+    # Falha parcial (alguma base) também sai com código != 0 para o agendador perceber.
+    sucesso = resultado["execucao"].get("status") == "ok" and (resultado.get("bronze") or resultado.get("padronizada"))
+    return 0 if sucesso and not resultado.get("bases_com_erro") else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

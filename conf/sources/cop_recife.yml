@@ -1,0 +1,155 @@
+# Configuração da fonte de dados: Centro de Operações do Recife (COP)
+# Chuva, rios, previsão e risco de alagamento publicados pela prefeitura no
+# servidor ArcGIS público (sem login). Levantamento e verificação ao vivo em
+# 2026-10-28 — ver docs/decisoes/0001 e src/ingestao/README.md.
+nome: cop_recife
+descricao: Dados operacionais do COP Recife (chuva, rios, previsão, alagamento)
+api: arcgis
+base_url: "https://esigportal2.recife.pe.gov.br/arcgis/rest/services/COP"
+
+# Cada camada é uma fonte própria no runner (RAW e tabela separadas).
+#
+# Conversões (`converter`):
+#   texto, numero, inteiro          tipos simples (vazio vira nulo)
+#   epoch_utc                       milissegundos em UTC verdadeiro -> horário do Recife
+#   epoch_local                     milissegundos que já são o horário local gravado como
+#                                   se fosse UTC (convenção de algumas tabelas do COP)
+#   epoch_data                      milissegundos -> só a data (AAAA-MM-DD), em UTC
+#   data_hora_texto                 junta [data "DD/MM/AAAA", hora "HH:MM:SS"] em horário local
+#   mes_nome                        "JANEIRO".."DEZEMBRO" -> 1..12
+#   ano_coleta                      ano da data de coleta (tabela sem ano explícito)
+#   geometria                       geometria da feição em GeoJSON (texto)
+#   longitude, latitude             coordenada de uma geometria de ponto
+#
+# As convenções de data foram conferidas campo a campo contra os textos da
+# própria tabela (ex.: DATACOLETA/HORACOLETA, TXT_DT/HORAS, ID_UNICO).
+camadas:
+  cop_indicadores:
+    descricao: Indicadores da cidade (chuva média 1h/24h, maré, estágio) — janela móvel de ~24h
+    servico: BASE_TABELAS_INDICADORES_PAINEL_CONSULTA
+    camada: 2
+    formato: json
+    frequencia: horaria
+    ordenar_por: DATA
+    campos:
+      data_hora: {origem: DATA, converter: epoch_utc}
+      estagio: {origem: ESTAGIO, converter: texto}
+      chuva_media_1h_mm: {origem: PREC_MEDIA1H, converter: numero}
+      chuva_max_1h_mm: {origem: PREC_1H_MAX, converter: numero}
+      estacao_max_1h: {origem: PREC_ESTACAO_1H, converter: texto}
+      chuva_media_24h_mm: {origem: PREC_MEDIA24H, converter: numero}
+      chuva_max_24h_mm: {origem: PREC_24H_MAX, converter: numero}
+      estacao_max_24h: {origem: PREC_ESTACAO_24H, converter: texto}
+      mare_m: {origem: MARE, converter: numero}
+      sentido_mare: {origem: SENTIDO_MARE, converter: texto}
+      alagamentos: {origem: ALAGAMENTO, converter: inteiro}
+      ocorrencias: {origem: OCORRENCIA, converter: inteiro}
+      ocorrencias_1h: {origem: OCORRENCIA_1H, converter: inteiro}
+      abrigos: {origem: ABRIGOS, converter: inteiro}
+      abrigados: {origem: ABRIGADOS, converter: inteiro}
+
+  cop_rios:
+    descricao: Monitoramento de rios com cotas oficiais — janela móvel de ~24h
+    servico: BASE_TABELAS_INDICADORES_PAINEL_CONSULTA
+    camada: 4
+    formato: json
+    frequencia: horaria
+    ordenar_por: DATACOMPLETA
+    campos:
+      codigo_estacao: {origem: IDSTATION, converter: texto}
+      estacao: {origem: NAMESTATION, converter: texto}
+      rio: {origem: RIVER, converter: texto}
+      # DATACOMPLETA é o horário local gravado como UTC; os textos são a referência
+      data_hora: {origem: [DATACOLETA, HORACOLETA], converter: data_hora_texto}
+      nivel: {origem: LEVELNOW, converter: numero}
+      cota_pre_alerta: {origem: PREALERTLEVEL, converter: numero}
+      cota_alerta: {origem: ALERTLEVEL, converter: numero}
+      cota_inundacao: {origem: FLOODLEVEL, converter: numero}
+      situacao: {origem: SITUACAO, converter: texto}
+
+  cop_previsao_chuva:
+    descricao: Previsão de chuva hora a hora por modelo (GFS, ECMWF, ICON, WRF)
+    servico: BASES_TABELAS_COP_CONSULTA
+    camada: 2
+    formato: json
+    frequencia: diaria
+    ordenar_por: DATAS
+    campos:
+      data_hora_prevista: {origem: DATAS, converter: epoch_utc}
+      chuva_gfs_mm: {origem: GFS, converter: numero}
+      chuva_ecmwf_mm: {origem: ECMWF, converter: numero}
+      chuva_icon_mm: {origem: ICON, converter: numero}
+      chuva_wrf_mm: {origem: WRF, converter: numero}
+      p_gfs: {origem: P_GFS, converter: numero}
+      p_ecmwf: {origem: P_ECMWF, converter: numero}
+      p_icon: {origem: P_ICON, converter: numero}
+      p_wrf: {origem: P_WRF, converter: numero}
+
+  cop_chuva_mensal:
+    descricao: Chuva acumulada por mês (ano atual, ano anterior e média histórica)
+    servico: BASES_TABELAS_COP_CONSULTA
+    camada: 3
+    formato: json
+    frequencia: diaria
+    ordenar_por: OBJECTID
+    campos:
+      ano_referencia: {converter: ano_coleta}
+      mes: {origem: MESES, converter: mes_nome}
+      chuva_ano_atual_mm: {origem: PREC_ATUAL, converter: numero}
+      chuva_ano_anterior_mm: {origem: PREC_ANTERIOR, converter: numero}
+      media_historica_mm: {origem: MEDIA, converter: numero}
+
+  cop_pluviometros:
+    descricao: Histórico de chuva por pulso nos pluviômetros contratados pelo município (2023-07 a 2026-02)
+    servico: BASE_SENSORES_PLUVIOMETRICOS_RECIFE
+    camada: 0
+    formato: json
+    frequencia: mensal
+    ordenar_por: OBJECTID
+    campos:
+      # cada linha é um pulso: a chave é a própria leitura (há pulsos com mesmo horário)
+      id_leitura: {origem: OBJECTID, converter: texto}
+      codigo_estacao: {origem: CODESTACAO, converter: texto}
+      estacao: {origem: NOME, converter: texto}
+      tipo: {origem: TIPO, converter: texto}
+      data_hora: {origem: DATAHORA, converter: epoch_local}
+      chuva_mm: {origem: CHUVA, converter: numero}
+      latitude: {origem: LATITUDE, converter: numero}
+      longitude: {origem: LONGITUDE, converter: numero}
+
+  cop_areas_alagaveis:
+    descricao: Polígonos de áreas alagáveis por distrito sanitário
+    servico: BASES_FEATURES_COP_CONSULTA
+    camada: 5
+    formato: geojson
+    frequencia: mensal
+    ordenar_por: OBJECTID
+    campos:
+      id_area: {origem: OBJECTID, converter: texto}
+      codigo: {origem: CODIGO, converter: inteiro}
+      distrito_sanitario: {origem: DS, converter: inteiro}
+      lote: {origem: LOTE, converter: inteiro}
+      area_m2: {origem: "DB2GSE.ST_Area(SHAPE)", converter: numero}
+      geometria_geojson: {converter: geometria}
+
+  cop_pontos_alagamento:
+    descricao: Pontos de alagamento com intervenção de drenagem (EMLURB)
+    servico: BASES_FEATURES_COP_CONSULTA
+    camada: 1
+    formato: geojson
+    frequencia: mensal
+    ordenar_por: OBJECTID
+    campos:
+      id_ponto: {origem: OBJECTID, converter: texto}
+      bairro: {origem: BAIRRO, converter: texto}
+      rpa: {origem: RPA, converter: inteiro}
+      logradouro: {origem: LOGRADOURO, converter: texto}
+      trecho: {origem: TRECHO, converter: texto}
+      status: {origem: STATUS, converter: texto}
+      classificacao: {origem: CLASSIFICA, converter: texto}
+      percentual_concluido: {origem: F__CONCLU, converter: numero}
+      custo_real: {origem: CUSTO_REAL, converter: numero}
+      inicio_intervencao: {origem: INICIO_RE, converter: epoch_data}
+      termino_intervencao: {origem: TERMINO_R, converter: epoch_data}
+      longitude: {converter: longitude}
+      latitude: {converter: latitude}
