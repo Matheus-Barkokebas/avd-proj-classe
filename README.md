@@ -126,6 +126,7 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 | [`docs/PLANO-DE-ACAO.md`](docs/PLANO-DE-ACAO.md) | Porta de entrada: ordem das issues, caminho crítico e significado das siglas dos épicos |
 | [`docs/PADROES.md`](docs/PADROES.md) | Convenções do repositório — nomes, datas, particionamento de dados, testes e fluxo Git |
 | [`docs/decisoes/0001-raw-mongodb-padronizada-neon.md`](docs/decisoes/0001-raw-mongodb-padronizada-neon.md) | Decisão 0001: RAW no MongoDB Atlas, camada padronizada no Neon e a fonte COP Recife |
+| [`docs/decisoes/0002-api-fastapi-e-front-react.md`](docs/decisoes/0002-api-fastapi-e-front-react.md) | Decisão 0002 (release 2): API em FastAPI e front-end em React + TypeScript |
 
 **Gestão do trabalho:** [Issues #5–#31](https://github.com/Matheus-Barkokebas/avd-proj-classe/issues) ·
 [Project **AerVita**](https://github.com/users/Matheus-Barkokebas/projects/1)
@@ -147,7 +148,7 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 
 ```text
 pipeline/                   coleta e padronização (Python): src/, conf/, tests/, data/, requirements
-api/                        API (FastAPI) que lê o Neon e entrega JSON ao front  ·  em construção
+api/                        API (FastAPI) que lê o Neon e entrega JSON ao front  ·  rotas de chuva, rios, arboviroses e território
 frontend/                   painel (React + TypeScript)  ·  em construção; protótipo v3 em frontend/prototipo/
 docs/                       planejamento, arquitetura, histórias, padrões e decisões (comum aos três)
 ai-rules/                   regras para assistentes de IA

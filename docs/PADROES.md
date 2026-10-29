@@ -23,7 +23,9 @@ pipeline/         coleta e padronização (Python) — comandos rodam daqui
   data/             RAW e Bronze locais (modo arquivo) — IGNORADO pelo Git (regenerável)
   tests/            testes automatizados — espelha src/
   requirements.txt · requirements-dev.txt · pytest.ini · .env.example
-api/              API FastAPI sobre o Neon (em construção)
+api/              API FastAPI sobre o Neon (só leitura) — comandos rodam daqui
+  app/              rotas/ → servicos/ → repositorios/ (único lugar com SQL); esquemas/ (contrato com o front)
+  tests/            sem rede + integracao/ (Neon real)
 frontend/         painel React + TypeScript (em construção); protótipo v3 em frontend/prototipo/
 docs/             planejamento, arquitetura, histórias, padrões, decisões — comum aos módulos
 ai-rules/         regras para assistentes de IA

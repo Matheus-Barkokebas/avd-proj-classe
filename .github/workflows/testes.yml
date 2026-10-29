@@ -3,8 +3,8 @@
 # de fora de propósito: dependem da disponibilidade das APIs públicas e das
 # credenciais do Atlas/Neon, que não ficam no CI.
 #
-# Monorepo: um job por módulo, disparado só quando a pasta dele muda.
-# Os jobs de `api/` e `frontend/` entram junto com o código de cada um.
+# Monorepo: um workflow por módulo, disparado só quando a pasta dele muda.
+# Este é o do pipeline/; a API tem o api.yml e o front terá o dele.
 name: testes
 
 on:
