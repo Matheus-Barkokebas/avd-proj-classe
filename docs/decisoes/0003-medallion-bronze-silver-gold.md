@@ -74,4 +74,6 @@ O painel continua mostrando o ano mais recente; os anteriores servem ao históri
 | API lendo da Gold | Feita na branch; o painel publicado migra quando ela chegar à `main` |
 | Histórico de arboviroses | Carregado: 128.233 notificações de 2013 a 2024 e 22.360 linhas em `rejeitados`, com o motivo. Sem uso no modelo por enquanto |
 | Modelo de alagamento | Feito: 82,5% de acurácia no teste contra 69,7% do chute ([resultados](../../pipeline/src/predicao/resultados/RESULTADOS.md)) |
+| Maré, alagamentos e avaliação do modelo na API e no painel | Feito: aba "Risco de alagamento", com selo de modelo experimental |
+| Simulador, boletins, fontes de dados, rotas no mapa e exportação em CSV | Feito. O que falta está em [`pendencias-do-sistema.pdf`](../pendencias-do-sistema.pdf) |
 | Previsão em tempo real no painel | A fazer: depende da coleta do COP numa máquina no Brasil e de validar a chuva do COP contra a do INMET |

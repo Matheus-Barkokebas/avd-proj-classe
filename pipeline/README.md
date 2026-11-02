@@ -11,6 +11,7 @@ APIs públicas ──► Bronze (Atlas) ──► validação por contrato ─�
 | Pasta | Conteúdo |
 |---|---|
 | [`src/ingestao/`](src/ingestao/README.md) | conectores (CKAN Recife, ArcGIS do COP, ANA), runner, contratos, armazenamento e camada padronizada |
+| [`agendamento/`](agendamento/README.md) | coleta do COP de hora em hora numa máquina no Brasil |
 | `src/processamento/` | montagem da camada Gold (`gold.py`, `gold_alagamento.py`) |
 | [`src/predicao/`](src/predicao/README.md) | modelo de alagamento, com experimentos e resultados |
 | [`src/serving/`](src/serving/README.md) | exportação dos dados reais para o protótipo do painel |

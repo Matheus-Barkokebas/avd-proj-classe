@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 
 import type { Esquemas } from "../api/cliente";
-import { useArboSemanas, useAtualizacao, useChuvaAtual, useChuvaSerie, useRios } from "../api/consultas";
+import { useAlagamentoRotas, useArboSemanas, useAtualizacao, useChuvaAtual, useChuvaSerie, useRios } from "../api/consultas";
+import { CardMares } from "../componentes/CardMares";
 import { Carregando, ErroCarga } from "../componentes/Estados";
 import { GraficoColunas, GraficoSerieChuva } from "../componentes/Graficos";
 import { AvisoDadoAntigo, Card, Metrica, PillSituacao, ReguaRio } from "../componentes/Pecas";
@@ -15,6 +16,8 @@ const NOMES_TABELA: Record<string, string> = {
   epidemiologia: "Arboviroses",
   cop_areas_alagaveis: "Áreas alagáveis",
   cop_pontos_alagamento: "Pontos de alagamento",
+  cop_alagamento_rotas: "Alagamentos por rota (COP)",
+  inmet_chuva: "Chuva do INMET (usada no modelo)",
 };
 const GRAVIDADE: SituacaoRio[] = ["inundacao", "alerta", "pre_alerta", "normal", "sem_cota"];
 const COR_SITUACAO = { inundacao: "var(--sev-critico)", alerta: "var(--sev-alto)", pre_alerta: "var(--sev-moderado)",
@@ -56,6 +59,7 @@ export function VisaoGeral() {
   const rios = useRios();
   const arbo = useArboSemanas();
   const atualizacao = useAtualizacao();
+  const alagamentos = useAlagamentoRotas(30);
 
   const ultimasSemanas = (() => {
     if (!arbo.data) return [];
@@ -104,6 +108,19 @@ export function VisaoGeral() {
           </Card>
         </div>
         <div className="c4 pilha">
+          <CardMares />
+          <Card titulo="Alagamentos reportados" sub="últimos 30 dias, por rota"
+                acoes={<Link className="btn" to="/risco-alagamento">Detalhar</Link>}>
+            {alagamentos.isPending ? <Carregando /> : alagamentos.error ? <ErroCarga erro={alagamentos.error} /> :
+             !alagamentos.data.length ? <p className="muted small">Nenhum alagamento reportado nos últimos 30 dias.</p> : (
+              <dl className="kv">
+                {alagamentos.data.slice(0, 3).map((r) => [
+                  <dt key={`${r.rota}-nome`}>{r.rota}</dt>,
+                  <dd key={`${r.rota}-valor`}>{numero(r.leituras_com_alagamento)} h</dd>,
+                ])}
+              </dl>
+            )}
+          </Card>
           <Card titulo="Rios" sub="nível vs. cotas oficiais">
             {rios.isPending ? <Carregando /> : rios.error ? <ErroCarga erro={rios.error} /> : (
               <ul className="lista-rios">

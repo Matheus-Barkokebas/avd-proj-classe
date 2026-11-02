@@ -32,7 +32,7 @@ RAIZ_PROJETO = Path(__file__).resolve().parents[2]
 CAMINHO_CONFIG = RAIZ_PROJETO / "conf" / "gold.yml"
 
 TABELA_HISTORICO = "epidemiologia_historico"
-CONTRATOS_ALAGAMENTO = ("inmet_chuva", "cop_mare", "cop_alagamento_rotas")
+CONTRATOS_ALAGAMENTO = ("inmet_chuva", "cop_mare", "cop_alagamento_rotas", "cop_rotas")
 
 DDL_TABELAS = """
 CREATE SCHEMA IF NOT EXISTS gold;
@@ -47,6 +47,31 @@ CREATE TABLE IF NOT EXISTS gold.classificacao (
     situacao text NOT NULL,
     PRIMARY KEY (agravo, codigo)
 );
+CREATE TABLE IF NOT EXISTS gold.modelo_execucao (
+    modelo text NOT NULL,
+    treinado_em timestamptz NOT NULL DEFAULT now(),
+    inicio timestamp NOT NULL,
+    fim timestamp NOT NULL,
+    horas integer NOT NULL,
+    horas_teste integer NOT NULL,
+    horizonte_horas integer NOT NULL,
+    linha_de_base double precision NOT NULL,
+    acuracia double precision NOT NULL,
+    precisao double precision NOT NULL,
+    recall double precision NOT NULL,
+    validacao_cruzada double precision NOT NULL,
+    tempo_linha_de_base double precision NOT NULL,
+    tempo_acuracia double precision NOT NULL,
+    tempo_balanceada double precision NOT NULL,
+    verdadeiros_positivos integer NOT NULL,
+    falsos_positivos integer NOT NULL,
+    falsos_negativos integer NOT NULL,
+    verdadeiros_negativos integer NOT NULL,
+    importancia jsonb NOT NULL,
+    PRIMARY KEY (modelo, treinado_em)
+);
+ALTER TABLE gold.modelo_execucao ADD COLUMN IF NOT EXISTS arvore jsonb;
+ALTER TABLE gold.modelo_execucao ADD COLUMN IF NOT EXISTS faixas jsonb;
 CREATE TABLE IF NOT EXISTS gold.previsao_alagamento (
     hora timestamp NOT NULL,
     hora_prevista timestamp NOT NULL,
@@ -75,6 +100,8 @@ VIEWS = {
         SELECT data_hora, mare_m FROM public.cop_mare""",
     "alagamento_rota": """
         SELECT id_evento, cod_rota, rota, data_hora, alagamentos FROM public.cop_alagamento_rotas""",
+    "rota": """
+        SELECT rota, cod_rota, geometria_geojson FROM public.cop_rotas""",
     "chuva_mensal": """
         SELECT ano_referencia, mes, chuva_ano_atual_mm, chuva_ano_anterior_mm, media_historica_mm
         FROM public.cop_chuva_mensal""",
@@ -106,7 +133,8 @@ VIEWS = {
     "ultima_carga": " UNION ALL ".join(
         f"SELECT '{t}' AS tabela, max(carregado_em) AS carregado_em, count(*) AS linhas FROM public.{t}"
         for t in ("cop_indicadores", "cop_rios", "cop_previsao_chuva", "cop_chuva_mensal", "epidemiologia",
-                  "cop_areas_alagaveis", "cop_pontos_alagamento")
+                  "cop_areas_alagaveis", "cop_pontos_alagamento", "cop_alagamento_rotas", "inmet_chuva", "cop_mare",
+                  "cop_rotas", "cop_pluviometros", "epidemiologia_historico")
     ),
 }
 

@@ -103,6 +103,39 @@ class RepositorioFalso:
                  "inicio_intervencao": date(2015, 12, 1), "termino_intervencao": None,
                  "longitude": -34.897, "latitude": -8.0714}]
 
+    def mare_entre(self, inicio, fim):
+        self.chamadas.append(("mare_entre", inicio, fim))
+        return [{"data_hora": AGORA + timedelta(hours=2), "mare_m": 2.1, "anterior": 0.4},
+                {"data_hora": AGORA + timedelta(hours=8), "mare_m": 0.3, "anterior": 2.1}]
+
+    def alagamento_por_rota(self, desde):
+        self.chamadas.append(("alagamento_por_rota", desde))
+        return [{"rota": "AV. NORTE >> CENTRO", "leituras_com_alagamento": 12, "alertas": 30, "ultimo": AGORA}]
+
+    def alagamento_por_dia(self, desde):
+        self.chamadas.append(("alagamento_por_dia", desde))
+        return [{"dia": date(2026, 5, 1), "horas_com_alagamento": 6, "rotas": 4, "alertas": 20}]
+
+    def modelo_mais_recente(self):
+        if self.vazio:
+            return None
+        return {"modelo": "arvore_alagamento_3h", "treinado_em": AGORA, "inicio": AGORA, "fim": AGORA, "horas": 2424,
+                "horas_teste": 485, "horizonte_horas": 3, "linha_de_base": 0.697, "acuracia": 0.825, "precisao": 0.73,
+                "recall": 0.667, "validacao_cruzada": 0.843, "tempo_linha_de_base": 0.805, "tempo_acuracia": 0.86,
+                "tempo_balanceada": 0.691, "verdadeiros_positivos": 98, "falsos_positivos": 36, "falsos_negativos": 49,
+                "verdadeiros_negativos": 302, "importancia": [{"variavel": "chuva_12h_mm", "importancia": 0.732}],
+                "arvore": {"variavel": "chuva_12h_mm", "limiar": 2.7, "esquerda": {"probabilidade": 0.08, "horas": 900},
+                           "direita": {"variavel": "mare_m", "limiar": 1.5, "esquerda": {"probabilidade": 0.6, "horas": 200},
+                                       "direita": {"probabilidade": 0.9, "horas": 100}}},
+                "faixas": {"chuva_12h_mm": [0.0, 80.0], "mare_m": [0.0, 2.7]}}
+
+    def rotas_com_alagamento(self, desde):
+        return [{"rota": "AV. NORTE >> CENTRO", "cod_rota": 101, "leituras_com_alagamento": 12,
+                 "geometria_geojson": '{"type":"Polygon","coordinates":[[[-34.9,-8.0],[-34.8,-8.0],[-34.8,-8.1],[-34.9,-8.0]]]}'}]
+
+    def previsoes_de_teste(self):
+        return [{"hora": AGORA, "hora_prevista": AGORA + timedelta(hours=3), "probabilidade": 0.8, "previsto": 1, "observado": 0}]
+
     def ultimas_cargas(self):
         return [{"tabela": "cop_indicadores", "carregado_em": datetime(2026, 10, 28, 21, 5, tzinfo=timezone.utc), "linhas": 27}]
 

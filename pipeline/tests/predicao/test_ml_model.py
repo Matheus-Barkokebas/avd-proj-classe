@@ -46,3 +46,31 @@ def test_validacao_no_tempo_treina_antes_e_testa_depois(base):
     c.treinar(X, y)
     resultado = c.validar_no_tempo(X, y)
     assert resultado["corte"] == X.index[150] and 0 <= resultado["acuracia"] <= 1
+
+
+def test_metricas_do_teste_batem_com_a_matriz(base):
+    c = Classificador()
+    X, y = c.preparar(base)
+    X_t, X_e, y_t, y_e = c.dividir(X, y)
+    c.treinar(X_t, y_t)
+    m = c.metricas(X_e, y_e)
+    assert m["verdadeiros_positivos"] + m["falsos_negativos"] == y_e.sum()
+    assert m["verdadeiros_positivos"] + m["falsos_positivos"] + m["falsos_negativos"] + m["verdadeiros_negativos"] == len(y_e)
+    assert m["recall"] == m["verdadeiros_positivos"] / y_e.sum() and m["importancia"][0]["importancia"] > 0
+
+
+def test_arvore_exportada_da_a_mesma_resposta_do_modelo(base):
+    c = Classificador()
+    X, y = c.preparar(base)
+    X_t, X_e, y_t, _ = c.dividir(X, y)
+    c.treinar(X_t, y_t)
+    arvore = c.exportar_arvore()
+
+    def percorre(no, linha):
+        while "limiar" in no:
+            no = no["esquerda"] if linha[no["variavel"]] <= no["limiar"] else no["direita"]
+        return no["probabilidade"]
+
+    esperado = c.modelo.predict_proba(X_e)[:, 1].round(4)
+    assert [percorre(arvore, l) for _, l in X_e.iterrows()] == list(esperado)
+    assert set(c.faixas(X_t)) == set(X.columns)

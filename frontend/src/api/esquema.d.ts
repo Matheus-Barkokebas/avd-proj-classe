@@ -21,6 +21,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/alagamento/modelo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Avaliação do modelo mais recente: acurácia no teste, linha de base e limites */
+        get: operations["modelo_v1_alagamento_modelo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/alagamento/previsoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Previsto e observado nas horas de teste do modelo (período histórico, não é tempo real) */
+        get: operations["previsoes_v1_alagamento_previsoes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/alagamento/rotas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Rotas com alagamento reportado no período, da mais afetada para a menos */
+        get: operations["rotas_v1_alagamento_rotas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/alagamento/rotas-geo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Traçado das rotas em GeoJSON, com as horas de alagamento reportado no período */
+        get: operations["rotas_geo_v1_alagamento_rotas_geo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/alagamento/serie": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Alagamentos reportados por dia */
+        get: operations["serie_v1_alagamento_serie_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/alagamento/simular": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Aplica o modelo a um cenário hipotético de chuva e maré (não é previsão real) */
+        get: operations["simular_v1_alagamento_simular_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arboviroses/bairros": {
         parameters: {
             query?: never;
@@ -132,6 +234,23 @@ export interface paths {
         };
         /** Série horária de chuva e maré */
         get: operations["chuva_serie_v1_chuva_serie_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/mare/proximas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Próximas marés altas e baixas, da tábua do COP */
+        get: operations["proximas_v1_mare_proximas_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -263,6 +382,44 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AlagamentoDia */
+        AlagamentoDia: {
+            /** Alertas */
+            alertas: number;
+            /**
+             * Dia
+             * Format: date
+             */
+            dia: string;
+            /** Horas Com Alagamento */
+            horas_com_alagamento: number;
+            /**
+             * Rotas
+             * @description Rotas diferentes com alagamento reportado no dia
+             */
+            rotas: number;
+        };
+        /** AlagamentoRota */
+        AlagamentoRota: {
+            /**
+             * Alertas
+             * @description Soma dos alertas de alagamento na rota
+             */
+            alertas: number;
+            /**
+             * Leituras Com Alagamento
+             * @description Leituras horárias em que a rota teve alagamento reportado
+             */
+            leituras_com_alagamento: number;
+            /** Rota */
+            rota: string;
+            /**
+             * Ultimo
+             * Format: date-time
+             * @description Último alagamento reportado na rota no período
+             */
+            ultimo: string;
+        };
         /** ArbovirosesBairro */
         ArbovirosesBairro: {
             /** Chave Bairro */
@@ -322,6 +479,69 @@ export interface components {
             hoje: string;
             /** Tabelas */
             tabelas: components["schemas"]["CargaTabela"][];
+        };
+        /** AvaliacaoModelo */
+        AvaliacaoModelo: {
+            /** Acuracia */
+            acuracia: number;
+            /** Falsos Negativos */
+            falsos_negativos: number;
+            /** Falsos Positivos */
+            falsos_positivos: number;
+            /**
+             * Fim
+             * Format: date-time
+             * @description Última hora usada no treino e no teste
+             */
+            fim: string;
+            /** Horas */
+            horas: number;
+            /** Horas Teste */
+            horas_teste: number;
+            /** Horizonte Horas */
+            horizonte_horas: number;
+            /** Importancia */
+            importancia: components["schemas"]["VariavelImportante"][];
+            /**
+             * Inicio
+             * Format: date-time
+             * @description Primeira hora usada no treino e no teste
+             */
+            inicio: string;
+            /**
+             * Linha De Base
+             * @description Acurácia de chutar sempre a classe mais comum, de 0 a 1
+             */
+            linha_de_base: number;
+            /** Modelo */
+            modelo: string;
+            /** Precisao */
+            precisao: number;
+            /**
+             * Recall
+             * @description Parte dos alagamentos reais que o modelo encontra, de 0 a 1
+             */
+            recall: number;
+            /** Tempo Acuracia */
+            tempo_acuracia: number;
+            /** Tempo Balanceada */
+            tempo_balanceada: number;
+            /**
+             * Tempo Linha De Base
+             * @description Linha de base treinando no passado e testando no futuro
+             */
+            tempo_linha_de_base: number;
+            /**
+             * Treinado Em
+             * Format: date-time
+             */
+            treinado_em: string;
+            /** Validacao Cruzada */
+            validacao_cruzada: number;
+            /** Verdadeiros Negativos */
+            verdadeiros_negativos: number;
+            /** Verdadeiros Positivos */
+            verdadeiros_positivos: number;
         };
         /** Bairro */
         Bairro: {
@@ -447,6 +667,43 @@ export interface components {
              */
             type: "FeatureCollection";
         };
+        /** ForaDaFaixa */
+        ForaDaFaixa: {
+            /** Maximo */
+            maximo: number;
+            /** Minimo */
+            minimo: number;
+            /** Valor */
+            valor: number;
+            /** Variavel */
+            variavel: string;
+        };
+        /** Mare */
+        Mare: {
+            /**
+             * Data Hora
+             * Format: date-time
+             */
+            data_hora: string;
+            /** Mare M */
+            mare_m: number;
+            /**
+             * Tipo
+             * @enum {string}
+             */
+            tipo: "alta" | "baixa";
+        };
+        /** PassoSimulacao */
+        PassoSimulacao: {
+            /** Limiar */
+            limiar: number;
+            /** Menor Ou Igual */
+            menor_ou_igual: boolean;
+            /** Valor */
+            valor: number;
+            /** Variavel */
+            variavel: string;
+        };
         /** PontoSerieChuva */
         PontoSerieChuva: {
             /** Chuva Max 1H Mm */
@@ -474,6 +731,25 @@ export interface components {
             data_hora: string;
             /** Nivel */
             nivel: number;
+        };
+        /** PrevisaoAlagamento */
+        PrevisaoAlagamento: {
+            /**
+             * Hora
+             * Format: date-time
+             */
+            hora: string;
+            /**
+             * Hora Prevista
+             * Format: date-time
+             */
+            hora_prevista: string;
+            /** Observado */
+            observado: number | null;
+            /** Previsto */
+            previsto: number;
+            /** Probabilidade */
+            probabilidade: number;
         };
         /** PrevisaoHora */
         PrevisaoHora: {
@@ -547,6 +823,40 @@ export interface components {
              */
             status: "ok" | "indisponivel";
         };
+        /** Simulacao */
+        Simulacao: {
+            /**
+             * Caminho
+             * @description Regras da árvore aplicadas ao cenário, em ordem
+             */
+            caminho: components["schemas"]["PassoSimulacao"][];
+            /**
+             * Fora Da Faixa
+             * @description Valores fora do que o modelo viu no treino
+             */
+            fora_da_faixa: components["schemas"]["ForaDaFaixa"][];
+            /**
+             * Horas Parecidas
+             * @description Horas de treino que caíram na mesma regra final
+             */
+            horas_parecidas: number;
+            /** Horizonte Horas */
+            horizonte_horas: number;
+            /** Previsto */
+            previsto: number;
+            /**
+             * Probabilidade
+             * @description Parte das horas de treino parecidas com o cenário que tiveram alagamento
+             */
+            probabilidade: number;
+        };
+        /** VariavelImportante */
+        VariavelImportante: {
+            /** Importancia */
+            importancia: number;
+            /** Variavel */
+            variavel: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -572,6 +882,305 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Saude"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    modelo_v1_alagamento_modelo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AvaliacaoModelo"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    previsoes_v1_alagamento_previsoes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrevisaoAlagamento"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    rotas_v1_alagamento_rotas_get: {
+        parameters: {
+            query?: {
+                dias?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlagamentoRota"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    rotas_geo_v1_alagamento_rotas_geo_get: {
+        parameters: {
+            query?: {
+                dias?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeatureCollection"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    serie_v1_alagamento_serie_get: {
+        parameters: {
+            query?: {
+                dias?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AlagamentoDia"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    simular_v1_alagamento_simular_get: {
+        parameters: {
+            query?: {
+                chuva_1h_mm?: number;
+                chuva_3h_mm?: number;
+                chuva_6h_mm?: number;
+                chuva_12h_mm?: number;
+                chuva_24h_mm?: number;
+                chuva_72h_mm?: number;
+                chuva_168h_mm?: number;
+                mare_m?: number;
+                mare_subindo?: number;
+                mare_max_futura_m?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Simulacao"];
                 };
             };
             /** @description Not Found */
@@ -908,6 +1517,55 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PontoSerieChuva"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    proximas_v1_mare_proximas_get: {
+        parameters: {
+            query?: {
+                horas?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Mare"][];
                 };
             };
             /** @description Not Found */

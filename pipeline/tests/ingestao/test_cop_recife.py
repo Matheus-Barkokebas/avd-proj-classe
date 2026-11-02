@@ -157,3 +157,10 @@ def test_alagamento_por_rota_converte_para_o_horario_do_recife():
                                             "data_eve": 1753923952000})
     assert linha == {"id_evento": "21036", "cod_rota": 103, "rota": "ESTRADA DOS REMÉDIOS",
                      "data_hora": "2025-07-30 22:05:52", "alagamentos": 2}
+
+
+def test_rota_guarda_nome_codigo_e_geometria():
+    geometria = {"type": "Polygon", "coordinates": [[[-34.9, -8.0], [-34.8, -8.0], [-34.8, -8.1], [-34.9, -8.0]]]}
+    linha = _linha("cop_rotas", {"rota": "AV. NORTE >> CENTRO", "cod_rota": 101}, geometria, geojson=True)
+    assert linha["rota"] == "AV. NORTE >> CENTRO" and linha["cod_rota"] == 101
+    assert '"Polygon"' in linha["geometria_geojson"]

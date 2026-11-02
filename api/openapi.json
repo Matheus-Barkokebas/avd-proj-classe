@@ -1,6 +1,68 @@
 {
   "components": {
     "schemas": {
+      "AlagamentoDia": {
+        "properties": {
+          "alertas": {
+            "title": "Alertas",
+            "type": "integer"
+          },
+          "dia": {
+            "format": "date",
+            "title": "Dia",
+            "type": "string"
+          },
+          "horas_com_alagamento": {
+            "title": "Horas Com Alagamento",
+            "type": "integer"
+          },
+          "rotas": {
+            "description": "Rotas diferentes com alagamento reportado no dia",
+            "title": "Rotas",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "dia",
+          "horas_com_alagamento",
+          "rotas",
+          "alertas"
+        ],
+        "title": "AlagamentoDia",
+        "type": "object"
+      },
+      "AlagamentoRota": {
+        "properties": {
+          "alertas": {
+            "description": "Soma dos alertas de alagamento na rota",
+            "title": "Alertas",
+            "type": "integer"
+          },
+          "leituras_com_alagamento": {
+            "description": "Leituras horárias em que a rota teve alagamento reportado",
+            "title": "Leituras Com Alagamento",
+            "type": "integer"
+          },
+          "rota": {
+            "title": "Rota",
+            "type": "string"
+          },
+          "ultimo": {
+            "description": "Último alagamento reportado na rota no período",
+            "format": "date-time",
+            "title": "Ultimo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "rota",
+          "leituras_com_alagamento",
+          "alertas",
+          "ultimo"
+        ],
+        "title": "AlagamentoRota",
+        "type": "object"
+      },
       "ArbovirosesBairro": {
         "properties": {
           "chave_bairro": {
@@ -148,6 +210,125 @@
           "hoje"
         ],
         "title": "Atualizacao",
+        "type": "object"
+      },
+      "AvaliacaoModelo": {
+        "properties": {
+          "acuracia": {
+            "title": "Acuracia",
+            "type": "number"
+          },
+          "falsos_negativos": {
+            "title": "Falsos Negativos",
+            "type": "integer"
+          },
+          "falsos_positivos": {
+            "title": "Falsos Positivos",
+            "type": "integer"
+          },
+          "fim": {
+            "description": "Última hora usada no treino e no teste",
+            "format": "date-time",
+            "title": "Fim",
+            "type": "string"
+          },
+          "horas": {
+            "title": "Horas",
+            "type": "integer"
+          },
+          "horas_teste": {
+            "title": "Horas Teste",
+            "type": "integer"
+          },
+          "horizonte_horas": {
+            "title": "Horizonte Horas",
+            "type": "integer"
+          },
+          "importancia": {
+            "items": {
+              "$ref": "#/components/schemas/VariavelImportante"
+            },
+            "title": "Importancia",
+            "type": "array"
+          },
+          "inicio": {
+            "description": "Primeira hora usada no treino e no teste",
+            "format": "date-time",
+            "title": "Inicio",
+            "type": "string"
+          },
+          "linha_de_base": {
+            "description": "Acurácia de chutar sempre a classe mais comum, de 0 a 1",
+            "title": "Linha De Base",
+            "type": "number"
+          },
+          "modelo": {
+            "title": "Modelo",
+            "type": "string"
+          },
+          "precisao": {
+            "title": "Precisao",
+            "type": "number"
+          },
+          "recall": {
+            "description": "Parte dos alagamentos reais que o modelo encontra, de 0 a 1",
+            "title": "Recall",
+            "type": "number"
+          },
+          "tempo_acuracia": {
+            "title": "Tempo Acuracia",
+            "type": "number"
+          },
+          "tempo_balanceada": {
+            "title": "Tempo Balanceada",
+            "type": "number"
+          },
+          "tempo_linha_de_base": {
+            "description": "Linha de base treinando no passado e testando no futuro",
+            "title": "Tempo Linha De Base",
+            "type": "number"
+          },
+          "treinado_em": {
+            "format": "date-time",
+            "title": "Treinado Em",
+            "type": "string"
+          },
+          "validacao_cruzada": {
+            "title": "Validacao Cruzada",
+            "type": "number"
+          },
+          "verdadeiros_negativos": {
+            "title": "Verdadeiros Negativos",
+            "type": "integer"
+          },
+          "verdadeiros_positivos": {
+            "title": "Verdadeiros Positivos",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "modelo",
+          "treinado_em",
+          "inicio",
+          "fim",
+          "horas",
+          "horas_teste",
+          "horizonte_horas",
+          "linha_de_base",
+          "acuracia",
+          "precisao",
+          "recall",
+          "validacao_cruzada",
+          "tempo_linha_de_base",
+          "tempo_acuracia",
+          "tempo_balanceada",
+          "verdadeiros_positivos",
+          "falsos_positivos",
+          "falsos_negativos",
+          "verdadeiros_negativos",
+          "importancia"
+        ],
+        "title": "AvaliacaoModelo",
         "type": "object"
       },
       "Bairro": {
@@ -601,6 +782,90 @@
         "title": "FeatureCollection",
         "type": "object"
       },
+      "ForaDaFaixa": {
+        "properties": {
+          "maximo": {
+            "title": "Maximo",
+            "type": "number"
+          },
+          "minimo": {
+            "title": "Minimo",
+            "type": "number"
+          },
+          "valor": {
+            "title": "Valor",
+            "type": "number"
+          },
+          "variavel": {
+            "title": "Variavel",
+            "type": "string"
+          }
+        },
+        "required": [
+          "variavel",
+          "valor",
+          "minimo",
+          "maximo"
+        ],
+        "title": "ForaDaFaixa",
+        "type": "object"
+      },
+      "Mare": {
+        "properties": {
+          "data_hora": {
+            "format": "date-time",
+            "title": "Data Hora",
+            "type": "string"
+          },
+          "mare_m": {
+            "title": "Mare M",
+            "type": "number"
+          },
+          "tipo": {
+            "enum": [
+              "alta",
+              "baixa"
+            ],
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data_hora",
+          "mare_m",
+          "tipo"
+        ],
+        "title": "Mare",
+        "type": "object"
+      },
+      "PassoSimulacao": {
+        "properties": {
+          "limiar": {
+            "title": "Limiar",
+            "type": "number"
+          },
+          "menor_ou_igual": {
+            "title": "Menor Ou Igual",
+            "type": "boolean"
+          },
+          "valor": {
+            "title": "Valor",
+            "type": "number"
+          },
+          "variavel": {
+            "title": "Variavel",
+            "type": "string"
+          }
+        },
+        "required": [
+          "variavel",
+          "valor",
+          "limiar",
+          "menor_ou_igual"
+        ],
+        "title": "PassoSimulacao",
+        "type": "object"
+      },
       "PontoSerieChuva": {
         "properties": {
           "chuva_max_1h_mm": {
@@ -692,6 +957,48 @@
           "nivel"
         ],
         "title": "PontoSerieRio",
+        "type": "object"
+      },
+      "PrevisaoAlagamento": {
+        "properties": {
+          "hora": {
+            "format": "date-time",
+            "title": "Hora",
+            "type": "string"
+          },
+          "hora_prevista": {
+            "format": "date-time",
+            "title": "Hora Prevista",
+            "type": "string"
+          },
+          "observado": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observado"
+          },
+          "previsto": {
+            "title": "Previsto",
+            "type": "integer"
+          },
+          "probabilidade": {
+            "title": "Probabilidade",
+            "type": "number"
+          }
+        },
+        "required": [
+          "hora",
+          "hora_prevista",
+          "probabilidade",
+          "previsto",
+          "observado"
+        ],
+        "title": "PrevisaoAlagamento",
         "type": "object"
       },
       "PrevisaoHora": {
@@ -903,6 +1210,72 @@
         ],
         "title": "Saude",
         "type": "object"
+      },
+      "Simulacao": {
+        "properties": {
+          "caminho": {
+            "description": "Regras da árvore aplicadas ao cenário, em ordem",
+            "items": {
+              "$ref": "#/components/schemas/PassoSimulacao"
+            },
+            "title": "Caminho",
+            "type": "array"
+          },
+          "fora_da_faixa": {
+            "description": "Valores fora do que o modelo viu no treino",
+            "items": {
+              "$ref": "#/components/schemas/ForaDaFaixa"
+            },
+            "title": "Fora Da Faixa",
+            "type": "array"
+          },
+          "horas_parecidas": {
+            "description": "Horas de treino que caíram na mesma regra final",
+            "title": "Horas Parecidas",
+            "type": "integer"
+          },
+          "horizonte_horas": {
+            "title": "Horizonte Horas",
+            "type": "integer"
+          },
+          "previsto": {
+            "title": "Previsto",
+            "type": "integer"
+          },
+          "probabilidade": {
+            "description": "Parte das horas de treino parecidas com o cenário que tiveram alagamento",
+            "title": "Probabilidade",
+            "type": "number"
+          }
+        },
+        "required": [
+          "probabilidade",
+          "previsto",
+          "horas_parecidas",
+          "horizonte_horas",
+          "caminho",
+          "fora_da_faixa"
+        ],
+        "title": "Simulacao",
+        "type": "object"
+      },
+      "VariavelImportante": {
+        "properties": {
+          "importancia": {
+            "title": "Importancia",
+            "type": "number"
+          },
+          "variavel": {
+            "title": "Variavel",
+            "type": "string"
+          }
+        },
+        "required": [
+          "variavel",
+          "importancia"
+        ],
+        "title": "VariavelImportante",
+        "type": "object"
       }
     }
   },
@@ -961,6 +1334,481 @@
         "summary": "Verifica a API e a conexão com o banco",
         "tags": [
           "operacao"
+        ]
+      }
+    },
+    "/v1/alagamento/modelo": {
+      "get": {
+        "operationId": "modelo_v1_alagamento_modelo_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvaliacaoModelo"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Avaliação do modelo mais recente: acurácia no teste, linha de base e limites",
+        "tags": [
+          "alagamento"
+        ]
+      }
+    },
+    "/v1/alagamento/previsoes": {
+      "get": {
+        "operationId": "previsoes_v1_alagamento_previsoes_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/PrevisaoAlagamento"
+                  },
+                  "title": "Response Previsoes V1 Alagamento Previsoes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Previsto e observado nas horas de teste do modelo (período histórico, não é tempo real)",
+        "tags": [
+          "alagamento"
+        ]
+      }
+    },
+    "/v1/alagamento/rotas": {
+      "get": {
+        "operationId": "rotas_v1_alagamento_rotas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dias",
+            "required": false,
+            "schema": {
+              "default": 90,
+              "maximum": 730,
+              "minimum": 1,
+              "title": "Dias",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AlagamentoRota"
+                  },
+                  "title": "Response Rotas V1 Alagamento Rotas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Rotas com alagamento reportado no período, da mais afetada para a menos",
+        "tags": [
+          "alagamento"
+        ]
+      }
+    },
+    "/v1/alagamento/rotas-geo": {
+      "get": {
+        "operationId": "rotas_geo_v1_alagamento_rotas_geo_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dias",
+            "required": false,
+            "schema": {
+              "default": 90,
+              "maximum": 730,
+              "minimum": 1,
+              "title": "Dias",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FeatureCollection"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Traçado das rotas em GeoJSON, com as horas de alagamento reportado no período",
+        "tags": [
+          "alagamento"
+        ]
+      }
+    },
+    "/v1/alagamento/serie": {
+      "get": {
+        "operationId": "serie_v1_alagamento_serie_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "dias",
+            "required": false,
+            "schema": {
+              "default": 90,
+              "maximum": 730,
+              "minimum": 1,
+              "title": "Dias",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AlagamentoDia"
+                  },
+                  "title": "Response Serie V1 Alagamento Serie Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Alagamentos reportados por dia",
+        "tags": [
+          "alagamento"
+        ]
+      }
+    },
+    "/v1/alagamento/simular": {
+      "get": {
+        "operationId": "simular_v1_alagamento_simular_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "chuva_1h_mm",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Chuva 1H Mm",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "chuva_3h_mm",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Chuva 3H Mm",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "chuva_6h_mm",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Chuva 6H Mm",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "chuva_12h_mm",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Chuva 12H Mm",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "chuva_24h_mm",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Chuva 24H Mm",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "chuva_72h_mm",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Chuva 72H Mm",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "chuva_168h_mm",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Chuva 168H Mm",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mare_m",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 5,
+              "minimum": -1,
+              "title": "Mare M",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mare_subindo",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Mare Subindo",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mare_max_futura_m",
+            "required": false,
+            "schema": {
+              "default": 1.5,
+              "maximum": 5,
+              "minimum": -1,
+              "title": "Mare Max Futura M",
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Simulacao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Aplica o modelo a um cenário hipotético de chuva e maré (não é previsão real)",
+        "tags": [
+          "alagamento"
         ]
       }
     },
@@ -1389,6 +2237,75 @@
         "summary": "Série horária de chuva e maré",
         "tags": [
           "chuva"
+        ]
+      }
+    },
+    "/v1/mare/proximas": {
+      "get": {
+        "operationId": "proximas_v1_mare_proximas_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "horas",
+            "required": false,
+            "schema": {
+              "default": 48,
+              "maximum": 744,
+              "minimum": 1,
+              "title": "Horas",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Mare"
+                  },
+                  "title": "Response Proximas V1 Mare Proximas Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Próximas marés altas e baixas, da tábua do COP",
+        "tags": [
+          "mare"
         ]
       }
     },

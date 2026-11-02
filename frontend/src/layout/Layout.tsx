@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { useSaude } from "../api/consultas";
 import { Icone } from "../componentes/Icone";
+import { Paleta } from "../componentes/Paleta";
 import s from "./Layout.module.css";
 import { MENU, itemDaRota } from "./menu";
 import { useTema } from "./useTema";
@@ -24,6 +25,7 @@ export function Layout() {
   const { pathname } = useLocation();
   const [recolhida, setRecolhida] = useState(false);
   const [menuAberto, setMenuAberto] = useState(false);
+  const [paletaAberta, setPaletaAberta] = useState(false);
   const atual = itemDaRota(pathname);
 
   useEffect(() => {
@@ -31,10 +33,21 @@ export function Layout() {
     document.title = `${atual?.titulo ?? "AerVita"} · AerVita Console`;
   }, [pathname, atual]);
 
+  useEffect(() => {
+    const atalho = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletaAberta((aberta) => !aberta);
+      }
+    };
+    window.addEventListener("keydown", atalho);
+    return () => window.removeEventListener("keydown", atalho);
+  }, []);
+
   let grupo = "";
   return (
     <div className={`${s.app} ${recolhida ? s.recolhida : ""} ${menuAberto ? s.menuAberto : ""}`}>
-      <aside className={s.sidebar} aria-label="Menu principal">
+      <aside className={`${s.sidebar} nao-imprimir`} aria-label="Menu principal">
         <div className={s.marca}>
           <div className={s.logo}><Icone nome="marca" tamanho={17} traco={2.1} /></div>
           <div className={s.nomeMarca}>AerVita <span>Console</span></div>
@@ -64,7 +77,7 @@ export function Layout() {
       </aside>
 
       <div className={s.main}>
-        <header className={s.topbar}>
+        <header className={`${s.topbar} nao-imprimir`}>
           <button className={`${s.ib} ${s.hamb}`} aria-label="Abrir menu" onClick={() => setMenuAberto((m) => !m)}>
             <Icone nome="menu" tamanho={18} />
           </button>
@@ -75,6 +88,9 @@ export function Layout() {
           </div>
           <div className={s.esp} />
           <StatusApi />
+          <button className={s.ib} onClick={() => setPaletaAberta(true)} aria-label="Abrir paleta de comandos" title="Paleta de comandos (Ctrl+K)">
+            <Icone nome="comando" tamanho={18} />
+          </button>
           <button className={s.ib} onClick={alternar} aria-label={tema === "escuro" ? "Usar tema claro" : "Usar tema escuro"}>
             <Icone nome={tema === "escuro" ? "sol" : "lua"} tamanho={18} />
           </button>
@@ -83,6 +99,7 @@ export function Layout() {
           <Outlet />
         </main>
       </div>
+      <Paleta aberta={paletaAberta} aoFechar={() => setPaletaAberta(false)} aoAlternarTema={alternar} temaEscuro={tema === "escuro"} />
     </div>
   );
 }

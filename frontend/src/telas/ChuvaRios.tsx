@@ -1,6 +1,8 @@
 import { useState } from "react";
 
 import { useChuvaAtual, useChuvaMensal, useChuvaSerie, usePrevisao, useRios, useSerieRio } from "../api/consultas";
+import { baixarCsv } from "../csv";
+import { CardMares } from "../componentes/CardMares";
 import { Carregando, ErroCarga, Vazio } from "../componentes/Estados";
 import { GraficoChuvaMensal, GraficoPrevisao, GraficoSerieChuva, GraficoSerieRio } from "../componentes/Graficos";
 import { AvisoDadoAntigo, Card, PillSituacao, ReguaRio } from "../componentes/Pecas";
@@ -46,12 +48,19 @@ export function ChuvaRios() {
       <div className="grade">
         <div className="c8">
           <Card titulo="Chuva observada" sub="média da cidade, por hora"
-                acoes={<SeletorJanela valor={horasChuva} aoMudar={setHorasChuva} rotulo="Janela da série de chuva" />}>
+                acoes={<>
+                  <SeletorJanela valor={horasChuva} aoMudar={setHorasChuva} rotulo="Janela da série de chuva" />
+                  <button className="btn" disabled={!serie.data?.length} onClick={() => baixarCsv(`chuva-${horasChuva}-horas`, serie.data ?? [], [
+                    { titulo: "Data e hora", valor: (l) => dataHora(l.data_hora) }, { titulo: "Chuva média 1h (mm)", valor: (l) => l.chuva_media_1h_mm },
+                    { titulo: "Chuva média 24h (mm)", valor: (l) => l.chuva_media_24h_mm }, { titulo: "Maior acumulado 24h (mm)", valor: (l) => l.chuva_max_24h_mm },
+                    { titulo: "Maré (m)", valor: (l) => l.mare_m },
+                  ])}>Exportar CSV</button>
+                </>}>
             {serie.isPending ? <Carregando /> : serie.error ? <ErroCarga erro={serie.error} tentarDeNovo={() => serie.refetch()} /> :
               serie.data.length ? <GraficoSerieChuva dados={serie.data} /> : <Vazio texto="Sem leituras nessa janela." />}
           </Card>
         </div>
-        <div className="c4">
+        <div className="c4 pilha">
           <Card titulo="Agora" sub={atual.data ? dataHora(atual.data.data_hora) : undefined}>
             {atual.isPending ? <Carregando /> : atual.error ? <ErroCarga erro={atual.error} /> : (
               <dl className="kv">
@@ -63,6 +72,7 @@ export function ChuvaRios() {
               </dl>
             )}
           </Card>
+          <CardMares />
         </div>
 
         <div className="c6">
