@@ -1,10 +1,10 @@
 # `api/` — API do painel
 
-API em **FastAPI (Python 3.12)** entre o banco e o front-end: lê a camada padronizada no Neon e entrega JSON.
+API em **FastAPI (Python 3.12)** entre o banco e o front-end: lê a camada Gold no Neon e entrega JSON.
 Só leitura. Ver [decisão 0002](../docs/decisoes/0002-api-fastapi-e-front-react.md).
 
 ```text
-Front (React) ──► API (FastAPI) ──► Neon (camada padronizada, usuário só de leitura)
+Front (React) ──► API (FastAPI) ──► Neon (schema gold, usuário só de leitura)
 ```
 
 ## Como rodar
@@ -57,4 +57,5 @@ fonte dos tipos TypeScript do front.
 - **CORS:** só as origens de `API_ORIGENS_CORS`.
 - **Fronteira:** não importa código de [`pipeline/`](../pipeline/README.md). A normalização de nome de bairro é a
   mesma regra do pipeline, repetida aqui, com teste que compara as duas.
+- **Camada:** a API só lê o schema `gold` ([decisão 0003](../docs/decisoes/0003-medallion-bronze-silver-gold.md)); há teste que garante isso.
 - **Segurança:** usuário `aervita_api` no Neon com `SELECT` apenas, e sessão aberta como `read_only`.

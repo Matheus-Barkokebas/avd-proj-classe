@@ -142,3 +142,18 @@ def test_erro_do_arcgis_com_status_200_e_tratado_como_falha():
     with patch("requests.get", return_value=resposta):
         with pytest.raises(RuntimeError, match="ArcGIS recusou"):
             arcgis.consultar("https://x/MapServer/0", max_retries=0)
+
+
+def test_mare_usa_data_e_hora_da_fonte_e_ignora_o_campo_utc_inconsistente():
+    # Linhas reais: DATAHORA_UTC guarda UTC em 2021 e o relógio local em 2026; DATA + HORA valem nos dois.
+    de_2021 = _linha("cop_mare", {"DATA": 1617289200000, "HORA": "00:17:00", "DATAHORA_UTC": 1617247020000, "MARE": 0.3})
+    de_2026 = _linha("cop_mare", {"DATA": 1798729200000, "HORA": "22:47:00", "DATAHORA_UTC": 1798757220000, "MARE": 1.87})
+    assert de_2021 == {"data_hora": "2021-04-01 00:17:00", "mare_m": 0.3}
+    assert de_2026 == {"data_hora": "2026-12-31 22:47:00", "mare_m": 1.87}
+
+
+def test_alagamento_por_rota_converte_para_o_horario_do_recife():
+    linha = _linha("cop_alagamento_rotas", {"objectid": 21036, "cod_rota": 103, "rota": "ESTRADA DOS REMÉDIOS", "alaga": 2,
+                                            "data_eve": 1753923952000})
+    assert linha == {"id_evento": "21036", "cod_rota": 103, "rota": "ESTRADA DOS REMÉDIOS",
+                     "data_hora": "2025-07-30 22:05:52", "alagamentos": 2}

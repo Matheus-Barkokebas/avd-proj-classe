@@ -1,0 +1,20 @@
+# Contrato de dados: Chuva horária de estação automática do INMET
+# Fonte: conf/sources/inmet.yml / decisão 0003
+tabela: inmet_chuva
+chave_negocio:
+  - estacao
+  - data_hora
+campo_data_referencia: data_hora
+campos:
+  - nome: estacao
+    tipo: string
+    obrigatorio: true
+    descricao: "Código da estação (WMO), ex.: A301"
+  - nome: data_hora
+    tipo: datetime
+    obrigatorio: true
+    descricao: "Hora da leitura (America/Recife), convertida da hora UTC da fonte"
+  - nome: chuva_mm
+    tipo: float
+    obrigatorio: false
+    descricao: "Precipitação total na hora, em mm; vazio quando a estação não registrou"

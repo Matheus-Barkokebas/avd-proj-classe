@@ -1,6 +1,6 @@
 # 0001 · RAW em MongoDB Atlas e camada padronizada no Neon (sem medalhão na primeira release)
 
-- **Status:** Proposta, aguardando revisão do time (CODEOWNERS)
+- **Status:** Proposta, aguardando revisão do time (CODEOWNERS). O item 3 foi substituído pela [decisão 0003](0003-medallion-bronze-silver-gold.md)
 - **Data:** 2026-10-28
 - **Escopo:** primeira release do AerVita
 - **Substitui parcialmente:** o modelo de camadas RAW → Bronze → Silver → Gold de [`ARQUITETURA.md`](../ARQUITETURA.md) (§3 a §7), apenas para esta release

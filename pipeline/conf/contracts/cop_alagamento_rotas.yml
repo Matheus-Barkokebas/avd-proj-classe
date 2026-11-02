@@ -1,0 +1,28 @@
+# Contrato de dados: Eventos de alagamento por rota monitorada, publicados pelo COP Recife
+# Fonte: conf/sources/cop_recife.yml / decisão 0003. A origem provável são alertas de motoristas
+# (Waze), a confirmar com o COP: registra alagamento reportado, e só nas rotas monitoradas.
+tabela: cop_alagamento_rotas
+chave_negocio:
+  - id_evento
+campo_data_referencia: data_hora
+campos:
+  - nome: id_evento
+    tipo: string
+    obrigatorio: true
+    descricao: "Identificador da linha na fonte (objectid)"
+  - nome: cod_rota
+    tipo: int
+    obrigatorio: false
+    descricao: "Código da rota monitorada; vem vazio em parte das linhas de 2025, com o nome preenchido"
+  - nome: rota
+    tipo: string
+    obrigatorio: true
+    descricao: "Nome da rota"
+  - nome: data_hora
+    tipo: datetime
+    obrigatorio: true
+    descricao: "Momento da leitura (America/Recife)"
+  - nome: alagamentos
+    tipo: int
+    obrigatorio: false
+    descricao: "Quantidade de alertas de alagamento na rota nessa leitura"
