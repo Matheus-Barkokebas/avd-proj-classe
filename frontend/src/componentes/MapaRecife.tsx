@@ -34,16 +34,22 @@ export type PropsMapa = {
   pontos: FC;
   mostrarAreas: boolean;
   mostrarPontos: boolean;
+  /** Rotas monitoradas, já com a propriedade `cor`. */
+  rotas?: FC;
+  mostrarRotas?: boolean;
+  aoSelecionarRota?: (rota: string | null) => void;
   selecionado: string | null;
   aoSelecionar: (chave: string | null) => void;
 };
 
-export function MapaRecife({ bairros, areas, pontos, mostrarAreas, mostrarPontos, selecionado, aoSelecionar }: PropsMapa) {
+export function MapaRecife({ bairros, areas, pontos, mostrarAreas, mostrarPontos, selecionado, aoSelecionar, rotas = VAZIO, mostrarRotas = false, aoSelecionarRota }: PropsMapa) {
   const container = useRef<HTMLDivElement>(null);
   const mapa = useRef<MapaGL | null>(null);
   const [pronto, setPronto] = useState(false);
   const callback = useRef(aoSelecionar);
   callback.current = aoSelecionar;
+  const callbackRota = useRef(aoSelecionarRota);
+  callbackRota.current = aoSelecionarRota;
 
   // cria o mapa uma vez
   useEffect(() => {
@@ -56,6 +62,7 @@ export function MapaRecife({ bairros, areas, pontos, mostrarAreas, mostrarPontos
       m.addSource("bairros", { type: "geojson", data: VAZIO });
       m.addSource("areas", { type: "geojson", data: VAZIO });
       m.addSource("pontos", { type: "geojson", data: VAZIO });
+      m.addSource("rotas", { type: "geojson", data: VAZIO });
       m.addLayer({ id: "bairros-fill", type: "fill", source: "bairros",
                    paint: { "fill-color": ["get", "cor"], "fill-opacity": 0.6 } });
       m.addLayer({ id: "bairros-linha", type: "line", source: "bairros", paint: { "line-color": "#ffffff", "line-width": 0.8 } });
@@ -63,9 +70,12 @@ export function MapaRecife({ bairros, areas, pontos, mostrarAreas, mostrarPontos
                    paint: { "fill-color": "#1d4ed8", "fill-opacity": 0.35, "fill-outline-color": "#1e3a8a" } });
       m.addLayer({ id: "bairro-sel", type: "line", source: "bairros", filter: ["==", ["get", "chave_bairro"], ""],
                    paint: { "line-color": "#101828", "line-width": 3 } });
+      m.addLayer({ id: "rotas-fill", type: "fill", source: "rotas", layout: { visibility: "none" },
+                   paint: { "fill-color": ["get", "cor"], "fill-opacity": 0.85, "fill-outline-color": "#101828" } });
       m.addLayer({ id: "pontos", type: "circle", source: "pontos",
                    paint: { "circle-radius": 5, "circle-color": ["get", "cor"], "circle-stroke-color": "#ffffff", "circle-stroke-width": 1.5 } });
       m.on("click", "bairros-fill", (e: MapLayerMouseEvent) => callback.current(String(e.features?.[0]?.properties?.chave_bairro ?? "") || null));
+      m.on("click", "rotas-fill", (e: MapLayerMouseEvent) => callbackRota.current?.(String(e.features?.[0]?.properties?.rota ?? "") || null));
       m.on("mouseenter", "bairros-fill", () => { m.getCanvas().style.cursor = "pointer"; });
       m.on("mouseleave", "bairros-fill", () => { m.getCanvas().style.cursor = ""; });
       setPronto(true);
@@ -83,13 +93,15 @@ export function MapaRecife({ bairros, areas, pontos, mostrarAreas, mostrarPontos
     if (!pronto || !mapa.current) return;
     (mapa.current.getSource("areas") as GeoJSONSource).setData(areas);
     (mapa.current.getSource("pontos") as GeoJSONSource).setData(pontos);
-  }, [pronto, areas, pontos]);
+    (mapa.current.getSource("rotas") as GeoJSONSource).setData(rotas);
+  }, [pronto, areas, pontos, rotas]);
 
   useEffect(() => {
     if (!pronto || !mapa.current) return;
     mapa.current.setLayoutProperty("areas-fill", "visibility", mostrarAreas ? "visible" : "none");
     mapa.current.setLayoutProperty("pontos", "visibility", mostrarPontos ? "visible" : "none");
-  }, [pronto, mostrarAreas, mostrarPontos]);
+    mapa.current.setLayoutProperty("rotas-fill", "visibility", mostrarRotas ? "visible" : "none");
+  }, [pronto, mostrarAreas, mostrarPontos, mostrarRotas]);
 
   useEffect(() => {
     if (!pronto || !mapa.current) return;

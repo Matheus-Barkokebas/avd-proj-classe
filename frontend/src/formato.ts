@@ -7,6 +7,12 @@ export const numero = (v: number | null | undefined, casas = 0) =>
 
 export const mm = (v: number | null | undefined, casas = 1) => (v === null || v === undefined ? "—" : `${numero(v, casas)} mm`);
 
+/** 0,825 -> "82,5%" */
+export const percentual = (v: number | null | undefined, casas = 1) => (v === null || v === undefined ? "—" : `${numero(v * 100, casas)}%`);
+
+/** "2026-05-01" -> "01/05", sem passar por fuso */
+export const diaMes = (dia: string) => `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
+
 export const dataHora = (iso?: string | null) =>
   iso ? new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short", timeZone: FUSO }) : "—";
 
@@ -45,3 +51,10 @@ export const SITUACOES_RIO = {
   sem_cota: { nome: "Sem cota", nivel: "neutro" },
 } as const;
 export type SituacaoRio = keyof typeof SITUACOES_RIO;
+
+/** Nomes em português das variáveis do modelo. */
+export const NOME_VARIAVEL: Record<string, string> = {
+  chuva_1h_mm: "Chuva em 1 h", chuva_3h_mm: "Chuva em 3 h", chuva_6h_mm: "Chuva em 6 h", chuva_12h_mm: "Chuva em 12 h",
+  chuva_24h_mm: "Chuva em 24 h", chuva_72h_mm: "Chuva em 3 dias", chuva_168h_mm: "Chuva em 7 dias",
+  mare_m: "Maré na hora", mare_subindo: "Maré subindo", mare_max_futura_m: "Maré máxima nas próximas 6 h",
+};

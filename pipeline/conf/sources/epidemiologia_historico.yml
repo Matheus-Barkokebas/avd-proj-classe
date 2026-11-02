@@ -1,0 +1,35 @@
+# Carga única do histórico de arboviroses (decisão 0003): anos anteriores ao que a coleta diária traz.
+# Vai para a tabela `epidemiologia_historico` da Silver, separada da `epidemiologia` corrente.
+nome: epidemiologia_historico
+pacote: casos-de-dengue-zika-e-chikungunya
+ano_maximo: 2024
+tabela: epidemiologia_historico
+
+# O agravo vem do CID de cada linha, não do título do recurso: "Casos confirmados de Zika 2021" contém
+# linhas com CID A92.0 (chikungunya). CID fora desta lista vai para `rejeitados`, com o motivo.
+cid_agravo:
+  A90: dengue
+  A91: dengue
+  A920: chikungunya
+  A928: zika
+
+# A Prefeitura mudou o layout em 2021. Os nomes são comparados sem diferenciar maiúsculas (2023 vem em minúsculas).
+layouts:
+  - identificador: nu_notific
+    campos:
+      protocolo: nu_notific
+      data_notificacao: dt_notific
+      semana_epidemiologica: sem_not
+      ano: nu_ano
+      bairro: nm_bairro
+      classificacao_final: classi_fin
+      cid: id_agravo
+  - identificador: nu_notificacao
+    campos:
+      protocolo: nu_notificacao
+      data_notificacao: dt_notificacao
+      semana_epidemiologica: ds_semana_notificacao
+      ano: notificacao_ano
+      bairro: no_bairro_residencia
+      classificacao_final: tp_classificacao_final
+      cid: co_cid

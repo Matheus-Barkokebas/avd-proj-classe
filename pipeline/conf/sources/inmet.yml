@@ -1,0 +1,7 @@
+# Configuração da fonte de dados: Dados históricos do INMET (decisão 0003)
+# O INMET publica um ZIP por ano, com um CSV por estação e período. Da estação de Recife só
+# há dados de 21/05/2026 em diante; o ZIP de 2025 não a traz (verificado em 2026-11-02).
+nome: inmet_chuva
+url_arquivo: "https://portal.inmet.gov.br/uploads/dadoshistoricos/{ano}.zip"
+estacao: A301
+anos: [2026]

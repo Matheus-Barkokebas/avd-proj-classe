@@ -16,6 +16,7 @@ base_url: "https://esigportal2.recife.pe.gov.br/arcgis/rest/services/COP"
 #                                   se fosse UTC (convenção de algumas tabelas do COP)
 #   epoch_data                      milissegundos -> só a data (AAAA-MM-DD), em UTC
 #   data_hora_texto                 junta [data "DD/MM/AAAA", hora "HH:MM:SS"] em horário local
+#   epoch_data_hora                 junta [data em milissegundos, hora "HH:MM:SS"] em horário local
 #   mes_nome                        "JANEIRO".."DEZEMBRO" -> 1..12
 #   ano_coleta                      ano da data de coleta (tabela sem ano explícito)
 #   geometria                       geometria da feição em GeoJSON (texto)
@@ -153,3 +154,41 @@ camadas:
       termino_intervencao: {origem: TERMINO_R, converter: epoch_data}
       longitude: {converter: longitude}
       latitude: {converter: latitude}
+
+  cop_mare:
+    descricao: Tábua de maré do Recife (preamares e baixa-mares, de 2021-04 a 2026-12)
+    servico: BASES_TABELAS_COP_CONSULTA
+    camada: 4
+    formato: json
+    frequencia: mensal
+    ordenar_por: OBJECTID
+    campos:
+      # DATAHORA_UTC guarda UTC só até 2022 e o relógio local a partir de 2023; DATA + HORA são coerentes.
+      data_hora: {origem: [DATA, HORA], converter: epoch_data_hora}
+      mare_m: {origem: MARE, converter: numero}
+
+  cop_alagamento_rotas:
+    descricao: Eventos de alagamento por rota monitorada, de hora em hora (desde 2025-07-31)
+    servico: BAIRROS_ROTAS_ATUALIZA
+    camada: 2
+    formato: json
+    frequencia: diaria
+    ordenar_por: objectid
+    campos:
+      id_evento: {origem: objectid, converter: texto}
+      cod_rota: {origem: cod_rota, converter: inteiro}
+      rota: {origem: rota, converter: texto}
+      data_hora: {origem: data_eve, converter: epoch_utc}
+      alagamentos: {origem: alaga, converter: inteiro}
+
+  cop_rotas:
+    descricao: Traçado das rotas monitoradas (polígonos ao longo de cada via)
+    servico: BAIRROS_ROTAS_ATUALIZA
+    camada: 1
+    formato: geojson
+    frequencia: mensal
+    ordenar_por: objectid
+    campos:
+      rota: {origem: rota, converter: texto}
+      cod_rota: {origem: cod_rota, converter: inteiro}
+      geometria_geojson: {converter: geometria}

@@ -1,10 +1,10 @@
 # `api/` — API do painel
 
-API em **FastAPI (Python 3.12)** entre o banco e o front-end: lê a camada padronizada no Neon e entrega JSON.
+API em **FastAPI (Python 3.12)** entre o banco e o front-end: lê a camada Gold no Neon e entrega JSON.
 Só leitura. Ver [decisão 0002](../docs/decisoes/0002-api-fastapi-e-front-react.md).
 
 ```text
-Front (React) ──► API (FastAPI) ──► Neon (camada padronizada, usuário só de leitura)
+Front (React) ──► API (FastAPI) ──► Neon (schema gold, usuário só de leitura)
 ```
 
 ## Como rodar
@@ -38,6 +38,13 @@ pytest -m integracao      # contra o Neon real, com o usuário só de leitura do
 | `GET /v1/rios/{codigo}/serie?horas=72` | `cop_rios` | Série do nível de uma estação |
 | `GET /v1/arboviroses/semanas?agravo=` | `epidemiologia` | Notificações por semana epidemiológica e agravo |
 | `GET /v1/arboviroses/bairros` | `epidemiologia`, `dim_bairro` | Notificações por bairro e distrito + o que não casou com a tabela oficial |
+| `GET /v1/mare/proximas?horas=48` | `gold.mare` | Próximas marés altas e baixas, da tábua do COP |
+| `GET /v1/alagamento/rotas?dias=90` | `gold.alagamento_rota` | Rotas com alagamento reportado, da mais afetada para a menos |
+| `GET /v1/alagamento/serie?dias=90` | `gold.alagamento_rota` | Alagamentos reportados por dia |
+| `GET /v1/alagamento/modelo` | `gold.modelo_execucao` | Avaliação do modelo mais recente, com linha de base e recall |
+| `GET /v1/alagamento/previsoes` | `gold.previsao_alagamento` | Previsto e observado nas horas de teste (período histórico, não é tempo real) |
+| `GET /v1/alagamento/rotas-geo?dias=90` | `gold.rota`, `gold.alagamento_rota` | Traçado das rotas em GeoJSON, com as horas de alagamento reportado |
+| `GET /v1/alagamento/simular?chuva_12h_mm=&mare_m=...` | `gold.modelo_execucao` | Aplica o modelo a um cenário hipotético; avisa quando sai do que ele viu no treino |
 | `GET /v1/territorio/bairros` | `dim_bairro`, `dim_distrito` | Bairros com RPA e distrito |
 | `GET /v1/territorio/distritos` | `dim_distrito` | Distritos sanitários |
 | `GET /v1/territorio/bairros-geo` | `geo_bairro`, `dim_bairro` | Malha dos 94 bairros em GeoJSON, com distrito e RPA |
@@ -57,4 +64,5 @@ fonte dos tipos TypeScript do front.
 - **CORS:** só as origens de `API_ORIGENS_CORS`.
 - **Fronteira:** não importa código de [`pipeline/`](../pipeline/README.md). A normalização de nome de bairro é a
   mesma regra do pipeline, repetida aqui, com teste que compara as duas.
+- **Camada:** a API só lê o schema `gold` ([decisão 0003](../docs/decisoes/0003-medallion-bronze-silver-gold.md)); há teste que garante isso.
 - **Segurança:** usuário `aervita_api` no Neon com `SELECT` apenas, e sessão aberta como `read_only`.

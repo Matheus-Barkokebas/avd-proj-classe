@@ -48,16 +48,22 @@ prototipo/         console v3 em HTML puro — referência visual e funcional
 
 | Tela | O que mostra (tudo dado real, via API) |
 |---|---|
-| Visão geral | Chuva das últimas 24 h, chuva do mês contra a média histórica, pior situação entre os rios, estágio do COP, gráficos de chuva e arboviroses, última carga de cada tabela |
+| Visão geral | Chuva das últimas 24 h, chuva do mês contra a média histórica, pior situação entre os rios, estágio do COP, gráficos de chuva e arboviroses, próximas marés, rotas com mais alagamentos, última carga de cada tabela |
 | Mapa | Malha dos 94 bairros (MapLibre) colorida por distrito sanitário ou por notificações de arboviroses, áreas alagáveis e pontos de alagamento; clicar num bairro abre o detalhe |
-| Chuva e rios | Série de chuva (24 h a 30 dias), previsão por modelo, chuva mensal do ano contra o anterior e a média, nível de cada estação de rio contra as cotas |
+| Risco de alagamento | Alagamentos reportados por dia e por rota, próximas marés e a avaliação do modelo no histórico, com acurácia, chute e recall. Selo "Modelo experimental": a previsão ainda não roda em tempo real |
+| Chuva e rios | Série de chuva (24 h a 30 dias), previsão por modelo, chuva mensal do ano contra o anterior e a média, nível de cada estação de rio contra as cotas, próximas marés |
 | Arboviroses | Totais, semana de pico, descartadas, série por semana epidemiológica, totais por distrito e tabela de bairros com filtro e ordenação |
-| Ocorrências, Equipes, Simulador, Boletins | "Em breve": dependem de dados que ainda não existem — a tela diz isso em vez de mostrar dado simulado |
+| Simulador | Aplica o modelo a um cenário de chuva e maré, para a cidade inteira, com as regras usadas e aviso quando sai do que ele viu no treino. Não é previsão |
+| Boletins | Resumo com fatos dos dados, para imprimir, salvar em PDF ou baixar em Markdown. Não fica salvo nem traz recomendação |
+| Fontes de dados | Origem, forma de acesso, última carga e ressalvas de cada dado |
+| Ocorrências, Equipes | "Em breve": dependem de dados que ainda não existem — a tela diz isso em vez de mostrar dado simulado |
 
 Quando a leitura de chuva mais recente tem mais de 3 horas, as telas mostram um aviso: hoje isso acontece
 porque a coleta horária do COP ainda não está agendada.
 
 ## Detalhes que valem saber
+
+- **Atalhos e exportação:** `Ctrl+K` abre a paleta de comandos; as tabelas principais têm **Exportar CSV**, no formato do Excel em português.
 
 - **Mapa sob demanda:** o MapLibre é a maior dependência (~1 MB); a tela do mapa só é baixada quando alguém
   abre a aba. O worker do MapLibre é importado com `?url` (`componentes/MapaRecife.tsx`) para funcionar em dev e no build.

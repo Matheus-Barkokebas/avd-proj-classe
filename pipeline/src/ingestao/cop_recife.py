@@ -102,6 +102,13 @@ def _data_hora_texto(data_txt: Any, hora_txt: Any) -> str | None:
     return datetime.strptime(f"{str(data_txt).strip()} {hora}", "%d/%m/%Y %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _epoch_data_hora(data_ms: Any, hora_txt: Any) -> str | None:
+    dia = _epoch(data_ms, timezone.utc, so_data=True)
+    if dia is None or _vazio(hora_txt):
+        return None
+    return f"{dia} {str(hora_txt).strip()}"
+
+
 def _numero(valor: Any) -> float | None:
     if _vazio(valor):
         return None
@@ -144,6 +151,8 @@ def converter(regra: dict[str, Any], atributos: dict[str, Any], geometria: Any, 
         return _epoch(valor, timezone.utc)  # o "UTC" da fonte já é o relógio local
     if tipo == "epoch_data":
         return _epoch(valor, timezone.utc, so_data=True)
+    if tipo == "epoch_data_hora":
+        return _epoch_data_hora(atributos.get(origem[0]), atributos.get(origem[1]))
     if tipo == "data_hora_texto":
         return _data_hora_texto(atributos.get(origem[0]), atributos.get(origem[1]))
     if tipo == "mes_nome":

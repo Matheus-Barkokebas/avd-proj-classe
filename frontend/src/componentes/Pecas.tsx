@@ -6,8 +6,8 @@ import type { Esquemas } from "../api/cliente";
 import { SITUACOES_RIO, haQuanto, horasDesde, numero, type SituacaoRio } from "../formato";
 import { Icone } from "./Icone";
 
-export function Card({ titulo, sub, real = true, acoes, children, corpo = true }: {
-  titulo: string; sub?: string; real?: boolean; acoes?: ReactNode; children: ReactNode; corpo?: boolean;
+export function Card({ titulo, sub, real = true, selo, acoes, children, corpo = true }: {
+  titulo: string; sub?: string; real?: boolean; selo?: string; acoes?: ReactNode; children: ReactNode; corpo?: boolean;
 }) {
   return (
     <section className="card" aria-label={titulo}>
@@ -16,7 +16,8 @@ export function Card({ titulo, sub, real = true, acoes, children, corpo = true }
         {sub && <span className="sub">{sub}</span>}
         <div className="dir">
           {acoes}
-          <span className={`fonte ${real ? "real" : ""}`}>{real ? "Real" : "Simulado"}</span>
+          {selo ? <span className="fonte modelo">{selo}</span> :
+            <span className={`fonte ${real ? "real" : ""}`}>{real ? "Real" : "Simulado"}</span>}
         </div>
       </div>
       {corpo ? <div className="card-b">{children}</div> : children}

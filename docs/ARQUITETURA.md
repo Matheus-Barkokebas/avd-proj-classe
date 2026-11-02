@@ -159,10 +159,12 @@ RAW  ──►  BRONZE  ──►  SILVER  ──►  GOLD
                         padronizado) indicadores)
 ```
 
-### 4.1 Primeira release: RAW no MongoDB Atlas e camada padronizada no Neon
+### 4.1 Implementação atual
 
-O medalhão acima é a arquitetura-alvo. Para entregar mais rápido, a primeira release usa duas
-camadas apenas ([decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)):
+A [decisão 0003](decisoes/0003-medallion-bronze-silver-gold.md) simplifica o medalhão acima em três camadas: **Bronze** é a RAW no
+Atlas, **Silver** são as tabelas do schema `public` no Neon e **Gold** é o schema `gold`, único lido pela API e pelos modelos.
+
+A primeira release usou só as duas primeiras ([decisão 0001](decisoes/0001-raw-mongodb-padronizada-neon.md)):
 
 | Camada | Onde | Conteúdo |
 |---|---|---|
@@ -175,7 +177,7 @@ APIs ──► RAW (Atlas) ──► validação por contrato ──► Padroniz
 ```
 
 - A camada padronizada cumpre nesta release o papel da Bronze e de parte da Silver
-  (tipagem, chave de negócio, quarentena, vínculo bairro → distrito). Silver e Gold voltam nas fases seguintes.
+  (tipagem, chave de negócio, quarentena, vínculo bairro → distrito), hoje chamada de Silver.
 - Os dois destinos são opcionais por execução: sem configuração, a ingestão continua gravando em arquivo
   (`data/raw` e Parquet em `data/bronze`), que é o modo usado nos testes.
 

@@ -27,7 +27,9 @@ def cliente():
     "/saude", "/v1/atualizacao", "/v1/chuva/atual", "/v1/chuva/serie?horas=720", "/v1/chuva/mensal",
     "/v1/chuva/previsao", "/v1/rios", "/v1/arboviroses/semanas", "/v1/arboviroses/bairros",
     "/v1/territorio/bairros", "/v1/territorio/distritos", "/v1/territorio/areas-alagaveis",
-    "/v1/territorio/pontos-alagamento", "/v1/territorio/bairros-geo",
+    "/v1/territorio/pontos-alagamento", "/v1/territorio/bairros-geo", "/v1/mare/proximas", "/v1/alagamento/rotas",
+    "/v1/alagamento/serie", "/v1/alagamento/modelo", "/v1/alagamento/previsoes", "/v1/alagamento/rotas-geo",
+    "/v1/alagamento/simular?chuva_12h_mm=30",
 ])
 def test_rota_responde_com_dado_real(cliente, rota):
     r = cliente.get(rota)
