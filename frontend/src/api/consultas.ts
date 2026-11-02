@@ -1,7 +1,7 @@
 /* Hooks de dados (TanStack Query): cada um com chave de cache e frequência de atualização.
    Os dados do COP mudam de hora em hora; a API já responde com cache de 5 minutos. */
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 
 import { buscar } from "./cliente";
 
@@ -118,5 +118,60 @@ export function usePontosAlagamento() {
     queryKey: ["territorio", "pontos-alagamento"],
     queryFn: ({ signal }) => buscar("/v1/territorio/pontos-alagamento", undefined, signal),
     staleTime: Infinity,
+  });
+}
+
+// ------------------------------------------------------------ maré e alagamento
+export function useMareProximas(horas = 72) {
+  return useQuery({
+    queryKey: ["mare", "proximas", horas],
+    queryFn: ({ signal }) => buscar("/v1/mare/proximas", { horas }, signal),
+    refetchInterval: UMA_HORA,
+  });
+}
+
+export function useAlagamentoRotas(dias = 90) {
+  return useQuery({
+    queryKey: ["alagamento", "rotas", dias],
+    queryFn: ({ signal }) => buscar("/v1/alagamento/rotas", { dias }, signal),
+    refetchInterval: UMA_HORA,
+  });
+}
+
+export function useAlagamentoSerie(dias = 90) {
+  return useQuery({
+    queryKey: ["alagamento", "serie", dias],
+    queryFn: ({ signal }) => buscar("/v1/alagamento/serie", { dias }, signal),
+    refetchInterval: UMA_HORA,
+  });
+}
+
+export function useModeloAlagamento() {
+  return useQuery({
+    queryKey: ["alagamento", "modelo"],
+    queryFn: ({ signal }) => buscar("/v1/alagamento/modelo", undefined, signal),
+  });
+}
+
+export function usePrevisoesAlagamento() {
+  return useQuery({
+    queryKey: ["alagamento", "previsoes"],
+    queryFn: ({ signal }) => buscar("/v1/alagamento/previsoes", undefined, signal),
+  });
+}
+
+export function useRotasGeo(dias = 90) {
+  return useQuery({
+    queryKey: ["alagamento", "rotas-geo", dias],
+    queryFn: ({ signal }) => buscar("/v1/alagamento/rotas-geo", { dias }, signal),
+    refetchInterval: UMA_HORA,
+  });
+}
+
+export function useSimulacao(cenario: Record<string, number>) {
+  return useQuery({
+    queryKey: ["alagamento", "simular", cenario],
+    queryFn: ({ signal }) => buscar("/v1/alagamento/simular", cenario, signal),
+    placeholderData: keepPreviousData,
   });
 }

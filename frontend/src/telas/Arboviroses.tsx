@@ -4,6 +4,7 @@ import { useArboBairros, useArboSemanas } from "../api/consultas";
 import { Carregando, ErroCarga } from "../componentes/Estados";
 import { GraficoArboSemanas, GraficoColunas } from "../componentes/Graficos";
 import { Card, Metrica } from "../componentes/Pecas";
+import { baixarCsv } from "../csv";
 import { AGRAVOS, numero, semanaEpi, type Agravo } from "../formato";
 
 type Ordem = "total" | "dengue" | "chikungunya" | "zika" | "nome_bairro";
@@ -118,8 +119,15 @@ export function Arboviroses() {
 
         <div className="c12">
           <Card titulo="Bairros" sub="clique no cabeçalho para ordenar" corpo={false} acoes={
-            <input className="input" type="search" placeholder="Filtrar bairro ou distrito" value={busca}
-                   aria-label="Filtrar bairro ou distrito" onChange={(e) => { setBusca(e.target.value); setLimite(POR_PAGINA); }} />}>
+            <>
+              <input className="input" type="search" placeholder="Filtrar bairro ou distrito" value={busca}
+                     aria-label="Filtrar bairro ou distrito" onChange={(e) => { setBusca(e.target.value); setLimite(POR_PAGINA); }} />
+              <button className="btn" disabled={!linhas.length} onClick={() => baixarCsv("arboviroses-por-bairro", linhas, [
+                { titulo: "Bairro", valor: (b) => b.nome_bairro }, { titulo: "Distrito", valor: (b) => b.descricao_distrito },
+                { titulo: "Dengue", valor: (b) => b.dengue }, { titulo: "Chikungunya", valor: (b) => b.chikungunya },
+                { titulo: "Zika", valor: (b) => b.zika }, { titulo: "Total", valor: (b) => b.total },
+              ])}>Exportar CSV</button>
+            </>}>
             {bairros.isPending ? <Carregando /> : bairros.error ? <ErroCarga erro={bairros.error} /> : (
               <>
                 <div className="tabela-rolagem">

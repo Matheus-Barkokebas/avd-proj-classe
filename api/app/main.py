@@ -18,7 +18,7 @@ from starlette.exceptions import HTTPException
 from app import config as cfg
 from app.esquemas.modelos import Atualizacao, Erro, Saude
 from app.repositorios.neon import FUSO_RECIFE, RepositorioNeon, hoje_recife
-from app.rotas import arboviroses, chuva, rios, territorio
+from app.rotas import alagamento, arboviroses, chuva, rios, territorio
 from app.rotas.dependencias import obter_repositorio
 
 log = logging.getLogger("aervita.api")
@@ -111,8 +111,9 @@ def criar_app(configuracao: cfg.Configuracao | None = None, repositorio: Reposit
     def atualizacao(repo: RepositorioNeon = Depends(obter_repositorio)):
         return {"gerado_em": datetime.now(FUSO_RECIFE), "tabelas": repo.ultimas_cargas(), "hoje": hoje_recife()}
 
-    for modulo in (chuva, rios, arboviroses, territorio):
+    for modulo in (chuva, rios, arboviroses, territorio, alagamento):
         app.include_router(modulo.roteador)
+    app.include_router(alagamento.roteador_mare)
     return app
 
 

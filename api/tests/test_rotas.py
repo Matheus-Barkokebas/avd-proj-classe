@@ -156,3 +156,60 @@ def test_rota_inexistente_tambem_usa_o_formato_padrao(cliente):
     assert r.status_code == 404
     assert r.json() == {"erro": "nao_encontrado", "detalhe": "Not Found"}
     assert cliente.post("/v1/rios").json()["erro"] == "metodo_nao_permitido"
+
+
+def test_proximas_mares_dizem_se_e_alta_ou_baixa(cliente):
+    mares = cliente.get("/v1/mare/proximas").json()
+    assert [(m["tipo"], m["mare_m"]) for m in mares] == [("alta", 2.1), ("baixa", 0.3)]
+    assert mares[0]["data_hora"].endswith("-03:00") and "anterior" not in mares[0]
+    assert cliente.get("/v1/mare/proximas?horas=0").status_code == 422
+
+
+def test_alagamento_por_rota_e_por_dia(cliente):
+    assert cliente.get("/v1/alagamento/rotas?dias=30").json()[0]["alertas"] == 30
+    assert cliente.get("/v1/alagamento/serie").json() == [
+        {"dia": "2026-05-01", "horas_com_alagamento": 6, "rotas": 4, "alertas": 20}]
+    assert cliente.get("/v1/alagamento/rotas?dias=0").status_code == 422
+
+
+def test_avaliacao_do_modelo_mostra_a_linha_de_base_junto_da_acuracia(cliente):
+    corpo = cliente.get("/v1/alagamento/modelo").json()
+    assert (corpo["acuracia"], corpo["linha_de_base"], corpo["recall"]) == (0.825, 0.697, 0.667)
+    assert corpo["importancia"] == [{"variavel": "chuva_12h_mm", "importancia": 0.732}]
+
+
+def test_sem_modelo_treinado_e_404_no_formato_padrao():
+    with TestClient(criar_app(CONFIG, RepositorioFalso(vazio=True))) as c:
+        r = c.get("/v1/alagamento/modelo")
+    assert r.status_code == 404 and r.json()["erro"] == "nao_encontrado"
+
+
+def test_previsoes_trazem_previsto_e_observado(cliente):
+    linha = cliente.get("/v1/alagamento/previsoes").json()[0]
+    assert (linha["previsto"], linha["observado"]) == (1, 0)
+
+
+def test_simulacao_segue_as_regras_e_mostra_o_caminho(cliente):
+    seco = cliente.get("/v1/alagamento/simular").json()
+    assert (seco["probabilidade"], seco["previsto"], seco["horas_parecidas"], seco["horizonte_horas"]) == (0.08, 0, 900, 3)
+    chuva = cliente.get("/v1/alagamento/simular?chuva_12h_mm=30&mare_m=2").json()
+    assert (chuva["probabilidade"], chuva["previsto"]) == (0.9, 1)
+    assert [(p["variavel"], p["menor_ou_igual"]) for p in chuva["caminho"]] == [("chuva_12h_mm", False), ("mare_m", False)]
+
+
+def test_simulacao_avisa_valor_fora_do_que_o_modelo_viu(cliente):
+    assert cliente.get("/v1/alagamento/simular?chuva_12h_mm=30").json()["fora_da_faixa"] == []
+    fora = cliente.get("/v1/alagamento/simular?chuva_12h_mm=300").json()["fora_da_faixa"]
+    assert fora == [{"variavel": "chuva_12h_mm", "valor": 300.0, "minimo": 0.0, "maximo": 80.0}]
+    assert cliente.get("/v1/alagamento/simular?chuva_12h_mm=-1").status_code == 422
+
+
+def test_simulacao_sem_modelo_e_404():
+    with TestClient(criar_app(CONFIG, RepositorioFalso(vazio=True))) as c:
+        assert c.get("/v1/alagamento/simular").status_code == 404
+
+
+def test_rotas_geo_em_geojson_com_a_contagem(cliente):
+    corpo = cliente.get("/v1/alagamento/rotas-geo?dias=30").json()
+    assert corpo["type"] == "FeatureCollection" and corpo["features"][0]["geometry"]["type"] == "Polygon"
+    assert corpo["features"][0]["properties"] == {"rota": "AV. NORTE >> CENTRO", "cod_rota": 101, "leituras_com_alagamento": 12}

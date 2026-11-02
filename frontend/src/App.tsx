@@ -7,7 +7,11 @@ import { Layout } from "./layout/Layout";
 import { MENU } from "./layout/menu";
 import { Arboviroses } from "./telas/Arboviroses";
 import { ChuvaRios } from "./telas/ChuvaRios";
+import { Boletins } from "./telas/Boletins";
+import { FontesDados } from "./telas/FontesDados";
 import { EmBreve, NaoEncontrada } from "./telas/Paginas";
+import { RiscoAlagamento } from "./telas/RiscoAlagamento";
+import { Simulador } from "./telas/Simulador";
 import { VisaoGeral } from "./telas/VisaoGeral";
 
 // O MapLibre é a maior dependência: a tela do mapa só é baixada quando alguém abre a aba.
@@ -27,8 +31,12 @@ export function Rotas() {
       <Route element={<Layout />}>
         <Route index element={<VisaoGeral />} />
         <Route path="/mapa" element={<Suspense fallback={<Carregando texto="Carregando o mapa…" />}><Mapa /></Suspense>} />
+        <Route path="/risco-alagamento" element={<RiscoAlagamento />} />
         <Route path="/chuva-rios" element={<ChuvaRios />} />
         <Route path="/arboviroses" element={<Arboviroses />} />
+        <Route path="/simulador" element={<Simulador />} />
+        <Route path="/boletins" element={<Boletins />} />
+        <Route path="/fontes" element={<FontesDados />} />
         {MENU.filter((m) => m.emBreve).map((m) => (
           <Route key={m.caminho} path={m.caminho} element={<EmBreve />} />
         ))}

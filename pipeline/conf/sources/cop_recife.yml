@@ -180,3 +180,15 @@ camadas:
       rota: {origem: rota, converter: texto}
       data_hora: {origem: data_eve, converter: epoch_utc}
       alagamentos: {origem: alaga, converter: inteiro}
+
+  cop_rotas:
+    descricao: Traçado das rotas monitoradas (polígonos ao longo de cada via)
+    servico: BAIRROS_ROTAS_ATUALIZA
+    camada: 1
+    formato: geojson
+    frequencia: mensal
+    ordenar_por: objectid
+    campos:
+      rota: {origem: rota, converter: texto}
+      cod_rota: {origem: cod_rota, converter: inteiro}
+      geometria_geojson: {converter: geometria}

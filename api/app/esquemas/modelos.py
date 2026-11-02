@@ -150,3 +150,83 @@ class Atualizacao(BaseModel):
     gerado_em: datetime
     tabelas: list[CargaTabela]
     hoje: date
+
+
+# ------------------------------------------------------------ maré e alagamento
+class Mare(BaseModel):
+    data_hora: datetime
+    mare_m: float
+    tipo: Literal["alta", "baixa"]
+
+
+class AlagamentoRota(BaseModel):
+    rota: str
+    leituras_com_alagamento: int = Field(description="Leituras horárias em que a rota teve alagamento reportado")
+    alertas: int = Field(description="Soma dos alertas de alagamento na rota")
+    ultimo: datetime = Field(description="Último alagamento reportado na rota no período")
+
+
+class AlagamentoDia(BaseModel):
+    dia: date
+    horas_com_alagamento: int
+    rotas: int = Field(description="Rotas diferentes com alagamento reportado no dia")
+    alertas: int
+
+
+class VariavelImportante(BaseModel):
+    variavel: str
+    importancia: float
+
+
+class AvaliacaoModelo(BaseModel):
+    modelo: str
+    treinado_em: datetime
+    inicio: datetime = Field(description="Primeira hora usada no treino e no teste")
+    fim: datetime = Field(description="Última hora usada no treino e no teste")
+    horas: int
+    horas_teste: int
+    horizonte_horas: int
+    linha_de_base: float = Field(description="Acurácia de chutar sempre a classe mais comum, de 0 a 1")
+    acuracia: float
+    precisao: float
+    recall: float = Field(description="Parte dos alagamentos reais que o modelo encontra, de 0 a 1")
+    validacao_cruzada: float
+    tempo_linha_de_base: float = Field(description="Linha de base treinando no passado e testando no futuro")
+    tempo_acuracia: float
+    tempo_balanceada: float
+    verdadeiros_positivos: int
+    falsos_positivos: int
+    falsos_negativos: int
+    verdadeiros_negativos: int
+    importancia: list[VariavelImportante]
+
+
+class PassoSimulacao(BaseModel):
+    variavel: str
+    valor: float
+    limiar: float
+    menor_ou_igual: bool
+
+
+class ForaDaFaixa(BaseModel):
+    variavel: str
+    valor: float
+    minimo: float
+    maximo: float
+
+
+class Simulacao(BaseModel):
+    probabilidade: float = Field(description="Parte das horas de treino parecidas com o cenário que tiveram alagamento")
+    previsto: int
+    horas_parecidas: int = Field(description="Horas de treino que caíram na mesma regra final")
+    horizonte_horas: int
+    caminho: list[PassoSimulacao] = Field(description="Regras da árvore aplicadas ao cenário, em ordem")
+    fora_da_faixa: list[ForaDaFaixa] = Field(description="Valores fora do que o modelo viu no treino")
+
+
+class PrevisaoAlagamento(BaseModel):
+    hora: datetime
+    hora_prevista: datetime
+    probabilidade: float
+    previsto: int
+    observado: int | None

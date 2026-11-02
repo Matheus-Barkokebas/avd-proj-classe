@@ -32,10 +32,10 @@ test("sem API: status indisponível e cada card mostra o erro com opção de ten
 test("navegar pelo menu troca a tela e o título", async () => {
   simularApi(respostasApi());
   renderizar();
-  await userEvent.click(screen.getByRole("link", { name: /Simulador/ }));
-  expect(await screen.findByRole("heading", { level: 1, name: "Simulador" })).toBeInTheDocument();
+  await userEvent.click(screen.getByRole("link", { name: /Equipes de campo/ }));
+  expect(await screen.findByRole("heading", { level: 1, name: "Equipes de campo" })).toBeInTheDocument();
   expect(screen.getByText(/não mostra dado simulado como se fosse real/)).toBeInTheDocument();
-  expect(document.title).toBe("Simulador · AerVita Console");
+  expect(document.title).toBe("Equipes de campo · AerVita Console");
 });
 
 test("tema alterna entre claro e escuro e fica salvo", async () => {
@@ -50,4 +50,28 @@ test("rota desconhecida mostra página não encontrada", async () => {
   simularApi(respostasApi());
   renderizar("/nao-existe");
   expect(await screen.findByRole("heading", { level: 1, name: "Página não encontrada" })).toBeInTheDocument();
+});
+
+
+test("paleta de comandos abre com Ctrl+K, filtra sem acento e navega", async () => {
+  simularApi(respostasApi());
+  renderizar();
+  await userEvent.keyboard("{Control>}k{/Control}");
+  const paleta = await screen.findByRole("dialog", { name: "Paleta de comandos" });
+  await userEvent.type(within(paleta).getByRole("searchbox"), "visao");
+  expect(within(paleta).getAllByRole("option")).toHaveLength(1);
+  await userEvent.clear(within(paleta).getByRole("searchbox"));
+  await userEvent.type(within(paleta).getByRole("searchbox"), "boletins{Enter}");
+  expect(await screen.findByRole("heading", { level: 1, name: "Boletins" })).toBeInTheDocument();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+});
+
+test("a paleta não oferece telas que ainda não existem e fecha com Esc", async () => {
+  simularApi(respostasApi());
+  renderizar();
+  await userEvent.click(screen.getByRole("button", { name: "Abrir paleta de comandos" }));
+  const paleta = await screen.findByRole("dialog");
+  expect(within(paleta).queryByText("Ocorrências")).not.toBeInTheDocument();
+  await userEvent.keyboard("{Escape}");
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });

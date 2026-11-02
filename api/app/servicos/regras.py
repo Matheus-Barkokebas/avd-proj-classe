@@ -38,6 +38,30 @@ def situacao_rio(nivel: float | None, pre_alerta: float | None, alerta: float | 
     return "normal"
 
 
+def tipo_mare(altura: float, anterior: float | None) -> str:
+    """A tábua alterna preamar e baixa-mar: é alta quando sobe em relação ao extremo anterior."""
+    return "alta" if anterior is not None and altura > anterior else "baixa"
+
+
+def avaliar_arvore(arvore: dict[str, Any], valores: dict[str, float]) -> dict[str, Any]:
+    """Percorre as regras exportadas pelo treino: mesma lógica da árvore, sem depender do scikit-learn."""
+    caminho = []
+    no = arvore
+    while "limiar" in no:
+        variavel, limiar = no["variavel"], no["limiar"]
+        menor_ou_igual = valores[variavel] <= limiar
+        caminho.append({"variavel": variavel, "valor": valores[variavel], "limiar": limiar, "menor_ou_igual": menor_ou_igual})
+        no = no["esquerda"] if menor_ou_igual else no["direita"]
+    return {"probabilidade": no["probabilidade"], "previsto": int(no["probabilidade"] > 0.5),
+            "horas_parecidas": no["horas"], "caminho": caminho}
+
+
+def fora_da_faixa(valores: dict[str, float], faixas: dict[str, list[float]]) -> list[dict[str, Any]]:
+    """Variáveis do cenário fora do que o modelo viu no treino: ali a resposta não merece confiança."""
+    return [{"variavel": v, "valor": valores[v], "minimo": faixa[0], "maximo": faixa[1]}
+            for v, faixa in faixas.items() if v in valores and not faixa[0] <= valores[v] <= faixa[1]]
+
+
 def percentual(parte: float | None, todo: float | None) -> float | None:
     if parte is None or not todo:
         return None

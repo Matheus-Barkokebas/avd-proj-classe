@@ -12,12 +12,14 @@ export type ItemMenu = {
 export const MENU: ItemMenu[] = [
   { caminho: "/", titulo: "Visão geral", grupo: "Operação", icone: "painel" },
   { caminho: "/mapa", titulo: "Mapa", grupo: "Operação", icone: "mapa" },
+  { caminho: "/risco-alagamento", titulo: "Risco de alagamento", grupo: "Operação", icone: "onda" },
   { caminho: "/ocorrencias", titulo: "Ocorrências", grupo: "Operação", icone: "sirene", emBreve: true },
   { caminho: "/equipes", titulo: "Equipes de campo", grupo: "Operação", icone: "equipe", emBreve: true },
   { caminho: "/chuva-rios", titulo: "Chuva e rios", grupo: "Monitoramento", icone: "chuva" },
   { caminho: "/arboviroses", titulo: "Arboviroses", grupo: "Monitoramento", icone: "pulso" },
-  { caminho: "/simulador", titulo: "Simulador", grupo: "Planejamento", icone: "ajustes", emBreve: true },
-  { caminho: "/boletins", titulo: "Boletins", grupo: "Planejamento", icone: "doc", emBreve: true },
+  { caminho: "/simulador", titulo: "Simulador", grupo: "Planejamento", icone: "ajustes" },
+  { caminho: "/boletins", titulo: "Boletins", grupo: "Planejamento", icone: "doc" },
+  { caminho: "/fontes", titulo: "Fontes de dados", grupo: "Plataforma", icone: "banco" },
 ];
 
 export function itemDaRota(caminho: string): ItemMenu | undefined {

@@ -4,7 +4,8 @@ matplotlib.use("Agg")  # só grava a imagem: não abre janela
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.dummy import DummyClassifier
-from sklearn.metrics import ConfusionMatrixDisplay, accuracy_score, balanced_accuracy_score, classification_report
+from sklearn.metrics import (ConfusionMatrixDisplay, accuracy_score, balanced_accuracy_score, classification_report,
+                             confusion_matrix, precision_score, recall_score)
 from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
 from sklearn.tree import DecisionTreeClassifier, export_text
 
@@ -52,6 +53,32 @@ class Classificador:
         print(f"[model] acurácia no teste: {accuracy_score(y_teste, previsto):.1%}")
         print(classification_report(y_teste, previsto, zero_division=0, target_names=["sem alagamento", "com alagamento"]))
         return previsto
+
+    def metricas(self, X_teste, y_teste):
+        """Números do teste para gravar na GOLD e o painel mostrar."""
+        previsto = self.modelo.predict(X_teste)
+        vn, fp, fn, vp = confusion_matrix(y_teste, previsto, labels=[0, 1]).ravel()
+        importancia = pd.Series(self.modelo.feature_importances_, index=self.colunas).sort_values(ascending=False)
+        return {"acuracia": accuracy_score(y_teste, previsto), "precisao": precision_score(y_teste, previsto, zero_division=0),
+                "recall": recall_score(y_teste, previsto, zero_division=0), "verdadeiros_positivos": int(vp),
+                "falsos_positivos": int(fp), "falsos_negativos": int(fn), "verdadeiros_negativos": int(vn),
+                "importancia": [{"variavel": v, "importancia": round(float(i), 3)} for v, i in importancia.items() if i > 0]}
+
+    def exportar_arvore(self):
+        """A árvore treinada em JSON, para a API simular cenários sem depender do scikit-learn."""
+        arvore = self.modelo.tree_
+
+        def no(i):
+            if arvore.children_left[i] == -1:
+                return {"probabilidade": round(float(arvore.value[i][0][1]), 4), "horas": int(arvore.n_node_samples[i])}
+            return {"variavel": self.colunas[arvore.feature[i]], "limiar": round(float(arvore.threshold[i]), 6),
+                    "esquerda": no(arvore.children_left[i]), "direita": no(arvore.children_right[i])}
+
+        return no(0)
+
+    def faixas(self, X_treino):
+        """Menor e maior valor visto no treino, para avisar quando um cenário sai do que o modelo conheceu."""
+        return {c: [float(X_treino[c].min()), float(X_treino[c].max())] for c in X_treino.columns}
 
     def explicar(self):
         importancia = pd.Series(self.modelo.feature_importances_, index=self.colunas)

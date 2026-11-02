@@ -109,6 +109,49 @@ class RepositorioNeon:
     def pontos_alagamento(self) -> list[dict[str, Any]]:
         return self._q("SELECT * FROM gold.ponto_alagamento ORDER BY id_ponto::int")
 
+    # ------------------------------------------------------------ maré e alagamento
+    def mare_entre(self, inicio: datetime, fim: datetime) -> list[dict[str, Any]]:
+        return self._q(
+            "SELECT data_hora, mare_m, anterior FROM (SELECT data_hora, mare_m, "
+            "lag(mare_m) OVER (ORDER BY data_hora) AS anterior FROM gold.mare) tabua "
+            "WHERE data_hora BETWEEN %s AND %s ORDER BY data_hora",
+            (inicio.replace(tzinfo=None), fim.replace(tzinfo=None)),
+        )
+
+    def alagamento_por_rota(self, desde: datetime) -> list[dict[str, Any]]:
+        return self._q(
+            "SELECT rota, count(*) AS leituras_com_alagamento, sum(alagamentos)::bigint AS alertas, max(data_hora) AS ultimo "
+            "FROM gold.alagamento_rota WHERE alagamentos > 0 AND data_hora >= %s "
+            "GROUP BY rota ORDER BY 2 DESC, 3 DESC, rota",
+            (desde.replace(tzinfo=None),),
+        )
+
+    def alagamento_por_dia(self, desde: datetime) -> list[dict[str, Any]]:
+        return self._q(
+            "SELECT data_hora::date AS dia, count(DISTINCT date_trunc('hour', data_hora)) AS horas_com_alagamento, "
+            "count(DISTINCT rota) AS rotas, sum(alagamentos)::bigint AS alertas "
+            "FROM gold.alagamento_rota WHERE alagamentos > 0 AND data_hora >= %s GROUP BY 1 ORDER BY 1",
+            (desde.replace(tzinfo=None),),
+        )
+
+    def rotas_com_alagamento(self, desde: datetime) -> list[dict[str, Any]]:
+        return self._q(
+            "SELECT r.rota, r.cod_rota, r.geometria_geojson, COALESCE(a.leituras, 0) AS leituras_com_alagamento "
+            "FROM gold.rota r LEFT JOIN (SELECT rota, count(*) AS leituras FROM gold.alagamento_rota "
+            "WHERE alagamentos > 0 AND data_hora >= %s GROUP BY rota) a USING (rota) ORDER BY r.rota",
+            (desde.replace(tzinfo=None),),
+        )
+
+    def modelo_mais_recente(self) -> dict[str, Any] | None:
+        linhas = self._q("SELECT * FROM gold.modelo_execucao ORDER BY treinado_em DESC LIMIT 1")
+        return linhas[0] if linhas else None
+
+    def previsoes_de_teste(self) -> list[dict[str, Any]]:
+        return self._q(
+            "SELECT hora, hora_prevista, probabilidade, previsto, observado FROM gold.previsao_alagamento "
+            "WHERE conjunto = 'teste' ORDER BY hora"
+        )
+
     # ------------------------------------------------------------ atualização
     def ultimas_cargas(self) -> list[dict[str, Any]]:
         """Quando cada tabela da Silver foi carregada pela última vez (coluna de controle do pipeline)."""

@@ -1,0 +1,18 @@
+# Contrato de dados: Traçado das rotas monitoradas pelo COP Recife (polígonos ao longo de cada via)
+# Fonte: conf/sources/cop_recife.yml / decisão 0003
+tabela: cop_rotas
+chave_negocio:
+  - rota
+campos:
+  - nome: rota
+    tipo: string
+    obrigatorio: true
+    descricao: "Nome da rota, igual ao de cop_alagamento_rotas"
+  - nome: cod_rota
+    tipo: int
+    obrigatorio: false
+    descricao: "Código da rota"
+  - nome: geometria_geojson
+    tipo: string
+    obrigatorio: true
+    descricao: "Polígono da rota em GeoJSON (WGS84)"

@@ -7,7 +7,7 @@ import {
 } from "recharts";
 
 import type { Esquemas } from "../api/cliente";
-import { AGRAVOS, hora, nomeMes, numero, semanaEpi, type Agravo } from "../formato";
+import { AGRAVOS, diaMes, hora, nomeMes, numero, semanaEpi, type Agravo } from "../formato";
 
 export const CORES = {
   chuva: "#3b6fe0", chuva24h: "#0f8a7e", previsao: "#7c5cd6", media: "#98a2b3",
@@ -143,6 +143,51 @@ export function GraficoColunas({ dados, rotulo, cor = "#e5534b" }: {
         <YAxis tick={EIXO} />
         <Tooltip {...DICA} formatter={(v) => numero(Number(v))} />
         <Bar dataKey="valor" name="Notificações" fill={cor} radius={[3, 3, 0, 0]} />
+      </BarChart>
+    </Caixa>
+  );
+}
+
+export function GraficoAlagamentoDia({ dados }: { dados: Esquemas["AlagamentoDia"][] }) {
+  return (
+    <Caixa rotulo="Horas com alagamento reportado por dia">
+      <BarChart data={dados} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+        <CartesianGrid stroke={GRADE} vertical={false} />
+        <XAxis dataKey="dia" tickFormatter={diaMes} tick={EIXO} minTickGap={28} />
+        <YAxis tick={EIXO} allowDecimals={false} />
+        <Tooltip {...DICA} labelFormatter={(v) => diaMes(String(v))} />
+        <Bar dataKey="horas_com_alagamento" name="Horas com alagamento" fill={CORES.chuva} radius={[3, 3, 0, 0]} />
+      </BarChart>
+    </Caixa>
+  );
+}
+
+/** Agrupa as horas de teste por semana: hora a hora, o gráfico ficaria ilegível. */
+export function porSemana(dados: Esquemas["PrevisaoAlagamento"][]) {
+  const semanas = new Map<string, { semana: string; previsto: number; observado: number }>();
+  for (const p of dados) {
+    const dia = new Date(p.hora_prevista.slice(0, 10) + "T00:00:00Z");
+    dia.setUTCDate(dia.getUTCDate() - dia.getUTCDay());
+    const chave = dia.toISOString().slice(0, 10);
+    const semana = semanas.get(chave) ?? { semana: chave, previsto: 0, observado: 0 };
+    semana.previsto += p.previsto;
+    semana.observado += p.observado ?? 0;
+    semanas.set(chave, semana);
+  }
+  return [...semanas.values()].sort((a, b) => a.semana.localeCompare(b.semana));
+}
+
+export function GraficoPrevistoObservado({ dados }: { dados: Esquemas["PrevisaoAlagamento"][] }) {
+  return (
+    <Caixa rotulo="Horas de teste com alagamento previsto e observado, por semana">
+      <BarChart data={porSemana(dados)} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+        <CartesianGrid stroke={GRADE} vertical={false} />
+        <XAxis dataKey="semana" tickFormatter={diaMes} tick={EIXO} minTickGap={24} />
+        <YAxis tick={EIXO} allowDecimals={false} />
+        <Tooltip {...DICA} labelFormatter={(v) => `Semana de ${diaMes(String(v))}`} />
+        <Legend wrapperStyle={{ fontSize: 12 }} />
+        <Bar dataKey="observado" name="Observado" fill={CORES.chuva} radius={[3, 3, 0, 0]} />
+        <Bar dataKey="previsto" name="Previsto" fill={CORES.previsao} radius={[3, 3, 0, 0]} />
       </BarChart>
     </Caixa>
   );

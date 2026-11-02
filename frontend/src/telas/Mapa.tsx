@@ -1,7 +1,7 @@
 import { Fragment, useMemo, useState } from "react";
 
 import type { Esquemas } from "../api/cliente";
-import { useArboBairros, useAreasAlagaveis, useBairrosGeo, usePontosAlagamento } from "../api/consultas";
+import { useArboBairros, useAreasAlagaveis, useBairrosGeo, usePontosAlagamento, useRotasGeo } from "../api/consultas";
 import { Carregando, ErroCarga } from "../componentes/Estados";
 import { MapaRecife } from "../componentes/MapaRecife";
 import { Card } from "../componentes/Pecas";
@@ -14,6 +14,8 @@ export const CORES_DISTRITO: Record<number, string> = {
   1: "#4e79a7", 2: "#f28e2b", 3: "#59a14f", 4: "#b07aa1", 5: "#e15759", 6: "#76b7b2", 7: "#d4a20b", 8: "#9c755f",
 };
 export const ESCALA_CASOS = ["#fbf0ea", "#f7cdb8", "#f0a07f", "#e06a4b", "#bd3a29", "#7f1d13"];
+const SEM_ALAGAMENTO = "#98a2b3";
+const DIAS_ROTAS = 90;
 const COR_STATUS: Record<string, string> = { "CONCLUÍDO": "#16a34a", "EM ANDAMENTO": "#d4a20b", "AGUARDANDO FINANCEIRO": "#dc2626" };
 
 const chave = (texto: unknown) =>
@@ -40,10 +42,13 @@ export function Mapa() {
   const arbo = useArboBairros();
   const areas = useAreasAlagaveis();
   const pontos = usePontosAlagamento();
+  const rotas = useRotasGeo(DIAS_ROTAS);
   const [camada, setCamada] = useState<Camada>("distritos");
   const [agravo, setAgravo] = useState<Agravo | "todas">("todas");
   const [mostrarAreas, setMostrarAreas] = useState(true);
   const [mostrarPontos, setMostrarPontos] = useState(false);
+  const [mostrarRotas, setMostrarRotas] = useState(false);
+  const [rotaSelecionada, setRotaSelecionada] = useState<string | null>(null);
   const [selecionado, setSelecionado] = useState<string | null>(null);
 
   const arboPorBairro = useMemo(
@@ -71,6 +76,16 @@ export function Mapa() {
       ...f, properties: { ...f.properties, cor: COR_STATUS[String(f.properties?.status)] ?? "#667085" },
     })),
   }), [pontos.data]);
+
+  const limitesRotas = useMemo(() => limitesQuantis(feicoes(rotas.data).map((f) => Number(f.properties?.leituras_com_alagamento ?? 0))), [rotas.data]);
+  const rotasColoridas = useMemo<FC>(() => ({
+    type: "FeatureCollection",
+    features: feicoes(rotas.data).map((f) => {
+      const horas = Number(f.properties?.leituras_com_alagamento ?? 0);
+      return { ...f, properties: { ...f.properties, cor: horas ? ESCALA_CASOS[classe(horas, limitesRotas)] : SEM_ALAGAMENTO } };
+    }),
+  }), [rotas.data, limitesRotas]);
+  const rotaSel = feicoes(rotas.data).find((f) => f.properties?.rota === rotaSelecionada);
 
   const feicaoSel = feicoes(geo.data).find((f) => f.properties?.chave_bairro === selecionado);
   const arboSel = selecionado ? arboPorBairro.get(selecionado) : undefined;
@@ -101,6 +116,8 @@ export function Mapa() {
                 Áreas alagáveis</label>
               <label className="check"><input type="checkbox" checked={mostrarPontos} onChange={(e) => setMostrarPontos(e.target.checked)} />
                 Pontos de alagamento</label>
+              <label className="check"><input type="checkbox" checked={mostrarRotas} onChange={(e) => setMostrarRotas(e.target.checked)} />
+                Rotas com alagamento reportado</label>
               {camada === "arboviroses" && (
                 <select className="input" value={agravo} aria-label="Agravo" onChange={(e) => setAgravo(e.target.value as Agravo | "todas")}>
                   <option value="todas">Todos os agravos</option>
@@ -112,7 +129,8 @@ export function Mapa() {
              geo.isPending ? <div className="mapa-gl"><Carregando texto="Carregando a malha dos bairros…" /></div> : (
               <MapaRecife bairros={bairrosColoridos} areas={{ type: "FeatureCollection", features: feicoes(areas.data) }}
                           pontos={pontosColoridos} mostrarAreas={mostrarAreas} mostrarPontos={mostrarPontos}
-                          selecionado={selecionado} aoSelecionar={setSelecionado} />
+                          selecionado={selecionado} aoSelecionar={setSelecionado}
+                          rotas={rotasColoridas} mostrarRotas={mostrarRotas} aoSelecionarRota={setRotaSelecionada} />
             )}
             <div className="leg" style={{ padding: "0 18px 14px" }} aria-label="Legenda">
               {camada === "distritos"
@@ -122,13 +140,25 @@ export function Mapa() {
                       {i === 0 ? `até ${numero(limites[0])}` : i === ESCALA_CASOS.length - 1 ? `mais de ${numero(limites[i - 1])}`
                         : `${numero(limites[i - 1] + 1)}–${numero(limites[i])}`}</span>))}
               {mostrarAreas && <span><i style={{ background: "#1d4ed8", opacity: 0.5 }} />área alagável</span>}
+              {mostrarRotas && <span><i style={{ background: SEM_ALAGAMENTO }} />rota sem alagamento em {DIAS_ROTAS} dias</span>}
+              {mostrarRotas && <span><i style={{ background: ESCALA_CASOS[4] }} />rota com mais horas de alagamento</span>}
               {mostrarPontos && Object.entries(COR_STATUS).map(([s, cor]) => (
                 <span key={s}><i style={{ background: cor, borderRadius: "50%" }} />{s.toLowerCase()}</span>))}
             </div>
           </Card>
         </div>
 
-        <div className="c4">
+        <div className="c4 pilha">
+          {mostrarRotas && (
+            <Card titulo="Rota" sub={rotaSel ? `últimos ${DIAS_ROTAS} dias` : "nenhuma selecionada"}>
+              {rotas.error ? <ErroCarga erro={rotas.error} tentarDeNovo={() => rotas.refetch()} /> : !rotaSel ? <p className="muted small">Clique numa rota no mapa.</p> : (
+                <dl className="kv">
+                  <dt>Rota</dt><dd>{String(rotaSel.properties?.rota)}</dd>
+                  <dt>Horas com alagamento reportado</dt><dd>{numero(Number(rotaSel.properties?.leituras_com_alagamento ?? 0))}</dd>
+                </dl>
+              )}
+            </Card>
+          )}
           <Card titulo="Bairro" sub={selecionado ? undefined : "nenhum selecionado"}>
             {!feicaoSel ? <p className="muted small">Clique num bairro no mapa.</p> : (
               <>

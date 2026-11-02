@@ -131,7 +131,7 @@ def _coletor_cop(fonte: str) -> Coletor:
 FONTES_COP = (
     "cop_indicadores", "cop_rios", "cop_previsao_chuva", "cop_chuva_mensal",
     "cop_pluviometros", "cop_areas_alagaveis", "cop_pontos_alagamento",
-    "cop_mare", "cop_alagamento_rotas",
+    "cop_mare", "cop_alagamento_rotas", "cop_rotas",
 )
 
 
