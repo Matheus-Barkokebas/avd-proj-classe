@@ -127,6 +127,7 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 | [`docs/PADROES.md`](docs/PADROES.md) | Convenções do repositório — nomes, datas, particionamento de dados, testes e fluxo Git |
 | [`docs/decisoes/0001-raw-mongodb-padronizada-neon.md`](docs/decisoes/0001-raw-mongodb-padronizada-neon.md) | Decisão 0001: RAW no MongoDB Atlas, camada padronizada no Neon e a fonte COP Recife |
 | [`docs/decisoes/0002-api-fastapi-e-front-react.md`](docs/decisoes/0002-api-fastapi-e-front-react.md) | Decisão 0002 (release 2): API em FastAPI e front-end em React + TypeScript |
+| [`docs/decisoes/0003-medallion-bronze-silver-gold.md`](docs/decisoes/0003-medallion-bronze-silver-gold.md) | Decisão 0003: medallion com Bronze no Atlas, Silver e Gold no Neon |
 | [`docs/deploy-teste.md`](docs/deploy-teste.md) | Passo a passo do deploy de teste gratuito: coleta no GitHub Actions, API no Render, painel na Vercel |
 
 **Gestão do trabalho:** [Issues #5–#31](https://github.com/Matheus-Barkokebas/avd-proj-classe/issues) ·

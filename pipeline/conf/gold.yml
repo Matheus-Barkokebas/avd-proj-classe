@@ -1,0 +1,35 @@
+# Camada Gold no Neon (decisão 0003): dados finais do painel e do modelo.
+# Papel de leitura da API; a Gold só concede SELECT a ele.
+papel_leitura: aervita_api
+
+# Grafias da fonte que não batem com dim_bairro pela normalização simples.
+apelidos_bairro:
+  SITIO DOS PINTOS - SAO BRAS: SITIO DOS PINTOS
+  COHAB - IBURA DE CIMA: COHAB
+
+# Classificação final das notificações. Fonte: "Metadados dos Casos Confirmados de Dengue" no portal
+# de Dados Abertos do Recife. Os metadados de chikungunya e zika não documentam os códigos: só o 5
+# (descartado) é assumido igual ao da dengue, como o painel já fazia; os demais códigos ficam de
+# fora e não contam como confirmados nem como descartados, até a Prefeitura confirmar o significado.
+classificacao:
+  dengue:
+    "1": {descricao: Dengue clássico, situacao: confirmado}
+    "2": {descricao: Dengue com complicações, situacao: confirmado}
+    "3": {descricao: Febre hemorrágica do dengue, situacao: confirmado}
+    "4": {descricao: Síndrome do choque da dengue, situacao: confirmado}
+    "5": {descricao: Descartado, situacao: descartado}
+    "8": {descricao: Inconclusivo, situacao: inconclusivo}
+    "10": {descricao: Dengue, situacao: confirmado}
+    "11": {descricao: Dengue com sinais de alarme, situacao: confirmado}
+    "12": {descricao: Dengue grave, situacao: confirmado}
+  chikungunya:
+    "5": {descricao: Descartado, situacao: descartado}
+  zika:
+    "5": {descricao: Descartado, situacao: descartado}
+
+# Base do modelo de alagamento (gold.ml_alagamento_hora).
+alagamento:
+  estacao: A301
+  horizonte_horas: 3
+  janelas_chuva: [1, 3, 6, 12, 24, 72, 168]
+  mare_futura_horas: 6

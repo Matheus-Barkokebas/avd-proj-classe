@@ -1,3 +1,7 @@
+from pathlib import Path
+import re
+
+from app.repositorios import neon
 """Configuração da API lida do ambiente."""
 
 import pytest
@@ -35,3 +39,9 @@ def test_sem_url_do_banco_falha_com_mensagem_clara(ambiente_limpo, monkeypatch):
 
 def test_mascarar_esconde_a_senha():
     assert config.mascarar("postgresql://aervita_api:segredo@host/db") == "postgresql://aervita_api:***@host/db"
+
+
+def test_repositorio_so_le_a_camada_gold():
+    fonte = Path(neon.__file__).read_text(encoding="utf-8")
+    tabelas = re.findall(r"(?:FROM|JOIN)\s+([a-z_][a-z_.]*)", fonte)
+    assert tabelas and all(t.startswith("gold.") for t in tabelas), tabelas

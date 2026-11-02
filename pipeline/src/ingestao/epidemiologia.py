@@ -25,6 +25,7 @@ from src.ingestao import bronze
 from src.ingestao import padronizada
 from src.ingestao import recife_ckan
 from src.ingestao import runner
+from src.processamento import gold
 
 
 RAIZ_PROJETO = Path(__file__).resolve().parents[2]
@@ -222,12 +223,15 @@ def main() -> int:
     )
     opcoes = parser.parse_args()
 
+    destino = padronizada.criar(opcoes.padronizada)
     resultado = coletar_e_materializar(
         data_coleta=opcoes.data_coleta,
         diretorio_dados=opcoes.diretorio_dados,
         armazenamento=armaz.criar(opcoes.armazenamento, opcoes.diretorio_dados),
-        destino=padronizada.criar(opcoes.padronizada),
+        destino=destino,
     )
+    if destino is not None and resultado.get("bronze"):
+        resultado["gold"] = gold.construir(destino, gold.carregar_configuracao())
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
     return 0 if resultado["execucao"].get("status") == "ok" and resultado.get("bronze") else 1
 

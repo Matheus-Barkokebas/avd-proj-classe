@@ -1,0 +1,15 @@
+# Contrato de dados: Tábua de maré do Recife publicada pelo COP (preamares e baixa-mares)
+# Fonte: conf/sources/cop_recife.yml / decisão 0003
+tabela: cop_mare
+chave_negocio:
+  - data_hora
+campo_data_referencia: data_hora
+campos:
+  - nome: data_hora
+    tipo: datetime
+    obrigatorio: true
+    descricao: "Momento do extremo de maré (America/Recife), de DATA + HORA da fonte"
+  - nome: mare_m
+    tipo: float
+    obrigatorio: true
+    descricao: "Altura da maré, em metros"
