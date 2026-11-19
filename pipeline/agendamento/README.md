@@ -24,3 +24,9 @@ schtasks /Delete /TN "AerVita Coleta COP" /F
 ```
 
 O registro de cada coleta fica em `data/coleta_horaria.log`, que não vai para o Git.
+
+## Execução diária numa VM
+
+`rodar_diario_vm.sh` roda o pipeline completo (`src/rodar_diario.py`) uma vez por dia numa VM Linux,
+pelo `cron`, e registra o resultado em `gold.execucao_pipeline`. Passo a passo em
+[`docs/deploy-pipeline-vm.md`](../../docs/deploy-pipeline-vm.md).
