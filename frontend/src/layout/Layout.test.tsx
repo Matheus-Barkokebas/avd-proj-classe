@@ -58,7 +58,7 @@ test("paleta de comandos abre com Ctrl+K, filtra sem acento e navega", async () 
   renderizar();
   await userEvent.keyboard("{Control>}k{/Control}");
   const paleta = await screen.findByRole("dialog", { name: "Paleta de comandos" });
-  await userEvent.type(within(paleta).getByRole("searchbox"), "visao");
+  await userEvent.type(within(paleta).getByRole("searchbox"), "visao geral");
   expect(within(paleta).getAllByRole("option")).toHaveLength(1);
   await userEvent.clear(within(paleta).getByRole("searchbox"));
   await userEvent.type(within(paleta).getByRole("searchbox"), "boletins{Enter}");

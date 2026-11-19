@@ -160,6 +160,14 @@ export function usePrevisoesAlagamento() {
   });
 }
 
+export function useUltimaPrevisao() {
+  return useQuery({
+    queryKey: ["alagamento", "ultima-previsao"],
+    queryFn: ({ signal }) => buscar("/v1/alagamento/ultima-previsao", undefined, signal),
+    refetchInterval: UMA_HORA,
+  });
+}
+
 export function useRotasGeo(dias = 90) {
   return useQuery({
     queryKey: ["alagamento", "rotas-geo", dias],
