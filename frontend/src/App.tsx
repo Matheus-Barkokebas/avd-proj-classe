@@ -9,6 +9,7 @@ import { Arboviroses } from "./telas/Arboviroses";
 import { ChuvaRios } from "./telas/ChuvaRios";
 import { Boletins } from "./telas/Boletins";
 import { FontesDados } from "./telas/FontesDados";
+import { ModeloPrevisao } from "./telas/ModeloPrevisao";
 import { EmBreve, NaoEncontrada } from "./telas/Paginas";
 import { RiscoAlagamento } from "./telas/RiscoAlagamento";
 import { Simulador } from "./telas/Simulador";
@@ -34,6 +35,7 @@ export function Rotas() {
         <Route path="/risco-alagamento" element={<RiscoAlagamento />} />
         <Route path="/chuva-rios" element={<ChuvaRios />} />
         <Route path="/arboviroses" element={<Arboviroses />} />
+        <Route path="/modelo" element={<ModeloPrevisao />} />
         <Route path="/simulador" element={<Simulador />} />
         <Route path="/boletins" element={<Boletins />} />
         <Route path="/fontes" element={<FontesDados />} />

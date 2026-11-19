@@ -4,13 +4,17 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.esquemas.modelos import AlagamentoDia, AlagamentoRota, AvaliacaoModelo, FeatureCollection, Mare, PrevisaoAlagamento, Simulacao
+from app.esquemas.modelos import (AlagamentoDia, AlagamentoRota, AvaliacaoModelo, FeatureCollection, Mare, PrevisaoAlagamento,
+                                  Simulacao, UltimaPrevisao)
 from app.repositorios.neon import FUSO_RECIFE, RepositorioNeon
 from app.rotas.dependencias import obter_repositorio
 from app.servicos import regras
 
 roteador_mare = APIRouter(prefix="/v1/mare", tags=["mare"])
 roteador = APIRouter(prefix="/v1/alagamento", tags=["alagamento"])
+
+VARIAVEIS_DO_MODELO = ("chuva_1h_mm", "chuva_3h_mm", "chuva_6h_mm", "chuva_12h_mm", "chuva_24h_mm", "chuva_72h_mm",
+                       "chuva_168h_mm", "mare_m", "mare_subindo", "mare_max_futura_m")
 
 
 @roteador_mare.get("/proximas", response_model=list[Mare], summary="Próximas marés altas e baixas, da tábua do COP")
@@ -44,6 +48,22 @@ def modelo(repo: RepositorioNeon = Depends(obter_repositorio)):
               summary="Previsto e observado nas horas de teste do modelo (período histórico, não é tempo real)")
 def previsoes(repo: RepositorioNeon = Depends(obter_repositorio)):
     return repo.previsoes_de_teste()
+
+
+@roteador.get("/ultima-previsao", response_model=UltimaPrevisao,
+              summary="Aplica o modelo à hora mais recente com dados reais (chuva do INMET e maré da tábua)")
+def ultima_previsao(repo: RepositorioNeon = Depends(obter_repositorio)):
+    modelo_atual = repo.modelo_mais_recente()
+    if modelo_atual is None or not modelo_atual.get("arvore"):
+        raise HTTPException(404, "Ainda não há modelo com regras exportadas no banco")
+    linha = repo.ultima_hora_do_modelo()
+    if linha is None:
+        raise HTTPException(404, "Ainda não há dados de chuva e maré na base do modelo")
+    valores = {v: float(linha[v]) for v in VARIAVEIS_DO_MODELO}
+    horizonte = modelo_atual["horizonte_horas"]
+    return {**regras.avaliar_arvore(modelo_atual["arvore"], valores), "horizonte_horas": horizonte,
+            "fora_da_faixa": regras.fora_da_faixa(valores, modelo_atual.get("faixas") or {}),
+            "hora_dos_dados": linha["hora"], "hora_prevista": linha["hora"] + timedelta(hours=horizonte), "valores": valores}
 
 
 @roteador.get("/rotas-geo", response_model=FeatureCollection,

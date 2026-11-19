@@ -17,6 +17,7 @@ export const MENU: ItemMenu[] = [
   { caminho: "/equipes", titulo: "Equipes de campo", grupo: "Operação", icone: "equipe", emBreve: true },
   { caminho: "/chuva-rios", titulo: "Chuva e rios", grupo: "Monitoramento", icone: "chuva" },
   { caminho: "/arboviroses", titulo: "Arboviroses", grupo: "Monitoramento", icone: "pulso" },
+  { caminho: "/modelo", titulo: "Modelo de previsão", grupo: "Planejamento", icone: "comando" },
   { caminho: "/simulador", titulo: "Simulador", grupo: "Planejamento", icone: "ajustes" },
   { caminho: "/boletins", titulo: "Boletins", grupo: "Planejamento", icone: "doc" },
   { caminho: "/fontes", titulo: "Fontes de dados", grupo: "Plataforma", icone: "banco" },

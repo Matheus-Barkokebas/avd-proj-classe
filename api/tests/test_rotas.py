@@ -209,6 +209,18 @@ def test_simulacao_sem_modelo_e_404():
         assert c.get("/v1/alagamento/simular").status_code == 404
 
 
+def test_ultima_previsao_aplica_o_modelo_a_hora_mais_recente(cliente):
+    corpo = cliente.get("/v1/alagamento/ultima-previsao").json()
+    assert (corpo["probabilidade"], corpo["previsto"], corpo["horizonte_horas"]) == (0.6, 1, 3)
+    assert corpo["hora_dos_dados"].startswith("2026-10-31T20:00") and corpo["hora_prevista"].startswith("2026-10-31T23:00")
+    assert corpo["valores"]["chuva_12h_mm"] == 30.0 and corpo["fora_da_faixa"] == []
+
+
+def test_ultima_previsao_sem_modelo_e_404():
+    with TestClient(criar_app(CONFIG, RepositorioFalso(vazio=True))) as c:
+        assert c.get("/v1/alagamento/ultima-previsao").status_code == 404
+
+
 def test_rotas_geo_em_geojson_com_a_contagem(cliente):
     corpo = cliente.get("/v1/alagamento/rotas-geo?dias=30").json()
     assert corpo["type"] == "FeatureCollection" and corpo["features"][0]["geometry"]["type"] == "Polygon"

@@ -123,6 +123,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/alagamento/ultima-previsao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Aplica o modelo à hora mais recente com dados reais (chuva do INMET e maré da tábua) */
+        get: operations["ultima_previsao_v1_alagamento_ultima_previsao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/arboviroses/bairros": {
         parameters: {
             query?: never;
@@ -850,6 +867,52 @@ export interface components {
              */
             probabilidade: number;
         };
+        /** UltimaPrevisao */
+        UltimaPrevisao: {
+            /**
+             * Caminho
+             * @description Regras da árvore aplicadas ao cenário, em ordem
+             */
+            caminho: components["schemas"]["PassoSimulacao"][];
+            /**
+             * Fora Da Faixa
+             * @description Valores fora do que o modelo viu no treino
+             */
+            fora_da_faixa: components["schemas"]["ForaDaFaixa"][];
+            /**
+             * Hora Dos Dados
+             * Format: date-time
+             * @description Hora mais recente com chuva do INMET; o INMET publica com atraso
+             */
+            hora_dos_dados: string;
+            /**
+             * Hora Prevista
+             * Format: date-time
+             * @description Hora dos dados mais o horizonte do modelo
+             */
+            hora_prevista: string;
+            /**
+             * Horas Parecidas
+             * @description Horas de treino que caíram na mesma regra final
+             */
+            horas_parecidas: number;
+            /** Horizonte Horas */
+            horizonte_horas: number;
+            /** Previsto */
+            previsto: number;
+            /**
+             * Probabilidade
+             * @description Parte das horas de treino parecidas com o cenário que tiveram alagamento
+             */
+            probabilidade: number;
+            /**
+             * Valores
+             * @description Chuva acumulada e maré usadas na previsão
+             */
+            valores: {
+                [key: string]: number;
+            };
+        };
         /** VariavelImportante */
         VariavelImportante: {
             /** Importancia */
@@ -1181,6 +1244,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Simulacao"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Erro"];
+                };
+            };
+        };
+    };
+    ultima_previsao_v1_alagamento_ultima_previsao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UltimaPrevisao"];
                 };
             };
             /** @description Not Found */
