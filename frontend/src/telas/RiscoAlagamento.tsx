@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { useAlagamentoRotas, useAlagamentoSerie, useModeloAlagamento, usePrevisoesAlagamento } from "../api/consultas";
+import { useAlagamentoRotas, useAlagamentoSerie, useModeloAlagamento, usePrevisoesAlagamento, useUltimaPrevisao } from "../api/consultas";
 import { CardMares } from "../componentes/CardMares";
 import { Carregando, ErroCarga, Vazio } from "../componentes/Estados";
 import { GraficoAlagamentoDia, GraficoPrevistoObservado } from "../componentes/Graficos";
@@ -17,6 +17,8 @@ export function RiscoAlagamento() {
   const serie = useAlagamentoSerie(dias);
   const modelo = useModeloAlagamento();
   const previsoes = usePrevisoesAlagamento();
+  const ultima = useUltimaPrevisao();
+  const u = ultima.data;
 
   const horasComAlagamento = serie.data?.reduce((soma, d) => soma + d.horas_com_alagamento, 0);
   const maisAfetada = rotas.data?.[0];
@@ -32,8 +34,8 @@ export function RiscoAlagamento() {
       </div>
 
       <div className="aviso" role="note">
-        <span><b>A previsão ainda não roda em tempo real.</b> O modelo foi avaliado em horas passadas, com a chuva do INMET, que é
-          publicada com atraso. O alagamento é o reportado por rota, não uma medição: rotas sem movimento podem alagar sem registro.</span>
+        <span><b>A previsão ainda não roda em tempo real.</b> O modelo usa a chuva do INMET, que é publicada com atraso: a última
+          previsão abaixo vale para a hora mais recente que o INMET já publicou. O alagamento é o reportado por rota, não uma medição: rotas sem movimento podem alagar sem registro.</span>
       </div>
 
       <div className="metricas">
@@ -56,6 +58,48 @@ export function RiscoAlagamento() {
       </div>
 
       <div className="grade">
+        <div className="c12">
+          <Card titulo="Última previsão com dados reais" selo={SELO_MODELO}
+                sub={u ? `chuva do INMET até ${dataHora(u.hora_dos_dados)}, maré da tábua do COP` : undefined}>
+            {ultima.isPending ? <Carregando /> : ultima.error ? <ErroCarga erro={ultima.error} tentarDeNovo={() => ultima.refetch()} /> : u && (
+              <div className="grade">
+                <div className="c4">
+                  <div className="m-val" style={{ marginTop: 0 }}>{u.previsto ? "Alagamento previsto" : "Sem alagamento previsto"}</div>
+                  <p className="small" style={{ margin: "6px 0 0" }}>
+                    Para {dataHora(u.hora_prevista)}, {u.horizonte_horas} horas depois dos dados. Das {numero(u.horas_parecidas)} horas
+                    de treino parecidas, {percentual(u.probabilidade, 0)} tiveram alagamento reportado em alguma rota.
+                  </p>
+                  {u.fora_da_faixa.length > 0 && (
+                    <div className="aviso" role="alert" style={{ marginTop: 12 }}>
+                      <span><b>Fora do que o modelo viu.</b> {u.fora_da_faixa.map((f) => NOME_VARIAVEL[f.variavel] ?? f.variavel).join(", ")}:
+                        {" "}não confie nesta resposta.</span>
+                    </div>
+                  )}
+                </div>
+                <div className="c4">
+                  <h5 className="secao-painel">Dados usados</h5>
+                  <dl className="kv">
+                    {["chuva_3h_mm", "chuva_12h_mm", "chuva_24h_mm", "chuva_72h_mm", "mare_m", "mare_max_futura_m"].map((v) => [
+                      <dt key={`${v}-nome`}>{NOME_VARIAVEL[v] ?? v}</dt>,
+                      <dd key={`${v}-valor`}>{numero(u.valores[v], 1)} {v.startsWith("mare") ? "m" : "mm"}</dd>,
+                    ])}
+                  </dl>
+                </div>
+                <div className="c4">
+                  <h5 className="secao-painel">Regras aplicadas</h5>
+                  <ol className="lista-pontos" style={{ listStyle: "decimal", paddingLeft: 18, display: "block" }}>
+                    {u.caminho.map((p) => (
+                      <li key={p.variavel + p.limiar} style={{ display: "list-item", marginBottom: 4 }}>
+                        {NOME_VARIAVEL[p.variavel] ?? p.variavel}: {numero(p.valor, 1)} {p.menor_ou_igual ? "até" : "acima de"} {numero(p.limiar, 1)}
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+            )}
+          </Card>
+        </div>
+
         <div className="c8">
           <Card titulo="Alagamentos reportados por dia" sub="horas com alagamento em alguma rota" acoes={
             <div className="seg" role="group" aria-label="Período dos alagamentos">

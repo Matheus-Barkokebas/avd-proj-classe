@@ -7,6 +7,7 @@ import { gerarCsv } from "../csv";
 import { boletimEmMarkdown, montarSecoes } from "./Boletins";
 import { FONTES } from "./FontesDados";
 import { ajustarChuva } from "./Simulador";
+import { corDaCelula } from "./ModeloPrevisao";
 import { respostasApi } from "../test/dadosApi";
 import { renderizar, simularApi } from "../test/utilitarios";
 import { classe, limitesQuantis } from "./Mapa";
@@ -149,8 +150,30 @@ test("risco de alagamento: mostra a acurácia junto do chute e o recall, sem esc
   expect(acuracia.closest(".metrica")).toHaveTextContent("contra 69,7% do chute");
   expect(screen.getByText("Alagamentos que o modelo encontra").closest(".metrica")).toHaveTextContent("98 de 147");
   expect(screen.getByRole("note")).toHaveTextContent("ainda não roda em tempo real");
-  expect(await screen.findAllByText("Modelo experimental")).toHaveLength(2);
+  expect(await screen.findAllByText("Modelo experimental")).toHaveLength(3);
   expect(await screen.findByText(/a maré não melhorou a previsão/)).toBeInTheDocument();
+});
+
+test("modelo de previsão: matriz de confusão com os números do teste e as fontes oficiais", async () => {
+  simularApi(respostasApi());
+  renderizar("/modelo");
+  const matriz = await screen.findByRole("table", { name: "Matriz de confusão" });
+  expect(matriz).toHaveTextContent("302acertou");
+  expect(matriz).toHaveTextContent("49alagamento perdido");
+  expect(screen.getByText(/INMET, estação automática A301/)).toBeInTheDocument();
+  expect(screen.getByText(/Treino no passado, teste no futuro/)).toBeInTheDocument();
+});
+
+test("cor da matriz escurece com mais horas", () => {
+  expect(corDaCelula(0, 302)).toEqual({ fundo: "rgb(255, 245, 235)", texto: "#7f2704" });
+  expect(corDaCelula(302, 302)).toEqual({ fundo: "rgb(127, 39, 4)", texto: "#ffffff" });
+});
+
+test("risco de alagamento: última previsão diz de quando são os dados", async () => {
+  simularApi(respostasApi());
+  renderizar("/risco-alagamento");
+  expect(await screen.findByText("Alagamento previsto")).toBeInTheDocument();
+  expect(screen.getByText(/chuva do INMET até 31\/10\/2026/)).toBeInTheDocument();
 });
 
 test("risco de alagamento: ranking das rotas e troca de período chegam à API", async () => {

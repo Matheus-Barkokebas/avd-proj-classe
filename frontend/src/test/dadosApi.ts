@@ -63,6 +63,13 @@ export function respostasApi({ chuvaHorasAtras = 1 }: { chuvaHorasAtras?: number
       caminho: [{ variavel: "chuva_12h_mm", valor: 12, limiar: 2.7, menor_ou_igual: false }],
       fora_da_faixa: Number(url.searchParams.get("chuva_12h_mm")) > 100 ? [{ variavel: "chuva_12h_mm", valor: 150, minimo: 0, maximo: 80 }] : [],
     }),
+    "/v1/alagamento/ultima-previsao": {
+      probabilidade: 0.83, previsto: 1, horas_parecidas: 136, horizonte_horas: 3,
+      caminho: [{ variavel: "chuva_12h_mm", valor: 30, limiar: 2.7, menor_ou_igual: false }], fora_da_faixa: [],
+      hora_dos_dados: "2026-10-31T20:00:00-03:00", hora_prevista: "2026-10-31T23:00:00-03:00",
+      valores: { chuva_1h_mm: 0, chuva_3h_mm: 2, chuva_6h_mm: 8, chuva_12h_mm: 30, chuva_24h_mm: 31, chuva_72h_mm: 40,
+                 chuva_168h_mm: 55, mare_m: 1.2, mare_subindo: 1, mare_max_futura_m: 2.1 },
+    },
     "/v1/alagamento/previsoes": [
       { hora: "2026-05-28T17:00:00-03:00", hora_prevista: "2026-05-28T20:00:00-03:00", probabilidade: 0.9, previsto: 1, observado: 1 },
       { hora: "2026-05-29T17:00:00-03:00", hora_prevista: "2026-05-29T20:00:00-03:00", probabilidade: 0.1, previsto: 0, observado: 1 },

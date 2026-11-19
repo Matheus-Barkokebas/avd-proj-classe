@@ -146,6 +146,11 @@ class RepositorioNeon:
         linhas = self._q("SELECT * FROM gold.modelo_execucao ORDER BY treinado_em DESC LIMIT 1")
         return linhas[0] if linhas else None
 
+    def ultima_hora_do_modelo(self) -> dict[str, Any] | None:
+        """Hora mais recente da base do modelo: chuva do INMET acumulada e maré da tábua."""
+        linhas = self._q("SELECT * FROM gold.ml_alagamento_hora ORDER BY hora DESC LIMIT 1")
+        return linhas[0] if linhas else None
+
     def previsoes_de_teste(self) -> list[dict[str, Any]]:
         return self._q(
             "SELECT hora, hora_prevista, probabilidade, previsto, observado FROM gold.previsao_alagamento "

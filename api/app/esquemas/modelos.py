@@ -224,6 +224,12 @@ class Simulacao(BaseModel):
     fora_da_faixa: list[ForaDaFaixa] = Field(description="Valores fora do que o modelo viu no treino")
 
 
+class UltimaPrevisao(Simulacao):
+    hora_dos_dados: datetime = Field(description="Hora mais recente com chuva do INMET; o INMET publica com atraso")
+    hora_prevista: datetime = Field(description="Hora dos dados mais o horizonte do modelo")
+    valores: dict[str, float] = Field(description="Chuva acumulada e maré usadas na previsão")
+
+
 class PrevisaoAlagamento(BaseModel):
     hora: datetime
     hora_prevista: datetime

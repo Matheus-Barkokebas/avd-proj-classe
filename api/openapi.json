@@ -1259,6 +1259,77 @@
         "title": "Simulacao",
         "type": "object"
       },
+      "UltimaPrevisao": {
+        "properties": {
+          "caminho": {
+            "description": "Regras da árvore aplicadas ao cenário, em ordem",
+            "items": {
+              "$ref": "#/components/schemas/PassoSimulacao"
+            },
+            "title": "Caminho",
+            "type": "array"
+          },
+          "fora_da_faixa": {
+            "description": "Valores fora do que o modelo viu no treino",
+            "items": {
+              "$ref": "#/components/schemas/ForaDaFaixa"
+            },
+            "title": "Fora Da Faixa",
+            "type": "array"
+          },
+          "hora_dos_dados": {
+            "description": "Hora mais recente com chuva do INMET; o INMET publica com atraso",
+            "format": "date-time",
+            "title": "Hora Dos Dados",
+            "type": "string"
+          },
+          "hora_prevista": {
+            "description": "Hora dos dados mais o horizonte do modelo",
+            "format": "date-time",
+            "title": "Hora Prevista",
+            "type": "string"
+          },
+          "horas_parecidas": {
+            "description": "Horas de treino que caíram na mesma regra final",
+            "title": "Horas Parecidas",
+            "type": "integer"
+          },
+          "horizonte_horas": {
+            "title": "Horizonte Horas",
+            "type": "integer"
+          },
+          "previsto": {
+            "title": "Previsto",
+            "type": "integer"
+          },
+          "probabilidade": {
+            "description": "Parte das horas de treino parecidas com o cenário que tiveram alagamento",
+            "title": "Probabilidade",
+            "type": "number"
+          },
+          "valores": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "description": "Chuva acumulada e maré usadas na previsão",
+            "title": "Valores",
+            "type": "object"
+          }
+        },
+        "required": [
+          "probabilidade",
+          "previsto",
+          "horas_parecidas",
+          "horizonte_horas",
+          "caminho",
+          "fora_da_faixa",
+          "hora_dos_dados",
+          "hora_prevista",
+          "valores"
+        ],
+        "title": "UltimaPrevisao",
+        "type": "object"
+      },
       "VariavelImportante": {
         "properties": {
           "importancia": {
@@ -1807,6 +1878,57 @@
           }
         },
         "summary": "Aplica o modelo a um cenário hipotético de chuva e maré (não é previsão real)",
+        "tags": [
+          "alagamento"
+        ]
+      }
+    },
+    "/v1/alagamento/ultima-previsao": {
+      "get": {
+        "operationId": "ultima_previsao_v1_alagamento_ultima_previsao_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UltimaPrevisao"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Erro"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Aplica o modelo à hora mais recente com dados reais (chuva do INMET e maré da tábua)",
         "tags": [
           "alagamento"
         ]

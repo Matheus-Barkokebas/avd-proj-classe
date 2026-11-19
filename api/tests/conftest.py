@@ -133,6 +133,13 @@ class RepositorioFalso:
         return [{"rota": "AV. NORTE >> CENTRO", "cod_rota": 101, "leituras_com_alagamento": 12,
                  "geometria_geojson": '{"type":"Polygon","coordinates":[[[-34.9,-8.0],[-34.8,-8.0],[-34.8,-8.1],[-34.9,-8.0]]]}'}]
 
+    def ultima_hora_do_modelo(self):
+        if self.vazio:
+            return None
+        return {"hora": datetime(2026, 10, 31, 20, 0, tzinfo=FUSO), "chuva_1h_mm": 0.0, "chuva_3h_mm": 2.0,
+                "chuva_6h_mm": 8.0, "chuva_12h_mm": 30.0, "chuva_24h_mm": 31.0, "chuva_72h_mm": 40.0, "chuva_168h_mm": 55.0,
+                "mare_m": 1.2, "mare_subindo": 1, "mare_max_futura_m": 2.1}
+
     def previsoes_de_teste(self):
         return [{"hora": AGORA, "hora_prevista": AGORA + timedelta(hours=3), "probabilidade": 0.8, "previsto": 1, "observado": 0}]
 
