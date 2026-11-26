@@ -21,6 +21,7 @@ export const MENU: ItemMenu[] = [
   { caminho: "/simulador", titulo: "Simulador", grupo: "Planejamento", icone: "ajustes" },
   { caminho: "/boletins", titulo: "Boletins", grupo: "Planejamento", icone: "doc" },
   { caminho: "/fontes", titulo: "Fontes de dados", grupo: "Plataforma", icone: "banco" },
+  { caminho: "/assistente", titulo: "Assistente de dados", grupo: "Plataforma", icone: "conversa" },
 ];
 
 export function itemDaRota(caminho: string): ItemMenu | undefined {

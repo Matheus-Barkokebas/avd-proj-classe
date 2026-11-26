@@ -29,6 +29,7 @@ api/              API FastAPI sobre o Neon (só leitura) — comandos rodam daqu
   app/              rotas/ → servicos/ → repositorios/ (único lugar com SQL); esquemas/ (contrato com o front)
   tests/            sem rede + integracao/ (Neon real)
 frontend/         painel React + TypeScript
+mcp-servidor/     servidor MCP (FastMCP) sobre a Gold (só leitura) — comandos rodam daqui
 docs/             planejamento, arquitetura, histórias, padrões, decisões — comum aos módulos
 ai-rules/         regras para assistentes de IA
 .github/          CI (um job por módulo, disparado pela pasta) e CODEOWNERS

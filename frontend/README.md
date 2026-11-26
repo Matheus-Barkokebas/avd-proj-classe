@@ -10,7 +10,7 @@ Com a API rodando (ver `api/README.md`), de dentro desta pasta:
 ```bash
 cd frontend
 npm install
-cp .env.example .env.local      # VITE_API_URL — padrão http://localhost:8000
+cp .env.example .env.local      # VITE_API_URL (padrão http://localhost:8000) e VITE_MCP_URL (padrão http://localhost:8001/mcp)
 npm run dev                     # http://localhost:5173
 ```
 
@@ -55,6 +55,7 @@ src/
 | Simulador | Aplica o modelo a um cenário de chuva e maré, para a cidade inteira, com as regras usadas e aviso quando sai do que ele viu no treino. Não é previsão |
 | Boletins | Resumo com fatos dos dados, para imprimir, salvar em PDF ou baixar em Markdown. Não fica salvo nem traz recomendação |
 | Fontes de dados | Origem, forma de acesso, última carga e ressalvas de cada dado |
+| Assistente de dados | Cliente MCP (SDK oficial, `src/api/mcp.ts`): pergunta em português sobre a Gold, consulta SELECT e lista de tabelas, via `mcp-servidor/` |
 | Ocorrências, Equipes | "Em breve": dependem de dados que ainda não existem — a tela diz isso em vez de mostrar dado simulado |
 
 Quando a leitura de chuva mais recente tem mais de 3 horas, as telas mostram um aviso: hoje isso acontece

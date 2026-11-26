@@ -12,6 +12,22 @@ import { respostasApi } from "../test/dadosApi";
 import { renderizar, simularApi } from "../test/utilitarios";
 import { classe, limitesQuantis } from "./Mapa";
 
+// Servidor MCP simulado: a tela do assistente fala com ele pelo cliente de api/mcp.ts.
+vi.mock("../api/mcp", () => ({
+  URL_MCP: "http://localhost:8001/mcp",
+  listarFerramentas: async () => [
+    { nome: "perguntar_ao_banco", descricao: "Responde uma pergunta em português" },
+    { nome: "executar_select", descricao: "Executa um único comando SELECT" },
+  ],
+  chamarFerramenta: async (nome: string, argumentos: Record<string, string>) => {
+    if (nome === "listar_tabelas") return ["modelo_execucao", "mare"];
+    if (nome === "descrever_tabela") return [{ coluna: "acuracia", tipo: "double precision" }];
+    if (nome === "perguntar_ao_banco") return { sql: "SELECT acuracia FROM gold.modelo_execucao", dados: [{ acuracia: 0.825 }], resposta: "A acurácia foi de 82,5%." };
+    if (nome === "executar_select" && argumentos.sql.startsWith("DELETE")) throw new Error("Só são permitidos comandos SELECT.");
+    return [{ modelo: "arvore_alagamento_3h", horas: 2424 }];
+  },
+}));
+
 // O jsdom não tem WebGL: o MapLibre vira um dublê que guarda os eventos e deixa disparar o clique.
 const mapas: { disparar: (evento: string, camada: string, dados: unknown) => void }[] = [];
 vi.mock("maplibre-gl", () => {
@@ -288,4 +304,29 @@ test("mapa: rotas aparecem com legenda e painel ao ligar a camada", async () => 
   const painel = await screen.findByRole("region", { name: "Rota" });
   expect(await within(painel).findByText("AV. NORTE >> CENTRO")).toBeInTheDocument();
   expect(within(painel).getByText("120")).toBeInTheDocument();
+});
+
+// ------------------------------------------------------------ assistente (MCP)
+test("assistente: lista as ferramentas do MCP e responde a pergunta com o SQL gerado", async () => {
+  simularApi(respostasApi());
+  renderizar("/assistente");
+  expect(await screen.findByText("perguntar_ao_banco")).toBeInTheDocument();
+  await userEvent.type(screen.getByLabelText("Pergunta"), "Qual a acurácia?");
+  await userEvent.click(screen.getByRole("button", { name: "Perguntar" }));
+  expect(await screen.findByText("A acurácia foi de 82,5%.")).toBeInTheDocument();
+  expect(screen.getByText("SELECT acuracia FROM gold.modelo_execucao")).toBeInTheDocument();
+});
+
+test("assistente: tabela escolhida mostra as colunas e o SQL bloqueado aparece como aviso", async () => {
+  simularApi(respostasApi());
+  renderizar("/assistente");
+  await userEvent.click(await screen.findByRole("button", { name: "modelo_execucao" }));
+  expect(await screen.findByText("double precision")).toBeInTheDocument();
+  const campo = screen.getByLabelText("Comando SQL");
+  expect(campo).toHaveValue("SELECT * FROM gold.modelo_execucao LIMIT 20");
+  await userEvent.click(screen.getByRole("button", { name: "Executar" }));
+  expect(await screen.findByText("arvore_alagamento_3h")).toBeInTheDocument();
+  fireEvent.change(campo, { target: { value: "DELETE FROM gold.mare" } });
+  await userEvent.click(screen.getByRole("button", { name: "Executar" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Só são permitidos comandos SELECT.");
 });
