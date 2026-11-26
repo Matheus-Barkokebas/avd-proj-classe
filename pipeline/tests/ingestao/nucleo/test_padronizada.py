@@ -57,7 +57,6 @@ class ConexaoFalsa:
         return self
 
     def __exit__(self, tipo, *a):
-        # mesmo contrato do psycopg: commit sem erro, rollback com erro
         if tipo is None:
             self.commits += 1
         else:
@@ -86,7 +85,7 @@ def test_ddl_vem_do_contrato_com_not_null_e_chave_unica():
     assert ddl.startswith("CREATE TABLE IF NOT EXISTS epidemiologia (")
     assert "protocolo text NOT NULL" in ddl
     assert "data_notificacao timestamp NOT NULL" in ddl
-    assert "classificacao_final text," in ddl  # opcional: sem NOT NULL
+    assert "classificacao_final text," in ddl
     assert "CONSTRAINT uq_epidemiologia_chave UNIQUE (agravo, protocolo, data_notificacao)" in ddl
     assert "data_coleta date NOT NULL" in ddl
 
@@ -124,7 +123,7 @@ def test_gravar_envia_validas_por_copy_e_rejeitadas_com_motivo():
     assert conexao.commits == 1 and conexao.rollbacks == 0
     sql_copy, linhas = conexao.copias[0]
     assert sql_copy.startswith("COPY carga_epidemiologia")
-    assert linhas[0][0] == "1" and linhas[0][-1] == DIA  # última coluna: data_coleta
+    assert linhas[0][0] == "1" and linhas[0][-1] == DIA
     assert any(s.startswith("DELETE FROM rejeitados") for s in sqls(conexao))
     params = [p for s, p in conexao.comandos if s.startswith("INSERT INTO rejeitados")][0]
     assert json.loads(params[3]) == ["[obrigatorio] bairro: vazio"]
@@ -146,7 +145,7 @@ def test_bronze_com_destino_neon_aplica_a_mesma_quarentena(tmp_path):
     ruim = {**boa, "protocolo": "2", "bairro": ""}
     resumo = bronze.gravar_validado([boa, ruim], "epidemiologia", "epidemiologia", DIA, tmp_path, destino=destino)
     assert resumo == "neon:epidemiologia (1 válidas enviadas, 1 rejeitadas)"
-    assert not (tmp_path / "bronze").exists()  # com Neon, nada de Parquet local
+    assert not (tmp_path / "bronze").exists()
 
 
 def test_criar_padrao_e_arquivo(monkeypatch, tmp_path):
@@ -183,7 +182,7 @@ def test_dimensoes_relatam_bairro_sem_correspondencia():
     raw = _raw_territorio([{"Bairro": "Pina", "rpa": 6}], [{"bairro": "Ibura", "distrito_sanitario": 7, "descricao_distrito": "DS VII"}])
     d = territorio.dimensoes(raw, territorio.carregar_configuracao_fonte())
     assert d["sem_correspondencia"] == {"so_em_bairros_rpa": ["PINA"], "so_em_distritos": ["IBURA"]}
-    assert len(d["dim_bairro"]) == 2  # nada é descartado em silêncio
+    assert len(d["dim_bairro"]) == 2
 
 
 def test_gravar_dimensoes_substitui_as_tabelas():
@@ -211,7 +210,7 @@ def _raw_com_malha():
 
 def test_geometrias_usam_a_mesma_chave_de_dim_bairro():
     geos = territorio.geometrias_bairros(_raw_com_malha())
-    assert [g["chave_bairro"] for g in geos] == ["PINA", "SITIO DOS PINTOS"]  # apelido aplicado
+    assert [g["chave_bairro"] for g in geos] == ["PINA", "SITIO DOS PINTOS"]
     assert geos[0]["area_km2"] == 2.0 and geos[1]["area_km2"] is None
     geometria = json.loads(geos[0]["geometria_geojson"])
     assert geometria["type"] == "MultiPolygon" and len(geometria["coordinates"][0][0]) >= 4
@@ -240,4 +239,4 @@ def test_gravar_tabelas_apaga_filha_antes_da_mae_e_insere_mae_antes():
     deletes = [s for s in sqls(conexao) if s.startswith("DELETE")]
     assert deletes == ["DELETE FROM dim_bairro", "DELETE FROM dim_distrito"]
     assert [sql for sql, _ in conexao.copias] == ["COPY dim_distrito (x) FROM STDIN", "COPY dim_bairro (y) FROM STDIN"]
-    assert conexao.commits == 1  # uma transação para todas
+    assert conexao.commits == 1

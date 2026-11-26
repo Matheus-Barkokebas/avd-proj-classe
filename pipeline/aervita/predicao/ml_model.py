@@ -1,6 +1,6 @@
 import matplotlib
 
-matplotlib.use("Agg")  # só grava a imagem: não abre janela
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.dummy import DummyClassifier
@@ -21,7 +21,6 @@ class Classificador:
     """Prevê se alguma rota do Recife estará alagada daqui a 3 horas (dados da GOLD)."""
 
     ALVO = "alagou_no_horizonte"
-    # Tudo aqui é conhecido na hora da previsão. Colunas do futuro, como rotas_alagadas_futuro, nunca entram.
     CHUVA = ["chuva_1h_mm", "chuva_3h_mm", "chuva_6h_mm", "chuva_12h_mm", "chuva_24h_mm", "chuva_72h_mm", "chuva_168h_mm"]
     MARE = ["mare_m", "mare_subindo", "mare_max_futura_m"]
     GRADE = {"max_depth": [3, 4, 5, 6, 8, 10, 12], "min_samples_leaf": [1, 5, 20, 50], "criterion": ["gini", "entropy"]}

@@ -18,7 +18,6 @@ class Saude(BaseModel):
     banco: Literal["ok", "indisponivel"]
 
 
-# ------------------------------------------------------------ chuva
 class ComparacaoMensal(BaseModel):
     mes: int
     ano: int
@@ -74,7 +73,6 @@ class ChuvaMensal(BaseModel):
     meses: list[ChuvaMes]
 
 
-# ------------------------------------------------------------ rios
 class Rio(BaseModel):
     codigo_estacao: str
     estacao: str
@@ -94,7 +92,6 @@ class PontoSerieRio(BaseModel):
     nivel: float
 
 
-# ------------------------------------------------------------ arboviroses
 class ArbovirosesSemana(BaseModel):
     semana: int = Field(description="Semana epidemiológica, ex.: 202533")
     agravo: str
@@ -119,7 +116,6 @@ class ArbovirosesPorBairro(BaseModel):
     grafias_nao_reconhecidas: list[str]
 
 
-# ------------------------------------------------------------ território
 class Bairro(BaseModel):
     chave_bairro: str
     nome_bairro: str
@@ -139,7 +135,6 @@ class FeatureCollection(BaseModel):
     features: list[dict[str, Any]]
 
 
-# ------------------------------------------------------------ atualização
 class CargaTabela(BaseModel):
     tabela: str
     carregado_em: datetime | None
@@ -152,7 +147,6 @@ class Atualizacao(BaseModel):
     hoje: date
 
 
-# ------------------------------------------------------------ maré e alagamento
 class Mare(BaseModel):
     data_hora: datetime
     mare_m: float

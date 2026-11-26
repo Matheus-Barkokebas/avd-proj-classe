@@ -22,7 +22,6 @@ def rios(repo: RepositorioNeon = Depends(obter_repositorio)):
             "situacao_fonte": l["situacao"],
             "percentual_da_cota_alerta": regras.percentual(l["nivel"], l["cota_alerta"]),
         })
-    # mais grave primeiro, para o front destacar
     gravidade = ["inundacao", "alerta", "pre_alerta", "normal", "sem_cota"]
     return sorted(resposta, key=lambda r: (gravidade.index(r["situacao"]), r["rio"], r["estacao"]))
 

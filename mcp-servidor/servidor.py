@@ -26,8 +26,6 @@ def _assistente() -> AssistenteGPT:
     return AssistenteGPT(chave, os.getenv("OPENAI_MODELO", "gpt-6-luna"))
 
 
-# Cada função com @mcp.tool vira uma ferramenta; a docstring é a descrição que a IA lê.
-
 @mcp.tool
 def listar_tabelas() -> list[str]:
     """Lista as tabelas e views da camada Gold do AerVita (chuva, maré, alagamento, arboviroses, território, modelo)."""
@@ -65,7 +63,6 @@ def app_http():
 
 
 if __name__ == "__main__":
-    # stdio para clientes locais (Claude, main.py); http para o painel web: python servidor.py --http
     if "--http" in sys.argv or os.getenv("MCP_TRANSPORTE", "stdio") == "http":
         uvicorn.run(app_http(), host="0.0.0.0", port=int(os.getenv("PORT", "8001")))
     else:

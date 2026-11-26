@@ -55,7 +55,6 @@ def _camada(fonte: str, config: dict[str, Any]) -> dict[str, Any]:
     return config["camadas"][fonte]
 
 
-# ------------------------------------------------------------------ coleta (RAW)
 def coletar_dados(fonte: str, data_coleta: date, caminho_config: Path | None = None) -> bytes:
     """Compatível com runner.Coletor.coletar: consulta o ArcGIS e devolve bytes, sem gravar."""
     config = carregar_configuracao_fonte(caminho_config)
@@ -75,7 +74,6 @@ def contar_registros(conteudo: bytes) -> int:
     return len(json.loads(conteudo).get("features", []))
 
 
-# ------------------------------------------------------------------ conversões
 def _vazio(valor: Any) -> bool:
     return valor is None or (isinstance(valor, str) and not valor.strip())
 
@@ -109,7 +107,7 @@ def _numero(valor: Any) -> float | None:
     try:
         return float(str(valor).replace(",", ".")) if isinstance(valor, str) else float(valor)
     except ValueError:
-        return valor  # passa intacto: o contrato rejeita e registra o motivo
+        return valor
 
 
 def _inteiro(valor: Any) -> int | None:
@@ -118,7 +116,7 @@ def _inteiro(valor: Any) -> int | None:
     try:
         numero = float(valor)
     except (TypeError, ValueError):
-        return valor  # o contrato rejeita
+        return valor
     return int(numero) if numero.is_integer() else valor
 
 
@@ -142,7 +140,7 @@ def converter(regra: dict[str, Any], atributos: dict[str, Any], geometria: Any, 
     if tipo == "epoch_utc":
         return _epoch(valor, FUSO_RECIFE)
     if tipo == "epoch_local":
-        return _epoch(valor, timezone.utc)  # o "UTC" da fonte já é o relógio local
+        return _epoch(valor, timezone.utc)
     if tipo == "epoch_data":
         return _epoch(valor, timezone.utc, so_data=True)
     if tipo == "epoch_data_hora":
@@ -175,7 +173,6 @@ def transformar(conteudo_raw: dict[str, Any], camada: dict[str, Any], data_colet
     return linhas
 
 
-# ------------------------------------------------------------------ padronizada
 def materializar(
     fonte: str,
     data_coleta: date,

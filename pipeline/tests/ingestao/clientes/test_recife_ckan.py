@@ -19,7 +19,6 @@ def make_response(records, total=None):
 
 
 def test_pagination_collects_all_records():
-    # Simulate three pages: 1000, 1000, 500 records, total 2500
     page1 = [{"id": i} for i in range(1000)]
     page2 = [{"id": i} for i in range(1000, 2000)]
     page3 = [{"id": i} for i in range(2000, 2500)]
@@ -41,11 +40,9 @@ def test_pagination_collects_all_records():
         assert len(records) == 2500
         assert meta["total"] == 2500
         assert meta["resource_id"] == "dummy_id"
-        # timestamp is recent
         ts = datetime.fromisoformat(meta["coletado_em"]).replace(tzinfo=timezone.utc)
         now = datetime.now(timezone.utc)
         assert (now - ts).total_seconds() < 5
-        # ensure three calls
         assert mock_get.call_count == 3
 
 
@@ -71,9 +68,9 @@ def test_paginacao_respeita_teto_do_servidor_menor_que_limit():
         registros, meta = recife_ckan.coletar_todos("dengue", limite_por_pagina=1000)
 
     assert len(registros) == 9187
-    assert [r["id"] for r in registros] == list(range(9187))  # sem buraco nem repetição
+    assert [r["id"] for r in registros] == list(range(9187))
     assert meta["total"] == 9187
-    assert mock_get.call_count == 19  # ceil(9187 / 500)
+    assert mock_get.call_count == 19
 
 
 def test_paginacao_sem_total_para_na_pagina_vazia():
@@ -89,7 +86,6 @@ def test_retry_on_transient_error():
     good_resp = type("Resp", (), {"json": lambda *args, **kwargs: make_response(page, 1), "raise_for_status": lambda *args, **kwargs: None})()
 
     def side_effect(*args, **kwargs):
-        # first call fails, second succeeds
         if side_effect.called:
             return good_resp
         side_effect.called = True
@@ -135,7 +131,7 @@ def test_backoff_exponencial_entre_tentativas(monkeypatch):
 
     with patch("requests.get", side_effect=falha):
         with pytest.raises(RuntimeError):
-            recife_ckan.coletar_todos("id")  # usa DEFAULT_BACKOFF e DEFAULT_MAX_RETRIES
+            recife_ckan.coletar_todos("id")
 
     assert recife_ckan.DEFAULT_BACKOFF > 0
     assert esperas == [2, 4, 8]

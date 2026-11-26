@@ -79,7 +79,6 @@ def _transformar_para_bronze(
     agravo: str,
 ) -> list[dict[str, Any]]:
     """Mapeia e tipa os registros brutos de um agravo conforme o contrato Bronze."""
-    # Mapeamento invertido: nome_destino -> nome_origem
     destino_para_origem = {destino: origem for origem, destino in mapeamento.items()}
 
     col_protocolo = destino_para_origem.get("protocolo", "NU_NOTIFIC")
@@ -91,8 +90,6 @@ def _transformar_para_bronze(
 
     registros_bronze: list[dict[str, Any]] = []
     for reg in registros_raw:
-        # Cada agravo usa formatos diferentes (dengue: data ISO; zika e
-        # chikungunya: DD/MM/AAAA e texto); a tipagem fica em comum.py.
         registros_bronze.append(
             {
                 "protocolo": comum.para_texto(reg.get(col_protocolo)),
@@ -143,8 +140,6 @@ def materializar_bronze(
     elif isinstance(conteudo_raw, list):
         lote_bronze.extend(_transformar_para_bronze(conteudo_raw, mapeamento, "dengue"))
 
-    # Linhas inválidas vão para a quarentena; violação de lote ou todas as
-    # linhas rejeitadas abortam sem gravar.
     return bronze.gravar_validado(lote_bronze, "epidemiologia", "epidemiologia", data_coleta, diretorio_dados, destino=destino)
 
 

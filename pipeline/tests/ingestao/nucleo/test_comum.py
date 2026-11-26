@@ -8,8 +8,8 @@ from aervita.ingestao.nucleo import comum
 
 
 @pytest.mark.parametrize("entrada,esperado", [
-    ("2025-04-03T00:00:00", "2025-04-03 00:00:00"),      # dengue (ISO)
-    ("08/01/2025", "2025-01-08 00:00:00"),               # zika/chikungunya (DD/MM/AAAA)
+    ("2025-04-03T00:00:00", "2025-04-03 00:00:00"),
+    ("08/01/2025", "2025-01-08 00:00:00"),
     ("08/01/2025 00:00:00", "2025-01-08 00:00:00"),
     ("23/01/2025 14:05", "2025-01-23 14:05:00"),
     ("2025-04-03", "2025-04-03 00:00:00"),
@@ -23,7 +23,6 @@ def test_normalizar_timestamp_formatos_conhecidos(entrada, esperado):
 
 
 def test_dia_e_mes_nao_sao_invertidos():
-    # 01/02 é 1º de fevereiro (padrão brasileiro), nunca 2 de janeiro
     assert comum.normalizar_timestamp("01/02/2025") == "2025-02-01 00:00:00"
 
 
@@ -34,7 +33,7 @@ def test_normalizar_timestamp_vazio_vira_none(vazio):
 
 def test_formato_desconhecido_volta_intacto_para_o_contrato_acusar():
     assert comum.normalizar_timestamp("ontem") == "ontem"
-    assert comum.normalizar_timestamp("31/02/2025") == "31/02/2025"  # data inexistente
+    assert comum.normalizar_timestamp("31/02/2025") == "31/02/2025"
 
 
 @pytest.mark.parametrize("entrada,esperado", [

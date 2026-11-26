@@ -39,7 +39,7 @@ def test_rota_responde_com_dado_real(cliente, rota):
 def test_numeros_batem_com_o_pipeline(cliente):
     bairros = cliente.get("/v1/arboviroses/bairros").json()
     total = sum(b["total"] for b in bairros["bairros"]) + bairros["nao_georreferenciadas"]
-    assert total == 11931  # notificações válidas carregadas pelo pipeline
+    assert total == 11931
     assert len(bairros["bairros"]) == 94
     assert len(cliente.get("/v1/territorio/distritos").json()) == 8
     assert len(cliente.get("/v1/rios").json()) == 5

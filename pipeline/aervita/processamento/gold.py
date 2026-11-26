@@ -79,7 +79,6 @@ CREATE TABLE IF NOT EXISTS gold.previsao_alagamento (
 );
 """
 
-# Tirar as colunas de controle e limpar o texto "Não Informado" do COP é o que separa estas views da Silver.
 VIEWS = {
     "chuva_hora": """
         SELECT data_hora, estagio, chuva_media_1h_mm, chuva_max_1h_mm,
@@ -132,8 +131,6 @@ VIEWS = {
     ),
 }
 
-# Tabela, não view: agregar cerca de 180 mil notificações a cada pedido deixaria a API lenta.
-# A carga corrente tem prioridade quando a mesma notificação também aparece no histórico.
 TABELA_ARBO = """
 CREATE TABLE gold.arbo_bairro_semana AS
 WITH notificacoes AS (

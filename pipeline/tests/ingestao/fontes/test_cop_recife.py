@@ -30,7 +30,7 @@ def test_fontes_do_runner_batem_com_o_yaml():
     assert set(runner.FONTES_COP) == set(CONFIG["camadas"])
     for fonte in runner.FONTES_COP:
         assert runner.COLETORES[fonte].suporta_historico is False
-        contratos.carregar_contrato(fonte)  # todo contrato existe e carrega
+        contratos.carregar_contrato(fonte)
 
 
 @pytest.mark.parametrize("fonte", list(CONFIG["camadas"]))
@@ -60,14 +60,12 @@ def test_rios_usam_data_e_hora_em_texto():
 
 
 def test_previsao_bate_com_o_texto_da_fonte():
-    # na fonte: TXT_DT "27-10-2026", HORAS 21
     linha = _linha("cop_previsao_chuva", {"DATAS": 1793145600000, "GFS": 0.4, "ECMWF": 0.0, "ICON": None, "WRF": 1.2})
     assert linha["data_hora_prevista"] == "2026-10-27 21:00:00"
     assert (linha["chuva_gfs_mm"], linha["chuva_icon_mm"], linha["chuva_wrf_mm"]) == (0.4, None, 1.2)
 
 
 def test_pluviometro_horario_local_gravado_como_utc():
-    # IDUNICO 01064_1772149071000 é o instante verdadeiro (20:37:51 no Recife)
     linha = _linha("cop_pluviometros", {"OBJECTID": 1156870, "CODESTACAO": "01064", "NOME": "01064 - Estação Meteorológica",
                                         "TIPO": "Estação", "CHUVA": 0.2, "DATAHORA": 1772138271000,
                                         "LATITUDE": -8.04554, "LONGITUDE": -34.92065})
@@ -108,14 +106,14 @@ def test_ponta_a_ponta_raw_e_padronizada_local(tmp_path):
     feicoes = [{"attributes": {"IDSTATION": 1, "NAMESTATION": "A", "RIVER": "RIO X", "DATACOLETA": "28/10/2026",
                                "HORACOLETA": f"{h:02d}:00:00", "LEVELNOW": 100.0 + h}} for h in range(3)]
     feicoes.append({"attributes": {"IDSTATION": 2, "NAMESTATION": None, "RIVER": "RIO X", "DATACOLETA": "28/10/2026",
-                                   "HORACOLETA": "01:00:00", "LEVELNOW": 1.0}})  # sem nome: quarentena
+                                   "HORACOLETA": "01:00:00", "LEVELNOW": 1.0}})
     with patch.object(arcgis, "consultar", return_value=feicoes):
         r = cop_recife.coletar_e_materializar("cop_rios", diretorio_dados=tmp_path)
     assert r["execucao"]["status"] == "ok" and r["execucao"]["numero_registros"] == 4
     assert r["padronizada"].endswith("cop_rios.parquet") and r["rejeitados"] == 1
     dia = date.fromisoformat(r["execucao"]["data_coleta"])
     raw = armaz.ler_json(armaz.ArmazenamentoArquivo(tmp_path), "cop_rios", dia, "arcgis.json")
-    assert raw["formato"] == "json" and len(raw["features"]) == 4  # RAW guarda a resposta inteira
+    assert raw["formato"] == "json" and len(raw["features"]) == 4
 
 
 def test_consulta_arcgis_pagina_ate_o_fim():
@@ -143,7 +141,6 @@ def test_erro_do_arcgis_com_status_200_e_tratado_como_falha():
 
 
 def test_mare_usa_data_e_hora_da_fonte_e_ignora_o_campo_utc_inconsistente():
-    # Linhas reais: DATAHORA_UTC guarda UTC em 2021 e o relógio local em 2026; DATA + HORA valem nos dois.
     de_2021 = _linha("cop_mare", {"DATA": 1617289200000, "HORA": "00:17:00", "DATAHORA_UTC": 1617247020000, "MARE": 0.3})
     de_2026 = _linha("cop_mare", {"DATA": 1798729200000, "HORA": "22:47:00", "DATAHORA_UTC": 1798757220000, "MARE": 1.87})
     assert de_2021 == {"data_hora": "2021-04-01 00:17:00", "mare_m": 0.3}

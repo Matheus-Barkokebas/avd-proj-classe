@@ -7,7 +7,6 @@ from aervita import ambiente
 
 @pytest.fixture(autouse=True)
 def sem_env_real(monkeypatch, tmp_path):
-    # isola os testes do .env real do desenvolvedor
     monkeypatch.setattr(ambiente, "RAIZ_PROJETO", tmp_path)
     for nome in ("MONGODB_URI", "MONGODB_DB"):
         monkeypatch.delenv(nome, raising=False)

@@ -54,7 +54,6 @@ def separar(
     for v in violacoes:
         motivos_por_linha.setdefault(v.linha, []).append(f"[{v.tipo}] {v.campo}: {v.mensagem}")
 
-    # `linha` do validador é 1-based
     validas = [reg for i, reg in enumerate(lote, start=1) if i not in motivos_por_linha]
     rejeitadas = [
         {"linha": i, "motivos": motivos_por_linha[i], "registro": lote[i - 1]}
@@ -96,7 +95,6 @@ def gravar_validado(
 
     quarentena = caminho_quarentena(diretorio_dados, fonte, data_coleta)
     if rejeitadas:
-        # JSON (não Parquet): rejeitadas podem ter tipos mistos na mesma coluna.
         armaz.gravar_atomico(
             quarentena,
             json.dumps(rejeitadas, ensure_ascii=False, indent=2, default=str).encode("utf-8"),

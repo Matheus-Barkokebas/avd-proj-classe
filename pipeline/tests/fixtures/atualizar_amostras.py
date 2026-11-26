@@ -48,7 +48,6 @@ def _amostra_epidemiologia():
         escolhidos = registros[:4]
         sem_bairro = [r for r in registros if not r.get("NM_BAIRRO")][:1]
         amostra[agravo] = _reduzir(escolhidos + sem_bairro, CAMPOS_EPIDEMIOLOGIA, "NU_NOTIFIC", "")
-    # caso real: mesmo número de notificação em agravos diferentes
     amostra["zika"][0]["NU_NOTIFIC"] = str(amostra["dengue"][0]["NU_NOTIFIC"])
     return amostra
 

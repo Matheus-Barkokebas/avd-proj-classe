@@ -19,7 +19,7 @@ def test_chuva_acumula_so_ate_a_hora_e_alvo_e_do_horizonte():
     chuva = {T0 + HORA * k: float(k) for k in range(6)}
     rotas = {T0 + HORA * 2: 0, T0 + HORA * 5: 4}
     linhas = {l["hora"]: l for l in ga.montar_linhas(chuva, EXTREMOS, rotas, CONFIG)}
-    linha = linhas[T0 + HORA * 2]  # chuva das horas 0, 1 e 2; alvo vem da hora 5
+    linha = linhas[T0 + HORA * 2]
     assert linha["chuva_1h_mm"] == 2.0 and linha["chuva_3h_mm"] == 3.0
     assert linha["rotas_alagadas"] == 0 and linha["rotas_alagadas_futuro"] == 4 and linha["alagou_no_horizonte"] == 1
 

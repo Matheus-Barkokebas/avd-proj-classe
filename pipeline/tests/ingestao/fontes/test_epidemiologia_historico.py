@@ -21,7 +21,6 @@ def test_agravo_vem_do_cid_em_qualquer_grafia():
 
 
 def test_layout_a_partir_de_2021_mesmo_em_minusculas():
-    # "Zika 2021" do portal é chikungunya pelo CID; o título não decide.
     for chaves in (str.upper, str.lower):
         registro = {chaves(k): v for k, v in {
             "NU_NOTIFIC": 4724661, "ID_AGRAVO": "A92.0", "DT_NOTIFIC": "2021-01-01T00:00:00", "SEM_NOT": 202053,

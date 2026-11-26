@@ -27,8 +27,6 @@ FIXTURE_RAW_DENGUE = [
     }
 ]
 
-# Zika e chikungunya vêm num formato diferente da dengue na API real:
-# data DD/MM/AAAA e campos numéricos como texto.
 FIXTURE_RAW_ZIKA = [
     {
         "_id": 2,
@@ -66,11 +64,11 @@ def _hoje_fixo(monkeypatch):
 def mock_ckan_respostas():
     """Mock que retorna registros sintéticos por resource_id."""
     def _mock_coletar(resource_id, *args, **kwargs):
-        if "45a675e2" in resource_id:  # dengue
+        if "45a675e2" in resource_id:
             return FIXTURE_RAW_DENGUE, {"resource_id": resource_id, "total": 1, "coletado_em": "2026-09-22T00:00:00"}
-        if "cf7dc2c4" in resource_id:  # zika
+        if "cf7dc2c4" in resource_id:
             return FIXTURE_RAW_ZIKA, {"resource_id": resource_id, "total": 1, "coletado_em": "2026-09-22T00:00:00"}
-        if "b300a634" in resource_id:  # chikungunya
+        if "b300a634" in resource_id:
             return FIXTURE_RAW_CHIKUNGUNYA, {"resource_id": resource_id, "total": 1, "coletado_em": "2026-09-22T00:00:00"}
         return [], {"resource_id": resource_id, "total": 0, "coletado_em": "2026-09-22T00:00:00"}
 
@@ -126,7 +124,7 @@ def test_transformar_para_bronze_mapeia_e_converte_tipos():
     bronze = epidemiologia._transformar_para_bronze(FIXTURE_RAW_DENGUE, mapeamento, "dengue")
     assert len(bronze) == 1
     item = bronze[0]
-    assert item["protocolo"] == "3059"  # numérico convertido para string
+    assert item["protocolo"] == "3059"
     assert item["data_notificacao"] == "2025-04-03 00:00:00"
     assert item["semana_epidemiologica"] == 202510
     assert item["ano"] == 2025
@@ -143,7 +141,7 @@ def test_transformar_para_bronze_formato_brasileiro_de_zika_e_chikungunya():
         "NU_ANO": "ano", "NM_BAIRRO": "bairro", "CLASSI_FIN": "classificacao_final",
     }
     item = epidemiologia._transformar_para_bronze(FIXTURE_RAW_ZIKA, mapeamento, "zika")[0]
-    assert item["data_notificacao"] == "2025-01-08 00:00:00"  # 8 de janeiro, não 1º de agosto
+    assert item["data_notificacao"] == "2025-01-08 00:00:00"
     assert item["semana_epidemiologica"] == 202502
     assert item["ano"] == 2025
     assert item["protocolo"] == "4012"
@@ -199,7 +197,6 @@ def test_violacao_contrato_nao_gera_bronze(tmp_path):
     caminho_raw = tmp_path / "raw" / "epidemiologia" / "2026" / "09" / "22" / "datastore_search.json"
     caminho_raw.parent.mkdir(parents=True, exist_ok=True)
 
-    # Registro com NU_NOTIFIC nulo (viola campo obrigatório 'protocolo')
     payload_invalido = {
         "dengue": {
             "records": [

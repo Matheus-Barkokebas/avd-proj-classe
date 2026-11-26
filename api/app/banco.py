@@ -32,7 +32,6 @@ class BancoNeon:
 
     def consultar(self, sql: str, parametros: tuple | dict | None = None) -> list[dict[str, Any]]:
         with self._pool.connection() as conexao:
-            # sessão só de leitura: mesmo com um usuário com mais permissão, a API não grava
             conexao.read_only = True
             return conexao.execute(sql, parametros).fetchall()
 

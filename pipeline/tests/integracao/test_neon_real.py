@@ -46,7 +46,7 @@ def test_carga_no_neon_e_idempotente_com_quarentena(destino):
     neon, conectar = destino
     dia = date(2026, 1, 1)
     lote = [_linha("1"), _linha("2"), _linha("3", bairro="")]
-    for _ in range(2):  # rodar duas vezes não duplica nada
+    for _ in range(2):
         resumo = bronze.gravar_validado(lote, "epidemiologia", "epidemiologia", dia, None, destino=neon)
     assert resumo == "neon:epidemiologia (2 válidas enviadas, 1 rejeitadas)"
     with conectar() as c:

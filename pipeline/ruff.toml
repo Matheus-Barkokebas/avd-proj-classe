@@ -8,3 +8,6 @@ ignore = ["E501", "E741"]
 [lint.isort]
 known-first-party = ["aervita"]
 force-sort-within-sections = true
+
+[lint.per-file-ignores]
+"tests/predicao/test_ml_model.py" = ["E402"]

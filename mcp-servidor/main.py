@@ -8,7 +8,6 @@ from servidor import mcp
 
 
 async def main():
-    # Conecta direto no objeto do servidor, em memória
     async with Client(mcp) as cliente:
         print("Ferramentas disponíveis:")
         for ferramenta in await cliente.list_tools():

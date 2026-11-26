@@ -88,7 +88,6 @@ def _validar_tipo(valor: Any, tipo_esperado: str) -> bool:
         return isinstance(valor, str)
 
     if tipo in ("int", "integer"):
-        # Em Python, isinstance(True, int) é True; bool deve ser rejeitado
         return isinstance(valor, int) and not isinstance(valor, bool)
 
     if tipo in ("float", "double", "decimal", "numeric", "number"):
@@ -130,7 +129,6 @@ def _validar_tipo(valor: Any, tipo_esperado: str) -> bool:
                 return False
         return False
 
-    # Tipo não mapeado explicitamente aceita qualquer valor não nulo
     return True
 
 
@@ -178,7 +176,6 @@ def validar(
 
     colunas_lote = set().union(*(r.keys() for r in registros))
 
-    # Colunas obrigatórias ausentes do lote inteiro
     for campo in campos_contrato:
         nome_campo = campo.get("nome", "")
         obrigatorio = campo.get("obrigatorio", True)
@@ -192,7 +189,6 @@ def validar(
                 )
             )
 
-    # Registro a registro: nulos, tipos e valores permitidos
     for indice, registro in enumerate(registros, start=1):
         for campo in campos_contrato:
             nome_campo = campo.get("nome", "")
@@ -201,7 +197,6 @@ def validar(
             valores_permitidos = campo.get("valores_permitidos")
 
             if nome_campo not in registro:
-                # Se a coluna inteira estava ausente do lote, já foi reportada em coluna_faltante
                 if nome_campo in colunas_lote and obrigatorio:
                     violacoes.append(
                         Violacao(

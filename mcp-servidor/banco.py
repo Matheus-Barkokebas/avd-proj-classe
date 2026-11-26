@@ -36,7 +36,6 @@ class BancoNeon:
 
     def _conectar(self) -> psycopg.Connection:
         conexao = psycopg.connect(self.url_conexao)
-        # Somente leitura: o banco recusa INSERT, UPDATE, DELETE, DROP...
         conexao.read_only = True
         return conexao
 

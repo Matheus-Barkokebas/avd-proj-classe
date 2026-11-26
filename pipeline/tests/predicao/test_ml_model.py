@@ -4,7 +4,7 @@ pd = pytest.importorskip("pandas")
 pytest.importorskip("sklearn")
 pytest.importorskip("matplotlib")
 
-from aervita.predicao.ml_model import Classificador  # noqa: E402
+from aervita.predicao.ml_model import Classificador
 
 
 @pytest.fixture

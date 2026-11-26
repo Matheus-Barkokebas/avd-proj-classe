@@ -104,7 +104,7 @@ def test_coletar_dados_combina_tabulares_e_geometricas(tmp_path, mock_ckan, mock
     assert base64.b64decode(payload["bairros_geo"]["conteudo_base64"]) == FIXTURE_GEOJSON
 
     total = territorio.contar_registros(conteudo)
-    assert total == 2 + 2 + 1  # 2 bairros_rpa + 2 distritos + 1 arquivo geométrico
+    assert total == 2 + 2 + 1
 
 
 def test_runner_executa_territorio_e_grava_raw(tmp_path, mock_ckan, mock_download):
@@ -168,7 +168,7 @@ def test_materializar_bronze_preserva_geojson_para_base_geometrica(tmp_path, moc
     caminho_geo = caminhos["bairros_geo"]
     assert caminho_geo.is_file()
     assert caminho_geo.name == "territorio_bairros_geo.geojson"
-    assert caminho_geo.read_bytes() == FIXTURE_GEOJSON  # preservado byte a byte, sem conversão
+    assert caminho_geo.read_bytes() == FIXTURE_GEOJSON
 
 
 def test_idempotencia_materializacao_bronze(tmp_path, mock_ckan, mock_download):
@@ -189,7 +189,6 @@ def test_idempotencia_materializacao_bronze(tmp_path, mock_ckan, mock_download):
 
 def test_falha_de_rede_nao_gera_bronze(tmp_path):
     caminho_config = _config_teste(tmp_path)
-    # Rede inteira fora: CKAN (tabulares) e download (geométricas) — sem acessar a rede de verdade.
     with patch("aervita.ingestao.clientes.recife_ckan.coletar_todos", side_effect=RuntimeError("Falha de conexão")), \
          patch("aervita.ingestao.fontes.territorio.requests.get", side_effect=RuntimeError("Falha de conexão")), \
          patch("aervita.ingestao.fontes.territorio.CAMINHO_CONFIG_PADRAO", caminho_config):

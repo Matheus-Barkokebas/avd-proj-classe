@@ -14,7 +14,7 @@ def ambiente_limpo(monkeypatch, tmp_path):
     for nome in ("NEON_DATABASE_URL", "API_ORIGENS_CORS", "API_CACHE_SEGUNDOS"):
         monkeypatch.delenv(nome, raising=False)
     monkeypatch.setenv("NEON_DATABASE_URL", "postgresql://u:s@h/db")
-    return tmp_path / "sem.env"  # .env inexistente: não lê o real do desenvolvedor
+    return tmp_path / "sem.env"
 
 
 def test_sem_variavel_de_cors_libera_o_front_local(ambiente_limpo):

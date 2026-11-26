@@ -10,8 +10,6 @@ from typing import Any
 
 FORMATO_PADRAO = "%Y-%m-%d %H:%M:%S"
 
-# Formatos aceitos, do mais comum ao menos comum. Datas brasileiras são sempre
-# dia/mês/ano — as fontes do Recife nunca usam mês/dia.
 _FORMATOS = (
     "%Y-%m-%dT%H:%M:%S",
     "%Y-%m-%d %H:%M:%S",
@@ -39,8 +37,6 @@ def normalizar_timestamp(valor: Any) -> str | None:
     if isinstance(valor, datetime):
         return valor.strftime(FORMATO_PADRAO)
     texto = str(valor).strip()
-    # Frações de segundo e fuso (ex.: '2025-04-03T00:00:00.000+00:00') não
-    # mudam a data/hora de referência das fontes atuais; são descartados.
     texto_base = re.sub(r"(\.\d+)?([+-]\d{2}:?\d{2}|Z)?$", "", texto)
     for formato in _FORMATOS:
         try:

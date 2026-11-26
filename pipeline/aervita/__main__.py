@@ -7,8 +7,6 @@ from importlib import import_module
 import runpy
 import sys
 
-# comando -> (módulo, descrição). Módulos com main(argv) rodam a função;
-# os de predição seguem o formato de receita e rodam como script.
 COMANDOS = {
     "territorio": ("aervita.ingestao.fontes.territorio", "bairros, RPAs e distritos sanitários (Dados Abertos Recife)"),
     "arboviroses": ("aervita.ingestao.fontes.epidemiologia", "notificações de dengue, zika e chikungunya do ano"),

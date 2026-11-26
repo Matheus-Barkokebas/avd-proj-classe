@@ -43,7 +43,7 @@ def test_epidemiologia_real_bronze_com_validas_e_quarentena_com_bairro_vazio(tmp
     """Bairro vazio real vai para a quarentena, o resto para a Bronze."""
     lote = _lote_epidemiologia()
     sem_bairro = sum(1 for linha in lote if not linha["bairro"])
-    assert sem_bairro >= 1  # a amostra inclui de propósito o caso real
+    assert sem_bairro >= 1
 
     caminho = bronze.gravar_validado(lote, "epidemiologia", "epidemiologia", DATA, tmp_path)
 

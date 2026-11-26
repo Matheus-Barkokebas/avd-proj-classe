@@ -126,7 +126,6 @@ def test_runner_reprocessa_data_explicita_sem_recoletar(mongo):
 
 
 def test_runner_sem_armazenamento_usa_arquivo_mesmo_com_env_mongo(tmp_path, monkeypatch):
-    # Um .env apontando para o Mongo nunca pode fazer o runner acessar a rede.
     monkeypatch.setenv("AERVITA_ARMAZENAMENTO", "mongo")
     registro = runner.executar("dummy", diretorio_dados=tmp_path)
     assert registro["status"] == "ok"
@@ -139,7 +138,7 @@ def test_criar_rejeita_tipo_desconhecido(tmp_path):
 
 
 def test_criar_padrao_e_arquivo(tmp_path, monkeypatch):
-    monkeypatch.setattr(armaz.ambiente, "RAIZ_PROJETO", tmp_path)  # ignora o .env real
+    monkeypatch.setattr(armaz.ambiente, "RAIZ_PROJETO", tmp_path)
     monkeypatch.delenv("AERVITA_ARMAZENAMENTO", raising=False)
     assert isinstance(armaz.criar(None, tmp_path), armaz.ArmazenamentoArquivo)
 

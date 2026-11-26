@@ -35,7 +35,7 @@ from aervita.ingestao.nucleo import geometria, padronizada, runner
 CAMINHO_CONFIG_PADRAO = DIR_CONF / "sources" / "territorio.yml"
 
 DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF = 2  # segundos, dobrando a cada nova tentativa (2, 4, 8…); 0 desliga
+DEFAULT_BACKOFF = 2
 
 
 def carregar_configuracao_fonte(caminho_config: Path | None = None) -> dict[str, Any]:
@@ -72,8 +72,6 @@ def _coletar_tabular(cfg_base: dict[str, Any]) -> dict[str, Any]:
 
 
 def _coletar_geometrica(cfg_base: dict[str, Any]) -> dict[str, Any]:
-    # URL resolvida pelo CKAN a partir do resource_id; `url` explícita só
-    # como alternativa para fontes fora do CKAN.
     url = cfg_base.get("url") or recife_ckan.obter_url_download(cfg_base["resource_id"])
     conteudo = _baixar_arquivo(url)
     return {
@@ -275,7 +273,6 @@ def gravar_dimensoes(conteudo_raw: dict[str, Any], destino: padronizada.DestinoN
     resultado = {**destino.gravar_tabelas(tabelas), "sem_correspondencia": dims["sem_correspondencia"]}
     if geos:
         chaves_dim = {b["chave_bairro"] for b in dims["dim_bairro"]}
-        # bairro com desenho mas sem cadastro (ou o contrário): registrado, não descartado
         resultado["malha_sem_cadastro"] = sorted({g["chave_bairro"] for g in geos} - chaves_dim)
         resultado["cadastro_sem_malha"] = sorted(chaves_dim - {g["chave_bairro"] for g in geos})
     return resultado
@@ -397,6 +394,5 @@ def main(argv: list[str] | None = None) -> int:
         destino=padronizada.criar(opcoes.padronizada),
     )
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
-    # Falha parcial (alguma base) também sai com código != 0 para o agendador perceber.
     sucesso = resultado["execucao"].get("status") == "ok" and (resultado.get("bronze") or resultado.get("padronizada"))
     return 0 if sucesso and not resultado.get("bases_com_erro") else 1

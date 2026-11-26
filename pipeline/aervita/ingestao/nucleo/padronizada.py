@@ -82,8 +82,6 @@ def sql_carga(contrato: dict[str, Any]) -> tuple[str, str, str]:
     copy = f"COPY carga_{tabela} ({lista}) FROM STDIN"
     chave = [_ident(c) for c in contrato.get("chave_negocio") or []]
     if chave:
-        # DISTINCT ON: se a fonte repetir a chave no mesmo lote, fica a última
-        # ocorrência — sem isso o ON CONFLICT falha ao tocar a mesma linha duas vezes.
         atualiza = ", ".join(f"{c} = EXCLUDED.{c}" for c in cols if c not in chave)
         insert = (
             f"INSERT INTO {tabela} ({lista}) "
@@ -100,7 +98,6 @@ class DestinoNeon:
     """Grava a camada padronizada no Neon (PostgreSQL)."""
 
     def __init__(self, conectar: Callable[[], Any]):
-        # `conectar` devolve uma conexão psycopg; os testes passam um dublê.
         self._conectar = conectar
 
     def conexao(self) -> Any:
@@ -128,7 +125,7 @@ class DestinoNeon:
     ) -> str:
         cols = colunas(contrato)
         temp, copy, insert = sql_carga(contrato)
-        with self._conectar() as conexao:  # commit no fim, rollback se der erro
+        with self._conectar() as conexao:
             with conexao.cursor() as cur:
                 cur.execute(ddl_tabela(contrato))
                 cur.execute(DDL_REJEITADOS)

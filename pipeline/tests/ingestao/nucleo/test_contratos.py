@@ -41,8 +41,8 @@ def test_validar_lote_valido_retorna_vazio():
             "nome": "Registro B",
             "valor": 0.0,
             "data_evento": datetime(2026, 9, 15, 14, 30),
-            "categoria": "BAIXA",  # case-insensitive
-            "observacao": None,  # opcional com nulo é válido
+            "categoria": "BAIXA",
+            "observacao": None,
         },
     ]
     violacoes = validar(lote, CONTRATO_SIMPLES)
@@ -54,7 +54,6 @@ def test_validar_coluna_faltante():
     lote = [
         {
             "id": 1,
-            # "nome" está ausente!
             "valor": 10.0,
             "data_evento": "2026-09-15 10:00:00",
             "categoria": "alta",
@@ -73,10 +72,10 @@ def test_validar_tipo_errado():
     """Valores com tipos incompatíveis com o contrato geram violação tipo_errado."""
     lote = [
         {
-            "id": "nao_sou_inteiro",  # tipo errado: string em int
+            "id": "nao_sou_inteiro",
             "nome": "Registro X",
-            "valor": "cem",           # tipo errado: string em float
-            "data_evento": "data_invalida",  # tipo errado: string não parseável como datetime
+            "valor": "cem",
+            "data_evento": "data_invalida",
             "categoria": "alta",
         }
     ]
@@ -94,9 +93,9 @@ def test_validar_booleano_rejeitado_em_inteiro_e_float():
     """Em Python bool herda de int, mas não deve ser aceito como int ou float."""
     lote = [
         {
-            "id": True,  # booleano em campo int
+            "id": True,
             "nome": "Registro",
-            "valor": False,  # booleano em campo float
+            "valor": False,
             "data_evento": "2026-09-15 10:00:00",
             "categoria": "alta",
         }
@@ -113,8 +112,8 @@ def test_validar_nulo_em_campo_obrigatorio():
     lote = [
         {
             "id": 1,
-            "nome": None,  # nulo em campo obrigatório
-            "valor": float("nan"),  # NaN em campo obrigatório
+            "nome": None,
+            "valor": float("nan"),
             "data_evento": "2026-09-15 10:00:00",
             "categoria": "alta",
         }
@@ -153,7 +152,6 @@ def test_validar_campo_opcional_ausente_nao_gera_coluna_faltante():
             "valor": 5.0,
             "data_evento": "2026-09-15 10:00:00",
             "categoria": "alta",
-            # observacao omitida
         }
     ]
     violacoes = validar(lote, CONTRATO_SIMPLES)
@@ -168,7 +166,7 @@ def test_validar_dominio_valores_permitidos():
             "nome": "Registro",
             "valor": 1.0,
             "data_evento": "2026-09-15 10:00:00",
-            "categoria": "invalida",  # esperado: alta ou baixa
+            "categoria": "invalida",
         }
     ]
     violacoes = validar(lote, CONTRATO_SIMPLES)
@@ -223,10 +221,6 @@ def test_validar_tipo_entrada_invalida():
         validar([{"id": 1}], 12345)
 
 
-# ---------------------------------------------------------------------------
-# Testes com os 5 contratos reais do repositório (conf/contracts/*.yml)
-# ---------------------------------------------------------------------------
-
 def test_contrato_real_epidemiologia_valido_e_invalido():
     contrato = carregar_contrato("epidemiologia")
     lote_valido = [
@@ -243,13 +237,11 @@ def test_contrato_real_epidemiologia_valido_e_invalido():
     ]
     assert validar(lote_valido, contrato) == []
 
-    # Violação 1: coluna obrigatória faltante
     lote_sem_coluna = [{"protocolo": "NOT-001"}]
     violacoes = validar(lote_sem_coluna, contrato)
     tipos = {v.tipo for v in violacoes}
     assert "coluna_faltante" in tipos
 
-    # Violação 2: agravo fora do domínio permitido
     lote_agravo_invalido = [
         {
             **lote_valido[0],
@@ -275,7 +267,6 @@ def test_contrato_real_territorio_valido_e_invalido():
     ]
     assert validar(lote_valido, contrato) == []
 
-    # Nulo em código_bairro (obrigatório)
     lote_nulo = [{**lote_valido[0], "codigo_bairro": None}]
     violacoes = validar(lote_nulo, contrato)
     assert any(v.tipo == "nulo_obrigatorio" and v.campo == "codigo_bairro" for v in violacoes)
@@ -299,4 +290,4 @@ def test_chave_negocio_epidemiologia_inclui_agravo_e_data():
     contrato = carregar_contrato("epidemiologia")
     assert contrato["chave_negocio"] == ["agravo", "protocolo", "data_notificacao"]
     nomes_campos = {c["nome"] for c in contrato["campos"]}
-    assert set(contrato["chave_negocio"]) <= nomes_campos  # chave só com campos do contrato
+    assert set(contrato["chave_negocio"]) <= nomes_campos

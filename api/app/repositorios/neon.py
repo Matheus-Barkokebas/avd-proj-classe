@@ -11,7 +11,6 @@ from typing import Any
 from app.banco import Banco
 
 FUSO_RECIFE = timezone(timedelta(hours=-3), name="America/Recife")
-# O painel mostra o ano mais recente; os anteriores ficam na Gold para o histórico e o modelo.
 _ULTIMO_ANO_ARBO = "SELECT max(ano) FROM gold.arbo_bairro_semana"
 
 
@@ -30,7 +29,6 @@ class RepositorioNeon:
     def _q(self, sql: str, parametros: tuple | dict | None = None) -> list[dict[str, Any]]:
         return _com_fuso(self.banco.consultar(sql, parametros))
 
-    # ------------------------------------------------------------ chuva (COP)
     def indicador_mais_recente(self) -> dict[str, Any] | None:
         linhas = self._q("SELECT * FROM gold.chuva_hora ORDER BY data_hora DESC LIMIT 1")
         return linhas[0] if linhas else None
@@ -57,7 +55,6 @@ class RepositorioNeon:
             (desde.replace(tzinfo=None),),
         )
 
-    # ------------------------------------------------------------ rios (COP)
     def rios_ultima_leitura(self) -> list[dict[str, Any]]:
         return self._q(
             "SELECT DISTINCT ON (codigo_estacao) codigo_estacao, estacao, rio, data_hora, nivel, "
@@ -74,7 +71,6 @@ class RepositorioNeon:
     def estacao_existe(self, codigo_estacao: str) -> bool:
         return bool(self._q("SELECT 1 FROM gold.rio_leitura WHERE codigo_estacao = %s LIMIT 1", (codigo_estacao,)))
 
-    # ------------------------------------------------------------ arboviroses
     def arboviroses_por_semana(self, agravo: str | None = None) -> list[dict[str, Any]]:
         filtro, params = ("AND agravo = %s", (agravo,)) if agravo else ("", None)
         return self._q(
@@ -92,7 +88,6 @@ class RepositorioNeon:
             f"FROM gold.arbo_bairro_semana WHERE ano = ({_ULTIMO_ANO_ARBO}) GROUP BY 1, 2"
         )
 
-    # ------------------------------------------------------------ território
     def bairros(self) -> list[dict[str, Any]]:
         return self._q("SELECT * FROM gold.bairro ORDER BY nome_bairro")
 
@@ -109,7 +104,6 @@ class RepositorioNeon:
     def pontos_alagamento(self) -> list[dict[str, Any]]:
         return self._q("SELECT * FROM gold.ponto_alagamento ORDER BY id_ponto::int")
 
-    # ------------------------------------------------------------ maré e alagamento
     def mare_entre(self, inicio: datetime, fim: datetime) -> list[dict[str, Any]]:
         return self._q(
             "SELECT data_hora, mare_m, anterior FROM (SELECT data_hora, mare_m, "
@@ -157,7 +151,6 @@ class RepositorioNeon:
             "WHERE conjunto = 'teste' ORDER BY hora"
         )
 
-    # ------------------------------------------------------------ atualização
     def ultimas_cargas(self) -> list[dict[str, Any]]:
         """Quando cada tabela da Silver foi carregada pela última vez (coluna de controle do pipeline)."""
         return self._q("SELECT * FROM gold.ultima_carga")

@@ -21,8 +21,6 @@ class Coletor:
     coletar: Callable[[date], bytes]
     contar_registros: Callable[[bytes], int]
     nome_arquivo: str
-    # Fonte que só devolve o estado atual não pode coletar para outra data:
-    # com --data ela apenas relê uma RAW já gravada.
     suporta_historico: bool = True
 
 
@@ -60,7 +58,6 @@ def _coletor_cop(camada: str) -> Coletor:
     return Coletor(coletar, contar, "arcgis.json", suporta_historico=False)
 
 
-# Igual às camadas de conf/sources/cop_recife.yml (há teste que confere).
 FONTES_COP = (
     "cop_indicadores", "cop_rios", "cop_previsao_chuva", "cop_chuva_mensal",
     "cop_pluviometros", "cop_areas_alagaveis", "cop_pontos_alagamento",

@@ -15,7 +15,6 @@ ARQUIVO = Path(__file__).resolve().parents[1] / "openapi.json"
 
 
 def gerar() -> str:
-    # configuração fictícia: gerar o esquema não abre conexão com o banco
     app = criar_app(Configuracao(neon_url="postgresql://esquema", origens_cors=(), cache_segundos=300),
                     repositorio=object())
     return json.dumps(app.openapi(), ensure_ascii=False, indent=2, sort_keys=True) + "\n"

@@ -21,7 +21,6 @@ from typing import Any, Protocol
 from aervita import ambiente
 from aervita.ambiente import DIR_DADOS
 
-# America/Recife é UTC-03, sem horário de verão.
 FUSO_RECIFE = timezone(timedelta(hours=-3), name="America/Recife")
 TIPOS = ("arquivo", "mongo")
 
@@ -83,8 +82,6 @@ class ArmazenamentoMongo:
     """RAW no MongoDB Atlas: GridFS para o conteúdo, raw_coletas para os metadados."""
 
     def __init__(self, banco: Any = None, *, coletas: Any = None, bucket: Any = None, execucoes: Any = None):
-        # `banco` é um pymongo Database; os parâmetros nomeados existem para os
-        # testes injetarem dublês sem rede.
         if banco is not None:
             import gridfs
 
@@ -124,8 +121,6 @@ class ArmazenamentoMongo:
         if atual is not None and atual.get("sha256") == sha256:
             self._coletas.update_one(chave, {"$set": {"verificado_em": agora}})
             return False
-        # Sobe o conteúdo novo antes de trocar o ponteiro: se o upload falhar,
-        # a coleta anterior continua íntegra (mesma garantia do gravar_atomico).
         novo_id = self._bucket.upload_from_stream(
             f"{fonte}/{chave['data_coleta']}/{arquivo}", conteudo, metadata={**chave, "sha256": sha256}
         )

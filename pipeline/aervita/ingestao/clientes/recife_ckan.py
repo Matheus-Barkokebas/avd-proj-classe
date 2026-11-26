@@ -8,7 +8,7 @@ import requests
 API_URL = "https://dados.recife.pe.gov.br/pt_BR/api/action/datastore_search"
 DEFAULT_LIMIT = 1000
 DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF = 2  # segundos, dobrando a cada nova tentativa (2, 4, 8…); 0 desliga
+DEFAULT_BACKOFF = 2
 
 
 def _request_with_retry(params: Dict[str, Any], max_retries: int, backoff: int) -> Dict[str, Any]:
@@ -54,7 +54,6 @@ def coletar_todos(
             "offset": offset,
         }
         if filtros:
-            # CKAN espera JSON serializado
             params["filters"] = json.dumps(filtros)
         dados = _request_with_retry(params, max_retries, backoff)
         resultado = dados.get("result", {})
@@ -62,9 +61,6 @@ def coletar_todos(
         if total is None:
             total = resultado.get("total", float('inf'))
         todos_registros.extend(registros)
-        # O servidor pode devolver menos que o `limit` pedido (o CKAN do Recife
-        # limita a 500 por página): avançar pelo que de fato veio e só parar com
-        # página vazia ou total atingido — nunca por "página menor que o pedido".
         offset += len(registros)
         if not registros or offset >= total:
             break

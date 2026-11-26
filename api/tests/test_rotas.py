@@ -22,10 +22,10 @@ def test_chuva_atual_com_comparacao_do_mes(cliente):
     assert r.status_code == 200
     corpo = r.json()
     assert corpo["chuva_media_24h_mm"] == 6.2 and corpo["estacao_max_24h"] == "Areias"
-    assert corpo["data_hora"] == "2026-10-28T21:00:45-03:00"  # sempre com o fuso do Recife
+    assert corpo["data_hora"] == "2026-10-28T21:00:45-03:00"
     assert corpo["mes"] == {"mes": 10, "ano": 2026, "chuva_acumulada_mm": 12.1, "media_historica_mm": 35.0,
                             "percentual_da_media": 34.6}
-    assert "data_coleta" not in corpo  # coluna de controle não vaza para o front
+    assert "data_coleta" not in corpo
 
 
 def test_chuva_atual_sem_dados_e_404_no_formato_padrao():
@@ -112,7 +112,7 @@ def test_atualizacao(cliente):
 def test_cache_so_nas_rotas_de_dados(cliente):
     assert cliente.get("/v1/rios").headers["cache-control"] == "public, max-age=300"
     assert "cache-control" not in cliente.get("/saude").headers
-    assert "cache-control" not in cliente.get("/v1/rios/999/serie").headers  # erro não vai para o cache
+    assert "cache-control" not in cliente.get("/v1/rios/999/serie").headers
 
 
 def test_cors_libera_so_a_origem_configurada(cliente):

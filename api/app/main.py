@@ -70,8 +70,6 @@ def criar_app(configuracao: cfg.Configuracao | None = None, repositorio: Reposit
             resposta.headers["Cache-Control"] = f"public, max-age={configuracao.cache_segundos}"
         return resposta
 
-    # ------------------------------------------------------------ erros num formato único
-    # HTTPException do Starlette (a classe-mãe) também cobre rota inexistente e método não permitido.
     @app.exception_handler(HTTPException)
     async def erro_http(_: Request, exc: HTTPException):
         codigos = {404: "nao_encontrado", 400: "requisicao_invalida", 405: "metodo_nao_permitido", 503: "indisponivel"}
@@ -84,7 +82,6 @@ def criar_app(configuracao: cfg.Configuracao | None = None, repositorio: Reposit
 
     @app.exception_handler(Exception)
     async def erro_inesperado(_: Request, exc: Exception):
-        # erro de conexão com o banco vira 503; o resto, 500 sem vazar detalhe interno
         nome = type(exc).__module__ + "." + type(exc).__name__
         if nome.startswith(("psycopg", "psycopg_pool")):
             log.exception("Falha no banco")
@@ -92,7 +89,6 @@ def criar_app(configuracao: cfg.Configuracao | None = None, repositorio: Reposit
         log.exception("Erro inesperado")
         return _erro(500, "erro_interno", None)
 
-    # ------------------------------------------------------------ rotas
     @app.get("/", include_in_schema=False)
     def raiz():
         return RedirectResponse("/docs")
@@ -120,7 +116,6 @@ def criar_app(configuracao: cfg.Configuracao | None = None, repositorio: Reposit
 _APP: FastAPI | None = None
 
 
-# `uvicorn app.main:app` — criado sob demanda (uma vez só) para os testes não exigirem o .env
 def __getattr__(nome: str):
     global _APP
     if nome == "app":

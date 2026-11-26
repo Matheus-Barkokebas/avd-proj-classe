@@ -12,7 +12,7 @@ from typing import Any
 import requests
 
 DEFAULT_MAX_RETRIES = 3
-DEFAULT_BACKOFF = 2  # segundos, dobrando a cada nova tentativa; 0 desliga
+DEFAULT_BACKOFF = 2
 DEFAULT_TIMEOUT = 60
 TAMANHO_PAGINA = 2000
 
@@ -24,7 +24,6 @@ def _get(url: str, params: dict[str, Any], max_retries: int, backoff: int) -> di
             resposta = requests.get(url, params=params, timeout=DEFAULT_TIMEOUT)
             resposta.raise_for_status()
             dados = resposta.json()
-            # O ArcGIS responde 200 com {"error": {...}} em consulta inválida
             if isinstance(dados, dict) and "error" in dados:
                 raise RuntimeError(f"ArcGIS recusou a consulta: {dados['error']}")
             return dados
