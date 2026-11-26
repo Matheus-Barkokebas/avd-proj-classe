@@ -17,6 +17,8 @@ import { VisaoGeral } from "./telas/VisaoGeral";
 
 // O MapLibre é a maior dependência: a tela do mapa só é baixada quando alguém abre a aba.
 const Mapa = lazy(() => import("./telas/Mapa").then((m) => ({ default: m.Mapa })));
+// O SDK do MCP também só é baixado quando alguém abre o assistente.
+const Assistente = lazy(() => import("./telas/Assistente").then((m) => ({ default: m.Assistente })));
 
 export function criarClienteConsultas() {
   return new QueryClient({
@@ -39,6 +41,7 @@ export function Rotas() {
         <Route path="/simulador" element={<Simulador />} />
         <Route path="/boletins" element={<Boletins />} />
         <Route path="/fontes" element={<FontesDados />} />
+        <Route path="/assistente" element={<Suspense fallback={<Carregando />}><Assistente /></Suspense>} />
         {MENU.filter((m) => m.emBreve).map((m) => (
           <Route key={m.caminho} path={m.caminho} element={<EmBreve />} />
         ))}

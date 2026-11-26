@@ -153,7 +153,8 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 pipeline/                   pacote Python aervita: coleta, camadas Bronze/Silver/Gold e modelo de alagamento
 api/                        API (FastAPI) que lê a camada Gold e entrega JSON ao front
 frontend/                   painel (React + TypeScript)
-docs/                       planejamento, arquitetura, histórias, padrões e decisões (comum aos três)
+mcp-servidor/               servidor MCP (FastMCP): expõe a camada Gold como ferramentas para uma IA
+docs/                       planejamento, arquitetura, histórias, padrões e decisões (comum aos módulos)
 ai-rules/                   regras para assistentes de IA
 .github/                    CI (um job por módulo) e CODEOWNERS
 ```
@@ -182,7 +183,7 @@ python -m aervita diario                # o que a VM roda todo dia
 pytest                                  # testes sem rede; `pytest -m integracao` usa os serviços reais
 ```
 
-Cada módulo tem o próprio README: [`pipeline/`](pipeline/README.md) · [`api/`](api/README.md) · [`frontend/`](frontend/README.md).
+Cada módulo tem o próprio README: [`pipeline/`](pipeline/README.md) · [`api/`](api/README.md) · [`frontend/`](frontend/README.md) · [`mcp-servidor/`](mcp-servidor/README.md).
 
 **Fluxo de contribuição:** 1 issue → 1 branch `feature/<id>-AAAA.MM.DD` → 1 PR contra `develop`.
 Consulte **[`docs/PLANO-DE-ACAO.md`](docs/PLANO-DE-ACAO.md)** para saber qual issue pegar primeiro
