@@ -9,9 +9,9 @@ from datetime import date
 
 import pytest
 
-from src.ingestao import ambiente
-from src.ingestao import armazenamento as armaz
-from src.ingestao import runner
+from aervita import ambiente
+from aervita.ingestao.nucleo import armazenamento as armaz
+from aervita.ingestao.nucleo import runner
 
 pytestmark = pytest.mark.integracao
 

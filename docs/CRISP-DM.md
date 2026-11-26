@@ -193,7 +193,7 @@ Avaliar as limitações antes de publicar resultados ou embasar decisões, docum
 
 ### Entregáveis
 
-- **Pipeline reprodutível** de ingestão e transformação (scripts Python em `src/`, camadas RAW → Gold), regenerável a partir dos coletores de `src/ingestao/` e das etapas subsequentes;
+- **Pipeline reprodutível** de ingestão e transformação (pacote Python `pipeline/aervita/`, camadas Bronze → Silver → Gold), regenerável com `python -m aervita diario`;
 - **Dashboard de monitoramento** com volume por bairro/RPA/serviço, sazonalidade e tempo de resposta;
 - **Relatórios / boletins analíticos** periódicos;
 - (Opcional) **Alertas preditivos** de pico de demanda por região e tipo de serviço;

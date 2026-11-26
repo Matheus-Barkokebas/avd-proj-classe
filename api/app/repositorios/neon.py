@@ -1,7 +1,7 @@
 """Consultas à camada Gold no Neon — único lugar da API com SQL.
 
 A API só lê, e só o schema `gold` (decisão 0003), montado por
-pipeline/src/processamento/gold.py. Datas no Neon estão no horário do
+pipeline/aervita/processamento/gold.py. Datas no Neon estão no horário do
 Recife sem fuso; aqui recebem o -03:00 para o front nunca ter dúvida.
 """
 

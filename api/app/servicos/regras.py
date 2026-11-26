@@ -8,14 +8,13 @@ import unicodedata
 
 AGRAVOS = ("dengue", "chikungunya", "zika")
 
-# Mesmos nomes compostos que o pipeline trata (pipeline/src/serving/exporta_painel.py).
 APELIDOS_BAIRRO = {"SITIO DOS PINTOS - SAO BRAS": "SITIO DOS PINTOS", "COHAB - IBURA DE CIMA": "COHAB"}
 
 
 def chave_bairro(nome: Any) -> str:
     """Nome de bairro normalizado: sem acento, maiúsculo, espaço único.
 
-    Mesma regra de pipeline/src/ingestao/territorio.py::chave_bairro, que gerou
+    Mesma regra de pipeline/aervita/ingestao/fontes/territorio.py::chave_bairro, que gerou
     dim_bairro.chave_bairro. Repetida aqui porque a API não importa o pipeline
     (a fronteira entre os dois é o banco); há teste que confere as duas.
     """

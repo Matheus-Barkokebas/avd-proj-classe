@@ -1,4 +1,4 @@
-/* Estilos globais e peças compartilhadas (mesmo visual do protótipo v3). */
+/* Estilos globais e peças compartilhadas. */
 *{box-sizing:border-box; margin:0; padding:0;}
 html{-webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;}
 body{font-family:var(--font); font-size:14px; line-height:1.5; color:var(--text); background:var(--bg);}

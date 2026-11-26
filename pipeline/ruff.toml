@@ -1,0 +1,10 @@
+line-length = 130
+target-version = "py312"
+
+[lint]
+select = ["E", "F", "I", "W"]
+ignore = ["E501", "E741"]
+
+[lint.isort]
+known-first-party = ["aervita"]
+force-sort-within-sections = true

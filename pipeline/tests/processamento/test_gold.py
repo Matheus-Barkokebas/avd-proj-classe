@@ -1,4 +1,4 @@
-from src.processamento import gold
+from aervita.processamento import gold
 
 
 def test_grafias_viram_chave_do_bairro_e_o_resto_fica_sem_chave():

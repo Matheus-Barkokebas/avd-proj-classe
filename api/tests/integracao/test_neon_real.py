@@ -4,8 +4,8 @@ Opcional: `pytest -m integracao`. Confere que cada rota responde 200 com dados
 reais e no formato declarado — se o pipeline mudar uma tabela, quebra aqui.
 """
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
 from app import config as cfg
 from app.main import criar_app

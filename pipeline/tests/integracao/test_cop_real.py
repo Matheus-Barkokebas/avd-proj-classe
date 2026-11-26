@@ -9,8 +9,8 @@ from datetime import date
 
 import pytest
 
-from src.ingestao import contratos
-from src.ingestao import cop_recife
+from aervita.ingestao.fontes import cop_recife
+from aervita.ingestao.nucleo import contratos
 
 pytestmark = pytest.mark.integracao
 

@@ -29,8 +29,8 @@ num único fluxo — entregando indicadores situacionais, boletins automáticos 
 
 <div align="center">
 
-**▶ Protótipo do painel situacional:** [`prototipo/v3-aervita-console.html`](frontend/prototipo/v3-aervita-console.html) — abra no navegador
-<br><sub>arboviroses, bairros e distritos reais (gerados pelo pipeline); chuva, rios e ocorrências ainda simulados na tela</sub>
+**▶ Painel:** [avd-proj-classe.vercel.app](https://avd-proj-classe.vercel.app/) · **API:** [avd-proj-classe.onrender.com/docs](https://avd-proj-classe.onrender.com/docs)
+<br><sub>dados reais de fontes públicas de governo; o pipeline roda todo dia numa VM do Google Cloud</sub>
 
 </div>
 
@@ -150,9 +150,9 @@ do dado. Detalhe completo em **[`docs/ARQUITETURA.md`](docs/ARQUITETURA.md)**.
 ## 🗂️ Estrutura do repositório
 
 ```text
-pipeline/                   coleta e padronização (Python): src/, conf/, tests/, data/, requirements
-api/                        API (FastAPI) que lê o Neon e entrega JSON ao front  ·  rotas de chuva, rios, arboviroses e território
-frontend/                   painel (React + TypeScript)  ·  visão geral, mapa, chuva e rios, arboviroses; protótipo v3 em frontend/prototipo/
+pipeline/                   pacote Python aervita: coleta, camadas Bronze/Silver/Gold e modelo de alagamento
+api/                        API (FastAPI) que lê a camada Gold e entrega JSON ao front
+frontend/                   painel (React + TypeScript)
 docs/                       planejamento, arquitetura, histórias, padrões e decisões (comum aos três)
 ai-rules/                   regras para assistentes de IA
 .github/                    CI (um job por módulo) e CODEOWNERS
@@ -161,8 +161,7 @@ ai-rules/                   regras para assistentes de IA
 Monorepo: um repositório, um módulo por pasta, cada um com as próprias dependências e testes. A API não
 importa código do pipeline — o contrato entre os dois é o esquema das tabelas no Neon.
 
-> Convenções de código, dados e Git em [`docs/PADROES.md`](docs/PADROES.md). Dentro de `pipeline/src/`, as
-> pastas `processamento/`, `indicadores/` e `predicao/` são criadas quando as Fases 2 e 3 começarem.
+> Convenções de código, dados e Git em [`docs/PADROES.md`](docs/PADROES.md).
 
 ---
 
@@ -175,12 +174,12 @@ cd pipeline
 python -m venv .venv
 # Windows:  .venv\Scripts\activate
 # Linux/macOS:  source .venv/bin/activate
-pip install -r requirements.txt -r requirements-dev.txt
+pip install -r requirements.txt -r requirements-dev.txt -r requirements-modelo.txt
 
 cp .env.example .env                    # preencha MONGODB_URI e NEON_DATABASE_URL (só no .env)
-python src/ingestao/epidemiologia.py --armazenamento mongo --padronizada neon   # ver pipeline/src/ingestao/README.md
-python src/ingestao/cop_recife.py --armazenamento mongo --padronizada neon     # chuva e rios do COP
-pytest                                  # testes sem rede; `pytest -m integracao` usa as APIs reais
+python -m aervita                       # lista os comandos (territorio, arboviroses, inmet, gold, treino, diario...)
+python -m aervita diario                # o que a VM roda todo dia
+pytest                                  # testes sem rede; `pytest -m integracao` usa os serviços reais
 ```
 
 Cada módulo tem o próprio README: [`pipeline/`](pipeline/README.md) · [`api/`](api/README.md) · [`frontend/`](frontend/README.md).

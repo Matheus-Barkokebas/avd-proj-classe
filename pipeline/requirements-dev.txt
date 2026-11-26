@@ -1,3 +1,4 @@
-# Ferramentas de teste da FND-03; runner usa somente a biblioteca padrão.
+# Ferramentas de desenvolvimento: testes e verificação de estilo (ruff, configurado em ruff.toml)
 pytest>=8,<10
 PyYAML>=6,<7
+ruff>=0.6

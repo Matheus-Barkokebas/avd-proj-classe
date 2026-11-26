@@ -13,20 +13,22 @@ Complementa: [`ARQUITETURA.md`](ARQUITETURA.md) (o *como* técnico) e
 Monorepo com um módulo por pasta. Cada módulo tem dependências, testes e README próprios.
 
 ```text
-pipeline/         coleta e padronização (Python) — comandos rodam daqui
-  src/
-    ingestao/       conectores, coleta e camada padronizada  → RAW (Atlas/arquivo), padronizada (Neon/Parquet)
-    serving/        exportações para o painel                → entrega
+pipeline/         pacote Python aervita — comandos rodam daqui (python -m aervita <comando>)
+  aervita/
+    ingestao/       nucleo/ (runner, contratos, armazenamento), clientes/ (CKAN, ArcGIS), fontes/ (uma por módulo)
+    processamento/  camada Gold
+    predicao/       modelo de alagamento
   conf/             configuração declarativa (YAML), sem lógica
-    sources/          1 arquivo por fonte (endpoint, colunas, frequência)
-    contracts/        schema esperado por fonte (validação de entrada e tabelas do Neon)
+    sources/          1 arquivo por fonte (endpoint, colunas)
+    contracts/        schema esperado por tabela (validação de entrada e tabelas do Neon)
+  agendamento/      scripts da VM (execução diária)
   data/             RAW e Bronze locais (modo arquivo) — IGNORADO pelo Git (regenerável)
-  tests/            testes automatizados — espelha src/
-  requirements.txt · requirements-dev.txt · pytest.ini · .env.example
+  tests/            testes automatizados — espelha aervita/
+  requirements.txt · requirements-dev.txt · requirements-modelo.txt · ruff.toml · pytest.ini · .env.example
 api/              API FastAPI sobre o Neon (só leitura) — comandos rodam daqui
   app/              rotas/ → servicos/ → repositorios/ (único lugar com SQL); esquemas/ (contrato com o front)
   tests/            sem rede + integracao/ (Neon real)
-frontend/         painel React + TypeScript (em construção); protótipo v3 em frontend/prototipo/
+frontend/         painel React + TypeScript
 docs/             planejamento, arquitetura, histórias, padrões, decisões — comum aos módulos
 ai-rules/         regras para assistentes de IA
 .github/          CI (um job por módulo, disparado pela pasta) e CODEOWNERS
@@ -34,12 +36,10 @@ ai-rules/         regras para assistentes de IA
 
 - **Fronteiras:** a API não importa código do pipeline; o contrato entre os dois é o esquema das tabelas
   no Neon. O front só fala com a API — nunca com o banco.
-- Nas fases seguintes entram `pipeline/src/processamento/` (Silver/Gold), `indicadores/`, `predicao/`,
-  `pipeline/conf/territorio/` e `pipeline/data/silver/` e `gold/`, cada um junto com a primeira história que o usa.
 
 Regras:
 
-- Código de produção vive em `src/`, com teste correspondente em `tests/`.
+- Código de produção vive em `pipeline/aervita/`, com teste correspondente em `pipeline/tests/`.
 - `conf/` não contém regra de negócio — apenas *o quê* e *como interpretar* cada fonte.
 - Nada em `data/` é versionado (ver §4).
 
@@ -122,7 +122,7 @@ colunas de controle `data_coleta` e `carregado_em`.
   de ambiente (`segredo_env: ANA_TOKEN`); o valor vem do ambiente / de um `.env` local.
 - Manter `.env.example` com as chaves em branco. `.env` está no `.gitignore`.
 - Bancos da primeira release: `MONGODB_URI`, `MONGODB_DB`, `NEON_DATABASE_URL`, e os seletores
-  `AERVITA_ARMAZENAMENTO` / `AERVITA_PADRONIZADA` (`arquivo` por padrão). Lidos por `src/ingestao/ambiente.py`;
+  `AERVITA_ARMAZENAMENTO` / `AERVITA_PADRONIZADA` (`arquivo` por padrão). Lidos por `aervita/ambiente.py`;
   logs mostram a URI com a senha mascarada.
 - Parâmetros de modelo/regra (limiares de risco, janelas) ficam em YAML (`conf/risco/`, `conf/alertas/`),
   não *hard-coded* no `.py`.
@@ -132,7 +132,7 @@ colunas de controle `data_coleta` e `carregado_em`.
 ## 6. Testes
 
 - Framework: **pytest**. Rodar de dentro de `pipeline/`: `cd pipeline && pytest`.
-- `tests/` espelha `src/`. Arquivo `test_<modulo>.py`.
+- `tests/` espelha `aervita/`. Arquivo `test_<modulo>.py`.
 - **Sem rede:** toda resposta de API é mockada; amostras de dados em `tests/fixtures/`.
 - Cada história entrega, no mínimo, os casos listados nos **Critérios de aceitação** da sua issue.
 - PR só entra em revisão com a suíte passando.

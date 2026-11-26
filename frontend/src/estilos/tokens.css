@@ -1,4 +1,4 @@
-/* Tokens de cor, tipografia e sombra — os mesmos do protótipo v3 (frontend/prototipo/). */
+/* Tokens de cor, tipografia e sombra (tema claro e escuro). */
 :root{
   --font:'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono:'Geist Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;

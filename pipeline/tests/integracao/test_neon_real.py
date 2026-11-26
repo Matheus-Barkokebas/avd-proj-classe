@@ -9,9 +9,8 @@ from datetime import date
 
 import pytest
 
-from src.ingestao import ambiente
-from src.ingestao import bronze
-from src.ingestao import padronizada
+from aervita import ambiente
+from aervita.ingestao.nucleo import bronze, padronizada
 
 pytestmark = pytest.mark.integracao
 SCHEMA = "aervita_teste"

@@ -1,7 +1,7 @@
 # Configuração da fonte de dados: Centro de Operações do Recife (COP)
 # Chuva, rios, previsão e risco de alagamento publicados pela prefeitura no
 # servidor ArcGIS público (sem login). Levantamento e verificação ao vivo em
-# 2026-10-28 — ver docs/decisoes/0001 e src/ingestao/README.md.
+# 2026-10-28 — ver docs/decisoes/0001 e aervita/ingestao/README.md.
 nome: cop_recife
 descricao: Dados operacionais do COP Recife (chuva, rios, previsão, alagamento)
 api: arcgis

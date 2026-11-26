@@ -18,7 +18,7 @@ alimentado pela última delas. A entrega precisa ser rápida e o painel publicad
 | **Gold** | Neon, schema `gold` | Dados finais do painel e do modelo, mais as previsões |
 
 - A Silver **não** muda de schema: mover as tabelas exigiria migrar pipeline e API ao mesmo tempo, sem ganho.
-- A Gold é montada por [`pipeline/src/processamento/gold.py`](../../pipeline/src/processamento/gold.py):
+- A Gold é montada por [`pipeline/aervita/processamento/gold.py`](../../pipeline/aervita/processamento/gold.py):
   **views** sobre a Silver para o que só precisa de limpeza (sempre atuais) e **tabelas** para o que exige cálculo.
 - A **API lê apenas a Gold**; há teste que falha se o repositório consultar outro schema.
 - O usuário `aervita_api` recebe `SELECT` na Gold. O acesso dele à Silver pode ser removido depois que a API
@@ -39,7 +39,7 @@ chuva do INMET (estação A301), tábua de maré do COP e o campo `alaga` do COP
 alertas do Waze, a confirmar com o COP; ele foi aceito como alvo pelo responsável do projeto em 2026-11-02, com a origem declarada.
 
 `gold.ml_alagamento_hora` tem uma linha por hora, e `gold.previsao_alagamento` guarda as previsões. O modelo segue o formato de
-[`etl-vacinacao-recife`](https://github.com/MatmJr/etl-vacinacao-recife), e os resultados estão em [`RESULTADOS.md`](../../pipeline/src/predicao/resultados/RESULTADOS.md).
+[`etl-vacinacao-recife`](https://github.com/MatmJr/etl-vacinacao-recife), e os resultados estão em [`RESULTADOS.md`](../../pipeline/aervita/predicao/resultados/RESULTADOS.md).
 
 ### Histórico de arboviroses
 
@@ -73,7 +73,7 @@ O painel continua mostrando o ano mais recente; os anteriores servem ao históri
 | Camada Gold no Neon | Feita |
 | API lendo da Gold | Feita na branch; o painel publicado migra quando ela chegar à `main` |
 | Histórico de arboviroses | Carregado: 128.233 notificações de 2013 a 2024 e 22.360 linhas em `rejeitados`, com o motivo. Sem uso no modelo por enquanto |
-| Modelo de alagamento | Feito: 82,5% de acurácia no teste contra 69,7% do chute ([resultados](../../pipeline/src/predicao/resultados/RESULTADOS.md)) |
+| Modelo de alagamento | Feito: 82,5% de acurácia no teste contra 69,7% do chute ([resultados](../../pipeline/aervita/predicao/resultados/RESULTADOS.md)) |
 | Maré, alagamentos e avaliação do modelo na API e no painel | Feito: aba "Risco de alagamento", com selo de modelo experimental |
 | Simulador, boletins, fontes de dados, rotas no mapa e exportação em CSV | Feito. O que falta está em [`pendencias-do-sistema.pdf`](../pendencias-do-sistema.pdf) |
 | Previsão em tempo real no painel | A fazer: depende da coleta do COP numa máquina no Brasil e de validar a chuva do COP contra a do INMET |
