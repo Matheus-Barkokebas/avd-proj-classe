@@ -1,12 +1,12 @@
+"""Configuração da API lida do ambiente."""
+
 from pathlib import Path
 import re
-
-from app.repositorios import neon
-"""Configuração da API lida do ambiente."""
 
 import pytest
 
 from app import config
+from app.repositorios import neon
 
 
 @pytest.fixture(autouse=True)

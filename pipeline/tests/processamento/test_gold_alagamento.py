@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from src.processamento import gold_alagamento as ga
+from aervita.processamento import gold_alagamento as ga
 
 T0 = datetime(2026, 6, 1, 0, 0)
 HORA = timedelta(hours=1)

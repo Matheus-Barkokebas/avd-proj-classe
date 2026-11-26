@@ -24,7 +24,7 @@ const chave = (texto: unknown) =>
 /** A API declara `features` como objetos genéricos; aqui eles são tratados como feições GeoJSON. */
 const feicoes = (fc?: { features: { [k: string]: unknown }[] }) => (fc?.features ?? []) as unknown as GeoJSON.Feature[];
 
-/** Limites das classes por quantis (0,2 · 0,4 · 0,6 · 0,8 · 0,95), como no protótipo. */
+/** Limites das classes por quantis (0,2 · 0,4 · 0,6 · 0,8 · 0,95). */
 export function limitesQuantis(valores: number[]): number[] {
   const ord = [...valores].sort((a, b) => a - b);
   if (!ord.length) return [];

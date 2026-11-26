@@ -17,7 +17,7 @@ export function corDaCelula(valor: number, maximo: number) {
   return { fundo: `rgb(${r}, ${g}, ${b})`, texto: t > 0.5 ? "#ffffff" : "#7f2704" };
 }
 
-// Tentativas registradas em pipeline/src/predicao/resultados/RESULTADOS.md (mesmas 2.100 horas, linha de base 69,3%).
+// Tentativas registradas em pipeline/aervita/predicao/resultados/RESULTADOS.md (mesmas 2.100 horas, linha de base 69,3%).
 const EXPERIMENTOS = [
   ["Só chuva de 24 h", 0.794, 0.799, 0.824],
   ["Todas as janelas de chuva", 0.832, 0.854, 0.862],
@@ -82,7 +82,7 @@ export function ModeloPrevisao() {
             </div>
 
             <div className="c6">
-              <Card titulo="Como foi treinado" sub="pipeline/src/predicao/train.py">
+              <Card titulo="Como foi treinado" sub="pipeline/aervita/predicao/train.py">
                 <ol className="lista-pontos" style={{ listStyle: "decimal", paddingLeft: 18, display: "block" }}>
                   {[
                     `Base com uma linha por hora: ${numero(m!.horas)} horas com resposta conhecida, de ${dataHora(m!.inicio).slice(0, 10)} a ${dataHora(m!.fim).slice(0, 10)}.`,

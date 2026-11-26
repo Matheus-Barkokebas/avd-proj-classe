@@ -1,13 +1,13 @@
 # `data/` — lago de dados (não versionado)
 
-Arquitetura **medallion**. Todo o conteúdo é **regenerável** pelos pipelines em [`src/`](../src/)
+Arquitetura **medallion**. Todo o conteúdo é **regenerável** pelo pipeline em [`aervita/`](../aervita/)
 e está no `.gitignore` — só a estrutura de pastas (`.gitkeep`) e este README são versionados.
 
 | Camada | Pasta | Conteúdo | Formato |
 |---|---|---|---|
 | **RAW** | `raw/` | resposta original das APIs, intacta | JSON / CSV, como veio |
 | **BRONZE** | `bronze/` | dados tipados, 1 linha por registro | Parquet |
-| **BRONZE (quarentena)** | `bronze/<fonte>_rejeitados/` | linhas que violaram o contrato, com o motivo (BUG-06) | JSON |
+| **BRONZE (quarentena)** | `bronze/<fonte>_rejeitados/` | linhas que violaram o contrato, com o motivo | JSON |
 
 `silver/` e `gold/` voltam quando a integração (Fase 2) começar; nesta release a camada padronizada fica no Neon.
 
@@ -26,5 +26,5 @@ Detalhes e demais convenções em [`docs/PADROES.md`](../../docs/PADROES.md).
 
 ## Como (re)gerar
 
-Cada história `ING-*` / `INT-*` produz uma camada. A ingestão (RAW + Bronze) é feita
-pelos coletores de `src/ingestao/` — ex.: `python src/ingestao/epidemiologia.py`.
+Sem `--armazenamento mongo` e `--padronizada neon`, os comandos de coleta gravam aqui.
+Ex.: `python -m aervita arboviroses`.

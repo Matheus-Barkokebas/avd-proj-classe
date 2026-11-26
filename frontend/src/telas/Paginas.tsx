@@ -14,15 +14,12 @@ function Aviso({ titulo, texto, children }: { titulo: string; texto: string; chi
   );
 }
 
-/** Tela do protótipo que depende de dado que ainda não existe (ocorrências, equipes, simulador, boletins). */
+/** Tela do menu que depende de dado que ainda não existe (ocorrências, equipes de campo). */
 export function EmBreve() {
   const item = itemDaRota(useLocation().pathname);
   return (
     <Aviso titulo={item?.titulo ?? ""}
            texto="Esta tela depende de dados que ainda não existem no pipeline. Ela não mostra dado simulado como se fosse real.">
-      <p className="muted small" style={{ marginBottom: 14 }}>
-        A versão de demonstração (com dados simulados) está no protótipo: <code>frontend/prototipo/v3-aervita-console.html</code>.
-      </p>
       <Link to="/" className="btn"><Icone nome="painel" />Voltar para a visão geral</Link>
     </Aviso>
   );

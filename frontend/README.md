@@ -39,9 +39,8 @@ src/
 ├── layout/        menu lateral, barra superior, tema claro/escuro
 ├── componentes/   peças reaproveitáveis: ícones, estados de carregando/erro/vazio
 ├── telas/         uma tela por item do menu
-├── estilos/       tokens do protótipo v3 e estilos globais
+├── estilos/       tokens de cor e estilos globais
 └── test/          configuração e utilitários de teste
-prototipo/         console v3 em HTML puro — referência visual e funcional
 ```
 
 ## Telas

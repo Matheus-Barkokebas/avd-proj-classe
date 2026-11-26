@@ -6,8 +6,8 @@ com o fuso já aplicado como o repositório real faz.
 
 from datetime import date, datetime, timedelta, timezone
 
-import pytest
 from fastapi.testclient import TestClient
+import pytest
 
 from app.config import Configuracao
 from app.main import criar_app

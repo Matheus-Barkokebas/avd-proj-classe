@@ -4,8 +4,16 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from app.esquemas.modelos import (AlagamentoDia, AlagamentoRota, AvaliacaoModelo, FeatureCollection, Mare, PrevisaoAlagamento,
-                                  Simulacao, UltimaPrevisao)
+from app.esquemas.modelos import (
+    AlagamentoDia,
+    AlagamentoRota,
+    AvaliacaoModelo,
+    FeatureCollection,
+    Mare,
+    PrevisaoAlagamento,
+    Simulacao,
+    UltimaPrevisao,
+)
 from app.repositorios.neon import FUSO_RECIFE, RepositorioNeon
 from app.rotas.dependencias import obter_repositorio
 from app.servicos import regras

@@ -1,46 +1,56 @@
-# `pipeline/` — coleta e padronização
+# `pipeline/` — coleta, camadas de dados e modelo
 
-Módulo Python que coleta as fontes públicas e monta as camadas do medallion.
-Ver [decisão 0003](../docs/decisoes/0003-medallion-bronze-silver-gold.md).
+Pacote Python `aervita`: coleta as fontes públicas, monta as camadas do medallion e treina o modelo
+de alagamento. Ver [decisão 0003](../docs/decisoes/0003-medallion-bronze-silver-gold.md).
 
 ```text
 APIs públicas ──► Bronze (Atlas) ──► validação por contrato ──► Silver (Neon, public) ──► Gold (Neon, gold)
                                               └──► rejeitados (Neon), com o motivo
 ```
 
-| Pasta | Conteúdo |
-|---|---|
-| [`src/ingestao/`](src/ingestao/README.md) | conectores (CKAN Recife, ArcGIS do COP, ANA), runner, contratos, armazenamento e camada padronizada |
-| [`agendamento/`](agendamento/README.md) | coleta do COP de hora em hora numa máquina no Brasil |
-| `src/processamento/` | montagem da camada Gold (`gold.py`, `gold_alagamento.py`) |
-| [`src/predicao/`](src/predicao/README.md) | modelo de alagamento, com experimentos e resultados |
-| [`src/serving/`](src/serving/README.md) | exportação dos dados reais para o protótipo do painel |
-| [`conf/`](conf/README.md) | fontes (`sources/`) e contratos (`contracts/`) em YAML |
-| [`tests/`](tests/README.md) | testes sem rede + `integracao/` (APIs, Atlas e Neon reais, opcionais) |
-| [`data/`](data/README.md) | RAW e Bronze locais quando rodando em modo arquivo (ignorado pelo Git) |
+## Estrutura
+
+```text
+pipeline/
+├── aervita/                    pacote do pipeline
+│   ├── __main__.py             ponto de entrada: python -m aervita <comando>
+│   ├── ambiente.py             caminhos do projeto e variáveis de ambiente
+│   ├── diario.py               execução agendada (fontes + Gold) com registro em gold.execucao_pipeline
+│   ├── ingestao/
+│   │   ├── nucleo/             runner, armazenamento da RAW, contratos, Bronze, camada padronizada
+│   │   ├── clientes/           clientes HTTP genéricos: CKAN do Recife e ArcGIS
+│   │   └── fontes/             uma fonte por módulo: território, arboviroses, COP, INMET
+│   ├── processamento/          camada Gold (views e base horária do modelo)
+│   └── predicao/               modelo de alagamento (formato etl-vacinacao-recife) e resultados
+├── conf/                       fontes (sources/), contratos (contracts/) e gold.yml, em YAML
+├── agendamento/                scripts da VM: instalação e execução diária
+├── tests/                      espelha aervita/; integracao/ acessa os serviços reais
+└── data/                       RAW e Bronze locais em modo arquivo (ignorado pelo Git)
+```
+
+Regras de dependência: `fontes` usam `nucleo` e `clientes`; `processamento` só lê a Silver e escreve a Gold;
+`predicao` só lê a Gold. Fontes novas entram registrando um `Coletor` no `runner` e um comando em `__main__.py`.
 
 ## Como rodar
 
 Todos os comandos partem **desta pasta**:
 
 ```bash
-cd pipeline
 python -m venv .venv && .venv\Scripts\activate      # Linux/macOS: source .venv/bin/activate
-pip install -r requirements.txt -r requirements-dev.txt
-cp .env.example .env                                   # MONGODB_URI e NEON_DATABASE_URL, só aqui
+pip install -r requirements.txt -r requirements-dev.txt -r requirements-modelo.txt
+cp .env.example .env                                 # MONGODB_URI e NEON_DATABASE_URL, só aqui
 
-python src/ingestao/territorio.py    --armazenamento mongo --padronizada neon
-python src/ingestao/epidemiologia.py --armazenamento mongo --padronizada neon
-python src/ingestao/cop_recife.py    --armazenamento mongo --padronizada neon
-python src/ingestao/epidemiologia_historico.py        # carga única: arboviroses de 2013 a 2024
-python src/ingestao/inmet.py                          # chuva horária do INMET (arquivos anuais)
-python src/processamento/gold.py                      # recalcula a Gold (as cargas de arboviroses já chamam)
-
-pip install -r src/predicao/requirements.txt
-python src/predicao/train.py                           # treina, avalia e grava as previsões na Gold
-
-python src/serving/exporta_painel.py --armazenamento mongo   # regrava frontend/prototipo/dados/recife-real.js
+python -m aervita                                    # lista os comandos
+python -m aervita territorio  --armazenamento mongo --padronizada neon
+python -m aervita arboviroses --armazenamento mongo --padronizada neon
+python -m aervita inmet                              # chuva horária do INMET (arquivos anuais)
+python -m aervita gold                               # recalcula a Gold
+python -m aervita treino                             # treina, avalia e grava o modelo na Gold
+python -m aervita diario                             # tudo acima, como a VM roda todo dia
 
 pytest                    # sem rede
 pytest -m integracao      # contra as APIs, o Atlas e o Neon reais
+ruff check .              # estilo
 ```
+
+O COP Recife (`python -m aervita cop`) exige login desde nov/2026 e só responde a IPs do Brasil.

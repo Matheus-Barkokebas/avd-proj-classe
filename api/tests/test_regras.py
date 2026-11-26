@@ -45,7 +45,7 @@ def test_chave_bairro(nome, chave):
 
 def test_chave_bairro_igual_a_do_pipeline():
     """A API não importa o pipeline; este teste garante que as duas normalizações não divergem."""
-    arquivo = Path(__file__).resolve().parents[2] / "pipeline" / "src" / "ingestao" / "territorio.py"
+    arquivo = Path(__file__).resolve().parents[2] / "pipeline" / "aervita" / "ingestao" / "fontes" / "territorio.py"
     if not arquivo.is_file():
         pytest.skip("pipeline/ não está ao lado da api/")
     codigo = arquivo.read_text(encoding="utf-8")

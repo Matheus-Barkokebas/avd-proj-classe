@@ -1,9 +1,9 @@
 # Deploy de teste (gratuito)
 
-Ambiente de **teste/demonstração**, não de produção. Três peças, todas em planos gratuitos:
+Ambiente de **teste/demonstração**, não de produção. Três peças:
 
 ```text
-GitHub Actions (coleta do COP, de hora em hora) ──► Atlas (RAW) + Neon (padronizada)
+VM no Google Cloud (pipeline, todo dia às 6h) ──► Atlas (RAW) + Neon (Silver e Gold)
                                                                     │
                                      Render (API FastAPI) ◄─────────┘
                                             │
@@ -12,65 +12,20 @@ GitHub Actions (coleta do COP, de hora em hora) ──► Atlas (RAW) + Neon (pa
 
 | Peça | Serviço | Segredo que usa |
 |---|---|---|
-| Coleta do COP | GitHub Actions ([`coleta-cop.yml`](../.github/workflows/coleta-cop.yml)) | `MONGODB_URI` e `NEON_DATABASE_URL` **de dono** (escreve no banco) |
+| Pipeline | VM do Google Cloud ([`deploy-pipeline-vm.md`](deploy-pipeline-vm.md)) | `MONGODB_URI` e `NEON_DATABASE_URL` **de dono** (escreve no banco), no `.env` da VM |
 | API | Render | `NEON_DATABASE_URL` **só leitura** (`aervita_api`) |
 | Painel | Vercel | nenhum — só o endereço público da API |
 
 Siga na ordem: a API precisa existir antes do painel, e o painel antes de liberar o CORS.
 
-> Segredos só nos painéis do GitHub, do Render e da Vercel. Nunca em arquivo do repositório nem em chat.
+> Segredos só no `.env` da VM e nos painéis do Render e da Vercel. Nunca em arquivo do repositório nem em chat.
 
 ---
 
-## 1. Coleta do COP no GitHub Actions
+## 1. Pipeline na VM
 
-### 1.1 Liberar o Atlas para o GitHub
-
-As máquinas do GitHub Actions mudam de IP a cada execução. No Atlas:
-**Security → Network Access → Add IP Address → Allow access from anywhere** (`0.0.0.0/0`).
-
-A proteção passa a ser só o usuário e a senha da URI — aceitável para teste. Se o projeto virar algo sério,
-troque por um IP fixo (ex.: um servidor próprio rodando a coleta).
-
-O Neon já aceita qualquer IP por padrão; não precisa mexer.
-
-### 1.2 Cadastrar os segredos
-
-No GitHub: **repositório → Settings → Secrets and variables → Actions → New repository secret**.
-
-| Nome | Valor |
-|---|---|
-| `MONGODB_URI` | a mesma de `pipeline/.env` |
-| `NEON_DATABASE_URL` | a mesma de `pipeline/.env` (usuário **dono**, não o `aervita_api`) |
-
-### 1.3 Testar na mão
-
-O GitHub só mostra o botão **Run workflow** (e só dispara o agendamento) quando o `coleta-cop.yml` está na
-**branch padrão (`main`)**. Depois do merge:
-
-1. aba **Actions** → **coleta-cop** → **Run workflow**;
-2. escolha a frequência **todas** na primeira vez (carrega tudo do COP);
-3. abra a execução e confira o passo **Coletar**: o JSON no fim deve ter `"status": "ok"` em cada camada.
-
-Se falhar com erro de conexão no Mongo, revise o passo 1.1; com `Variável de ambiente ... não definida`, o 1.2.
-
-### 1.4 Agendamento
-
-| Quando (Recife) | O que coleta |
-|---|---|
-| toda hora, aos 10 min | indicadores (chuva, maré, estágio) e rios |
-| todo dia às 06:20 | previsão de chuva e chuva mensal |
-| só pelo botão (frequência `mensal` ou `todas`) | pluviômetros, áreas alagáveis e pontos de alagamento |
-
-Detalhes do GitHub que valem saber:
-
-- **botão manual e agendamento só funcionam com o workflow na branch padrão (`main`)**;
-- os horários podem atrasar alguns minutos (às vezes mais) em horário de pico do GitHub;
-- em repositório público, o agendamento é desligado depois de 60 dias sem commits (reative na aba Actions);
-- custo: grátis em repositório público; em privado, ~720 dos 2.000 minutos/mês gratuitos.
-
-Arboviroses e território quase não mudam: continue rodando na sua máquina quando precisar
-(`epidemiologia.py` e `territorio.py`, ver [`pipeline/README.md`](../pipeline/README.md)).
+Passo a passo em [`deploy-pipeline-vm.md`](deploy-pipeline-vm.md). A coleta do COP saiu do GitHub Actions:
+o servidor do COP não responde a IPs de fora do Brasil e, desde nov/2026, exige login.
 
 ---
 
@@ -141,6 +96,6 @@ Sem isso, o painel abre mas todos os cards mostram "Não foi possível falar com
 | Sintoma | Causa provável |
 |---|---|
 | Cards com "Não foi possível falar com a API" | API hibernando (espere 1 min e clique em "Tentar de novo"), `VITE_API_URL` errado ou CORS do passo 4 |
-| Aviso amarelo de dado antigo | coleta agendada parada: veja a aba Actions (falha ou agendamento desligado) |
+| Aviso amarelo de dado antigo | pipeline parado: veja `gold.execucao_pipeline` ou o log do dia na VM |
 | Coleta falha conectando no Mongo | IP do GitHub bloqueado no Atlas (passo 1.1) |
 | `/saude` responde `503` com `banco: indisponivel` | `NEON_DATABASE_URL` errada no Render |
